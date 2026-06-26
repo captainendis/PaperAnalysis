@@ -1,5 +1,5 @@
-import type { ConnectionConfig, QueryResult } from '@shared/types'
-import type { Driver } from './drivers/types'
+import type { ConnectionConfig, QueryResult, SchemaInfo } from '@shared/types'
+import type { Driver, QueryParams } from './drivers/types'
 import { createSqliteDriver } from './drivers/sqlite'
 import { createPostgresDriver } from './drivers/postgres'
 import { createMysqlDriver } from './drivers/mysql'
@@ -46,8 +46,12 @@ class ConnectionManager {
     return driver
   }
 
-  async run(config: ConnectionConfig, sql: string): Promise<QueryResult> {
-    return this.getDriver(config).query(sql)
+  async run(config: ConnectionConfig, sql: string, params?: QueryParams): Promise<QueryResult> {
+    return this.getDriver(config).query(sql, params)
+  }
+
+  async introspect(config: ConnectionConfig): Promise<SchemaInfo> {
+    return this.getDriver(config).introspect()
   }
 
   async closeOne(id: string): Promise<void> {

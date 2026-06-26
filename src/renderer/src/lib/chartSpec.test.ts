@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { aggregateRows, buildEChartsOption } from './chartSpec'
+import { aggregateRows, aggregateMulti, computeKpi, buildEChartsOption } from './chartSpec'
 import type { ChartConfig, QueryResult } from '@shared/types'
 
 const result: QueryResult = {
@@ -84,5 +84,78 @@ describe('buildEChartsOption', () => {
       aggregation: 'sum'
     }) as { xAxis: { data: string[] } }
     expect(option.xAxis.data).toEqual(['A', 'B', 'C'])
+  })
+
+  it('yığılmış bar için series stack=total alır', () => {
+    const option = buildEChartsOption(result, {
+      type: 'stackedBar',
+      dimension: 'kategori',
+      measure: 'tutar',
+      measures: ['tutar'],
+      aggregation: 'sum'
+    }) as { series: { stack?: string; type: string }[] }
+    expect(option.series[0].type).toBe('bar')
+    expect(option.series[0].stack).toBe('total')
+  })
+
+  it('saçılım için scatter series ve value eksenleri üretir', () => {
+    const option = buildEChartsOption(result, {
+      type: 'scatter',
+      dimension: null,
+      measure: 'tutar',
+      xMeasure: 'tutar',
+      aggregation: 'none'
+    }) as { series: { type: string; data: number[][] }[]; xAxis: { type: string } }
+    expect(option.series[0].type).toBe('scatter')
+    expect(option.xAxis.type).toBe('value')
+    expect(option.series[0].data.length).toBe(4)
+  })
+})
+
+describe('aggregateMulti', () => {
+  const multiResult: QueryResult = {
+    columns: [{ name: 'ay' }, { name: 'gelir' }, { name: 'gider' }],
+    rows: [
+      { ay: 'Oca', gelir: 100, gider: 60 },
+      { ay: 'Şub', gelir: 200, gider: 90 }
+    ],
+    rowCount: 2,
+    elapsedMs: 1
+  }
+
+  it('çoklu ölçü için ayrı seriler üretir', () => {
+    const ms = aggregateMulti(multiResult, {
+      type: 'line',
+      dimension: 'ay',
+      measure: null,
+      measures: ['gelir', 'gider'],
+      aggregation: 'sum'
+    })
+    expect(ms.categories).toEqual(['Oca', 'Şub'])
+    expect(ms.series.map((s) => s.name)).toEqual(['gelir', 'gider'])
+    expect(ms.series[0].data).toEqual([100, 200])
+    expect(ms.series[1].data).toEqual([60, 90])
+  })
+})
+
+describe('computeKpi', () => {
+  it('ölçünün toplamını döndürür', () => {
+    const value = computeKpi(result, {
+      type: 'kpi',
+      dimension: null,
+      measure: 'tutar',
+      aggregation: 'sum'
+    })
+    expect(value).toBe(38) // 10+5+20+3
+  })
+
+  it('count agregasyonunda satır sayısını döndürür', () => {
+    const value = computeKpi(result, {
+      type: 'kpi',
+      dimension: null,
+      measure: null,
+      aggregation: 'count'
+    })
+    expect(value).toBe(4)
   })
 })

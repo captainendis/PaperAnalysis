@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Dashboard, DashboardTile } from '@shared/types'
+import type { Dashboard, DashboardParameter, DashboardTile } from '@shared/types'
 import { createEmptyDashboard } from '../lib/serialize'
 
 interface DashboardState {
@@ -12,6 +12,9 @@ interface DashboardState {
   updateTile: (tile: DashboardTile) => void
   removeTile: (id: string) => void
   updateLayouts: (layouts: { i: string; x: number; y: number; w: number; h: number }[]) => void
+  setParameters: (parameters: DashboardParameter[]) => void
+  setParamValue: (name: string, value: string) => void
+  setRefreshInterval: (sec: number) => void
   loadDashboard: (dashboard: Dashboard, path: string | null) => void
   markSaved: (path: string) => void
   reset: () => void
@@ -57,6 +60,23 @@ export const useDashboard = create<DashboardState>((set) => ({
       },
       dirty: true
     })),
+
+  setParameters: (parameters) =>
+    set((s) => ({ dashboard: { ...s.dashboard, parameters }, dirty: true })),
+
+  setParamValue: (name, value) =>
+    set((s) => ({
+      dashboard: {
+        ...s.dashboard,
+        parameters: (s.dashboard.parameters ?? []).map((p) =>
+          p.name === name ? { ...p, value } : p
+        )
+      },
+      dirty: true
+    })),
+
+  setRefreshInterval: (sec) =>
+    set((s) => ({ dashboard: { ...s.dashboard, refreshIntervalSec: sec }, dirty: true })),
 
   loadDashboard: (dashboard, path) => set({ dashboard, filePath: path, dirty: false }),
 

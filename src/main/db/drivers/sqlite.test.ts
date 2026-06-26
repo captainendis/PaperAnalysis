@@ -55,4 +55,24 @@ describe('SQLite sürücüsü uçtan uca veri yolu', () => {
 
     await driver.close()
   })
+
+  it('introspect tabloları ve sütunları döndürür', async () => {
+    const driver = createSqliteDriver(config)
+    const schema = await driver.introspect()
+    const tablo = schema.tables.find((t) => t.name === 'satislar')
+    expect(tablo).toBeDefined()
+    expect(tablo!.columns.map((c) => c.name)).toEqual(['id', 'kategori', 'tutar'])
+    await driver.close()
+  })
+
+  it('parametreli sorgu (:param) doğru satırları süzer', async () => {
+    const driver = createSqliteDriver(config)
+    const res = await driver.query(
+      'SELECT * FROM satislar WHERE kategori = :kategori AND tutar > :min',
+      { kategori: 'Elektronik', min: 150 }
+    )
+    expect(res.rowCount).toBe(1)
+    expect(res.rows[0].tutar).toBe(250)
+    await driver.close()
+  })
 })

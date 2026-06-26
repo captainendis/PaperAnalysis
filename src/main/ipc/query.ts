@@ -9,7 +9,7 @@ export function registerQueryIpc(): void {
     CH.query,
     async (
       _e,
-      payload: { connectionId: string; sql: string }
+      payload: { connectionId: string; sql: string; params?: Record<string, unknown> }
     ): Promise<IpcResult<QueryResult>> => {
       try {
         const config = credentialStore.getFull(payload.connectionId)
@@ -20,7 +20,7 @@ export function registerQueryIpc(): void {
         if (!sql) {
           return { ok: false, error: 'Sorgu boş olamaz.' }
         }
-        const data = await connectionManager.run(config, sql)
+        const data = await connectionManager.run(config, sql, payload.params)
         return { ok: true, data }
       } catch (err) {
         return { ok: false, error: (err as Error).message }

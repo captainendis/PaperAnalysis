@@ -5,7 +5,11 @@ export const CH = {
   connList: 'connection:list',
   connDelete: 'connection:delete',
   query: 'query:run',
+  schemaIntrospect: 'schema:introspect',
   dashSave: 'dashboard:save',
   dashOpen: 'dashboard:open',
-  dashExport: 'dashboard:export'
+  dashExport: 'dashboard:export',
+  dashExportPdf: 'dashboard:exportPdf',
+  fileSaveText: 'file:saveText',
+  fileSaveBinary: 'file:saveBinary'
 } as const

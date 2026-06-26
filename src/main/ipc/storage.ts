@@ -82,4 +82,76 @@ export function registerStorageIpc(): void {
       }
     }
   )
+
+  // Düz metin dosyası kaydet (CSV vb.).
+  ipcMain.handle(
+    CH.fileSaveText,
+    async (
+      e,
+      payload: { text: string; suggestedName: string; extensions: string[] }
+    ): Promise<IpcResult<{ path: string }>> => {
+      try {
+        const win = BrowserWindow.fromWebContents(e.sender) ?? undefined
+        const res = await dialog.showSaveDialog(win!, {
+          title: 'Dışa Aktar',
+          defaultPath: payload.suggestedName,
+          filters: [{ name: 'Dosya', extensions: payload.extensions }]
+        })
+        if (res.canceled || !res.filePath) return { ok: false, error: 'İptal edildi.' }
+        await writeFile(res.filePath, payload.text, 'utf-8')
+        return { ok: true, data: { path: res.filePath } }
+      } catch (err) {
+        return { ok: false, error: (err as Error).message }
+      }
+    }
+  )
+
+  // İkili dosya kaydet (Excel/xlsx; base64 ile aktarılır).
+  ipcMain.handle(
+    CH.fileSaveBinary,
+    async (
+      e,
+      payload: { base64: string; suggestedName: string; extensions: string[] }
+    ): Promise<IpcResult<{ path: string }>> => {
+      try {
+        const win = BrowserWindow.fromWebContents(e.sender) ?? undefined
+        const res = await dialog.showSaveDialog(win!, {
+          title: 'Dışa Aktar',
+          defaultPath: payload.suggestedName,
+          filters: [{ name: 'Dosya', extensions: payload.extensions }]
+        })
+        if (res.canceled || !res.filePath) return { ok: false, error: 'İptal edildi.' }
+        await writeFile(res.filePath, Buffer.from(payload.base64, 'base64'))
+        return { ok: true, data: { path: res.filePath } }
+      } catch (err) {
+        return { ok: false, error: (err as Error).message }
+      }
+    }
+  )
+
+  // Panoyu PDF olarak dışa aktar (Electron printToPDF).
+  ipcMain.handle(
+    CH.dashExportPdf,
+    async (e, payload: { suggestedName: string }): Promise<IpcResult<{ path: string }>> => {
+      try {
+        const win = BrowserWindow.fromWebContents(e.sender)
+        if (!win) return { ok: false, error: 'Pencere bulunamadı.' }
+        const res = await dialog.showSaveDialog(win, {
+          title: 'Panoyu PDF Olarak Kaydet',
+          defaultPath: payload.suggestedName,
+          filters: [{ name: 'PDF', extensions: ['pdf'] }]
+        })
+        if (res.canceled || !res.filePath) return { ok: false, error: 'İptal edildi.' }
+        const pdf = await win.webContents.printToPDF({
+          landscape: true,
+          printBackground: true,
+          pageSize: 'A4'
+        })
+        await writeFile(res.filePath, pdf)
+        return { ok: true, data: { path: res.filePath } }
+      } catch (err) {
+        return { ok: false, error: (err as Error).message }
+      }
+    }
+  )
 }

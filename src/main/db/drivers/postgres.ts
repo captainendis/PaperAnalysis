@@ -1,6 +1,8 @@
 import pg from 'pg'
-import type { ConnectionConfig } from '@shared/types'
+import type { ConnectionConfig, SchemaInfo } from '@shared/types'
 import { buildResult, type Driver } from './types'
+import { bindParams } from '../bindParams'
+import { groupColumns } from './introspect'
 
 export function createPostgresDriver(config: ConnectionConfig): Driver {
   let pool: pg.Pool | null = null
@@ -29,12 +31,34 @@ export function createPostgresDriver(config: ConnectionConfig): Driver {
         client.release()
       }
     },
-    async query(sql) {
+    async query(sql, params) {
       const start = Date.now()
-      const res = await getPool().query(sql)
+      const bound = bindParams(sql, params, 'postgres')
+      const res = await getPool().query(bound.sql, bound.values)
       const columns = res.fields.map((f) => f.name)
       const rows = res.rows as Record<string, unknown>[]
       return buildResult(columns, rows, Date.now() - start)
+    },
+    async introspect(): Promise<SchemaInfo> {
+      const res = await getPool().query<{
+        table_schema: string
+        table_name: string
+        column_name: string
+        data_type: string
+      }>(
+        `SELECT table_schema, table_name, column_name, data_type
+         FROM information_schema.columns
+         WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+         ORDER BY table_schema, table_name, ordinal_position`
+      )
+      return groupColumns(
+        res.rows.map((r) => ({
+          schema: r.table_schema,
+          table: r.table_name,
+          column: r.column_name,
+          type: r.data_type
+        }))
+      )
     },
     async close() {
       if (pool) {

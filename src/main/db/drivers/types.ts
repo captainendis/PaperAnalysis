@@ -1,4 +1,7 @@
-import type { ConnectionConfig, QueryResult } from '@shared/types'
+import type { ConnectionConfig, QueryResult, SchemaInfo } from '@shared/types'
+
+/** `:name` yer tutucuları için parametre değerleri. */
+export type QueryParams = Record<string, unknown> | undefined
 
 /**
  * Tüm veritabanı sürücülerinin uyguladığı ortak arayüz.
@@ -8,7 +11,9 @@ export interface Driver {
   /** Bağlanmayı dener; başarısızsa hata fırlatır. */
   test(): Promise<void>
   /** SQL çalıştırır ve normalize edilmiş sonuç döndürür. */
-  query(sql: string): Promise<QueryResult>
+  query(sql: string, params?: QueryParams): Promise<QueryResult>
+  /** Veritabanı tablolarını ve sütunlarını döndürür. */
+  introspect(): Promise<SchemaInfo>
   /** Açık kaynakları kapatır. */
   close(): Promise<void>
 }

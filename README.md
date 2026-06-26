@@ -8,13 +8,20 @@ Electron + React + TypeScript ile geliştirilmiştir.
 ## Özellikler
 
 - **Çoklu veritabanı bağlantısı:** Microsoft SQL Server, PostgreSQL, MySQL/MariaDB, SQLite
+- **Veritabanı şema gezgini:** Bağlantının tablo/sütun ağacı; tabloya tıklayınca
+  otomatik `SELECT`, sütuna tıklayınca sorguya alan ekleme
 - **SQL sorgu editörü:** Monaco tabanlı, söz dizimi vurgusu, `Ctrl/Cmd+Enter` ile çalıştırma
 - **Sonuç tablosu:** Sorgu sonuçlarını anında tablolaştırma
-- **Grafikler:** Sütun (bar), çizgi ve pasta grafikleri (Apache ECharts)
+- **Grafikler (Apache ECharts):** Sütun (bar), yığılmış sütun, çizgi, alan (area),
+  saçılım (scatter), pasta, **KPI kartı** ve **tablo** görselleri
   - Kategori (X) / ölçü (Y) eşleme + agregasyon (SUM/AVG/COUNT/MIN/MAX)
+  - **Çoklu seri** desteği (birden fazla ölçü)
+- **Filtreler & etkileşim:** Pano genelinde parametreler (`:ad` yer tutucuları ile,
+  güvenli parametre bağlama), filtre çubuğu ve **otomatik yenileme**
 - **Sürükle-bırak pano:** Grafik kartlarını taşıma ve yeniden boyutlandırma (react-grid-layout)
-- **Kaydetme / paylaşma:** Panoyu `.pbdash` (JSON) dosyası olarak kaydetme/açma,
-  grafikleri PNG olarak dışa aktarma
+- **Dışa aktarma:** Sorgu sonuçlarını **CSV / Excel (.xlsx)**, grafikleri **PNG**,
+  panoyu **PDF** olarak dışa aktarma
+- **Kaydetme / paylaşma:** Panoyu `.pbdash` (JSON) dosyası olarak kaydetme/açma
 - **Güvenli kimlik bilgisi:** Parolalar Electron `safeStorage` (OS keychain) ile şifrelenir;
   paylaşılan pano dosyalarına parola **yazılmaz**.
 
@@ -81,3 +88,19 @@ ORDER BY toplam DESC;
 
 Grafik ayarlarında: Kategori = `kategori`, Ölçü = `toplam` (veya `tutar`),
 Agregasyon = SUM, Tür = Sütun.
+
+### Filtreler (pano parametreleri)
+
+Üst çubuktan **Filtreler**'e tıklayıp bir parametre tanımlayın (ör. ad: `kategori`,
+tür: metin). Ardından tile sorgularınızda `:kategori` şeklinde kullanın:
+
+```sql
+SELECT urun, SUM(tutar) AS toplam
+FROM satislar
+WHERE kategori = :kategori
+GROUP BY urun;
+```
+
+Filtre çubuğundan değer girdiğinizde ilgili tüm grafikler otomatik yenilenir.
+Değerler SQL'e **parametre bağlama** ile geçirildiğinden enjeksiyon riski yoktur.
+Aynı ekrandan **otomatik yenileme** aralığı da ayarlanabilir.

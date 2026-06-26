@@ -1,40 +1,61 @@
 import { useMemo, forwardRef } from 'react'
 import ReactECharts from 'echarts-for-react'
 import type { ChartConfig, QueryResult } from '@shared/types'
-import { buildEChartsOption } from '../../lib/chartSpec'
+import { buildEChartsOption, computeKpi, resolveMeasures } from '../../lib/chartSpec'
+import { ResultsTable } from '../QueryEditor/ResultsTable'
 
 interface Props {
   result: QueryResult | null
   chart: ChartConfig
 }
 
+function formatNumber(n: number): string {
+  if (!Number.isFinite(n)) return '—'
+  return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 }).format(n)
+}
+
+const empty = (msg: string) => (
+  <div className="flex h-full items-center justify-center px-3 text-center text-sm text-gray-500">
+    {msg}
+  </div>
+)
+
 /**
- * Sorgu sonucu + grafik yapılandırmasından ECharts grafiği çizer.
- * ref, PNG dışa aktarımı için ECharts örneğine erişim sağlar.
+ * Sorgu sonucu + grafik yapılandırmasından görseli çizer. ECharts türleri için
+ * grafik, KPI/tablo türleri için özel render kullanır. ref yalnızca ECharts
+ * türlerinde PNG dışa aktarımı için doludur.
  */
 export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   { result, chart },
   ref
 ) {
   const option = useMemo(() => {
-    if (!result) return null
+    if (!result || chart.type === 'kpi' || chart.type === 'table') return null
     return buildEChartsOption(result, chart)
   }, [result, chart])
 
-  if (!result) {
+  if (!result) return empty('Önce sorgu çalıştırın.')
+
+  // KPI kartı.
+  if (chart.type === 'kpi') {
+    const value = computeKpi(result, chart)
     return (
-      <div className="flex h-full items-center justify-center text-sm text-gray-500">
-        Önce sorgu çalıştırın.
+      <div className="flex h-full flex-col items-center justify-center">
+        <span className="text-4xl font-bold text-gray-100">{formatNumber(value)}</span>
+        <span className="mt-1 text-sm text-gray-400">
+          {chart.title || resolveMeasures(chart)[0] || 'Sayım'}
+        </span>
       </div>
     )
   }
-  if (!chart.dimension) {
-    return (
-      <div className="flex h-full items-center justify-center text-sm text-gray-500">
-        Kategori (X) alanı seçin.
-      </div>
-    )
+
+  // Tablo görseli.
+  if (chart.type === 'table') {
+    return <ResultsTable result={result} />
   }
+
+  if (!chart.dimension) return empty('Kategori (X) alanı seçin.')
+  if (chart.type === 'scatter' && !chart.xMeasure) return empty('Saçılım için sayısal X alanı seçin.')
 
   return (
     <ReactECharts

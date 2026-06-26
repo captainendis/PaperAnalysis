@@ -1,6 +1,8 @@
 import mysql from 'mysql2/promise'
-import type { ConnectionConfig } from '@shared/types'
+import type { ConnectionConfig, SchemaInfo } from '@shared/types'
 import { buildResult, type Driver } from './types'
+import { bindParams } from '../bindParams'
+import { groupColumns } from './introspect'
 
 export function createMysqlDriver(config: ConnectionConfig): Driver {
   let pool: mysql.Pool | null = null
@@ -31,9 +33,10 @@ export function createMysqlDriver(config: ConnectionConfig): Driver {
         conn.release()
       }
     },
-    async query(sql) {
+    async query(sql, params) {
       const start = Date.now()
-      const [rows, fields] = await getPool().query(sql)
+      const bound = bindParams(sql, params, 'mysql')
+      const [rows, fields] = await getPool().query(bound.sql, bound.values)
       // INSERT/UPDATE gibi sorgularda rows bir ResultSetHeader olur.
       if (Array.isArray(rows)) {
         const columns = (fields ?? []).map((f) => f.name)
@@ -45,6 +48,17 @@ export function createMysqlDriver(config: ConnectionConfig): Driver {
         [{ affectedRows: header.affectedRows, insertId: header.insertId }],
         Date.now() - start
       )
+    },
+    async introspect(): Promise<SchemaInfo> {
+      const [rows] = await getPool().query(
+        `SELECT TABLE_NAME AS t, COLUMN_NAME AS c, DATA_TYPE AS d
+         FROM information_schema.COLUMNS
+         WHERE TABLE_SCHEMA = ?
+         ORDER BY TABLE_NAME, ORDINAL_POSITION`,
+        [config.database]
+      )
+      const list = rows as { t: string; c: string; d: string }[]
+      return groupColumns(list.map((r) => ({ table: r.t, column: r.c, type: r.d })))
     },
     async close() {
       if (pool) {

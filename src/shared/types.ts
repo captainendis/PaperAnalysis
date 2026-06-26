@@ -27,6 +27,24 @@ export interface QueryColumn {
   name: string
 }
 
+// ---- Şema (introspection) modelleri ----
+
+export interface ColumnInfo {
+  name: string
+  type: string
+}
+
+export interface TableInfo {
+  name: string
+  /** Şema adı (postgres/mssql); sqlite/mysql için opsiyonel. */
+  schema?: string
+  columns: ColumnInfo[]
+}
+
+export interface SchemaInfo {
+  tables: TableInfo[]
+}
+
 export interface QueryResult {
   columns: QueryColumn[]
   rows: Record<string, unknown>[]
@@ -49,15 +67,27 @@ export type IpcResult<T> = IpcOk<T> | IpcErr
 
 // ---- Grafik & pano modelleri ----
 
-export type ChartType = 'bar' | 'line' | 'pie'
+export type ChartType =
+  | 'bar'
+  | 'line'
+  | 'area'
+  | 'scatter'
+  | 'stackedBar'
+  | 'pie'
+  | 'kpi'
+  | 'table'
 export type Aggregation = 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max'
 
 export interface ChartConfig {
   type: ChartType
   /** Kategori / X ekseni alanı (sütun adı). */
   dimension: string | null
-  /** Değer / Y ekseni alanı (sütun adı). */
+  /** Değer / Y ekseni alanı (tekil ölçü; geriye dönük uyum). */
   measure: string | null
+  /** Çoklu seri için ölçü listesi. Doluysa `measure` yerine bu kullanılır. */
+  measures?: string[]
+  /** Scatter için sayısal X ekseni alanı. */
+  xMeasure?: string | null
   aggregation: Aggregation
   title?: string
 }
@@ -72,10 +102,24 @@ export interface DashboardTile {
   layout: { x: number; y: number; w: number; h: number }
 }
 
+export type ParamType = 'text' | 'number' | 'date'
+
+/** Pano genelinde tile SQL'lerinde `:name` ile referans verilen parametre. */
+export interface DashboardParameter {
+  name: string
+  label: string
+  type: ParamType
+  value: string
+}
+
 export interface Dashboard {
   version: 1
   name: string
   tiles: DashboardTile[]
+  /** Pano genel parametreleri (filtre çubuğu). */
+  parameters?: DashboardParameter[]
+  /** Otomatik yenileme aralığı (saniye); 0 / tanımsız = kapalı. */
+  refreshIntervalSec?: number
 }
 
 export const DEFAULT_PORTS: Record<DbKind, number | undefined> = {

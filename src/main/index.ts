@@ -2,6 +2,7 @@ import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
 import { registerConnectionIpc } from './ipc/connections'
 import { registerQueryIpc } from './ipc/query'
+import { registerSchemaIpc } from './ipc/schema'
 import { registerStorageIpc } from './ipc/storage'
 import { connectionManager } from './db/manager'
 
@@ -40,6 +41,7 @@ function createWindow(): void {
 app.whenReady().then(() => {
   registerConnectionIpc()
   registerQueryIpc()
+  registerSchemaIpc()
   registerStorageIpc()
 
   createWindow()

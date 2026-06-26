@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { DashboardTile, QueryResult } from '@shared/types'
+import type { DashboardTile, QueryResult, TableInfo } from '@shared/types'
 import { Modal } from '../common/Modal'
 import { Button } from '../common/Button'
 import { Select } from '../common/Field'
@@ -7,7 +7,11 @@ import { SqlEditor } from '../QueryEditor/SqlEditor'
 import { ResultsTable } from '../QueryEditor/ResultsTable'
 import { ChartBuilder } from '../ChartBuilder/ChartBuilder'
 import { ChartView } from '../ChartBuilder/ChartView'
+import { SchemaTree } from '../SchemaExplorer/SchemaTree'
 import { useConnections } from '../../store/connections'
+import { useDashboard } from '../../store/dashboard'
+import { paramValues } from '../../lib/params'
+import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 interface Props {
   open: boolean
@@ -18,13 +22,30 @@ interface Props {
 
 type Tab = 'data' | 'chart'
 
+/** Grafik yapılandırmasının panoya kaydedilebilir olup olmadığını belirler. */
+function canSave(tile: DashboardTile): boolean {
+  const c = tile.chart
+  switch (c.type) {
+    case 'table':
+      return true
+    case 'kpi':
+      return c.aggregation === 'count' || !!c.measure
+    case 'scatter':
+      return !!c.xMeasure && !!c.measure
+    default:
+      return !!c.dimension
+  }
+}
+
 export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const connections = useConnections((s) => s.items)
+  const parameters = useDashboard((s) => s.dashboard.parameters)
   const [draft, setDraft] = useState<DashboardTile>(tile)
   const [result, setResult] = useState<QueryResult | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('data')
+  const [showSchema, setShowSchema] = useState(true)
 
   async function runQuery() {
     if (!draft.connectionId) {
@@ -33,7 +54,7 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
     }
     setRunning(true)
     setError(null)
-    const res = await window.api.query.run(draft.connectionId, draft.sql)
+    const res = await window.api.query.run(draft.connectionId, draft.sql, paramValues(parameters))
     setRunning(false)
     if (res.ok) {
       setResult(res.data)
@@ -41,6 +62,24 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
     } else {
       setError(res.error)
     }
+  }
+
+  function pickTable(t: TableInfo) {
+    const qualified = t.schema ? `${t.schema}.${t.name}` : t.name
+    setDraft((d) => ({ ...d, sql: `SELECT * FROM ${qualified} LIMIT 100`, title: d.title || t.name }))
+  }
+
+  function pickColumn(col: string) {
+    setDraft((d) => ({ ...d, sql: d.sql ? `${d.sql} ${col}` : col }))
+  }
+
+  async function exportCsv() {
+    if (!result) return
+    await window.api.file.saveText(toCsv(result), `${draft.title || 'veri'}.csv`, ['csv'])
+  }
+  async function exportXlsx() {
+    if (!result) return
+    await window.api.file.saveBinary(toXlsxBase64(result), `${draft.title || 'veri'}.xlsx`, ['xlsx'])
   }
 
   function handleSave() {
@@ -59,16 +98,50 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
           <Button variant="ghost" onClick={onClose}>
             İptal
           </Button>
-          <Button variant="primary" onClick={handleSave} disabled={!draft.chart.dimension}>
+          <Button variant="primary" onClick={handleSave} disabled={!canSave(draft)}>
             Panoya Kaydet
           </Button>
         </>
       }
     >
-      <div className="flex h-[68vh] gap-4">
-        {/* Sol: sorgu / sonuç */}
+      <div className="flex h-[68vh] gap-3">
+        {/* En sol: şema ağacı */}
+        {showSchema && (
+          <div className="flex w-52 flex-col rounded-md border border-edge bg-panel">
+            <div className="flex items-center justify-between border-b border-edge px-2 py-1.5">
+              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+                Şema
+              </span>
+              <button
+                className="text-xs text-gray-500 hover:text-gray-300"
+                onClick={() => setShowSchema(false)}
+                title="Gizle"
+              >
+                «
+              </button>
+            </div>
+            <div className="flex-1 overflow-hidden py-1">
+              <SchemaTree
+                connectionId={draft.connectionId}
+                onPickTable={pickTable}
+                onPickColumn={pickColumn}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Orta: sorgu / sonuç */}
         <div className="flex flex-1 flex-col gap-3">
           <div className="flex items-center gap-2">
+            {!showSchema && (
+              <button
+                className="rounded border border-edge px-2 py-1.5 text-xs text-gray-400 hover:bg-white/10"
+                onClick={() => setShowSchema(true)}
+                title="Şemayı göster"
+              >
+                »
+              </button>
+            )}
             <input
               className="flex-1 rounded-md border border-edge bg-surface px-3 py-1.5 text-sm text-gray-100 outline-none focus:border-brand-500"
               value={draft.title}
@@ -106,8 +179,18 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
           <div className="flex-1 overflow-hidden rounded-md border border-edge bg-surface">
             {result ? (
               <div className="flex h-full flex-col">
-                <div className="border-b border-edge px-3 py-1.5 text-xs text-gray-400">
-                  {result.rowCount} satır · {result.elapsedMs} ms
+                <div className="flex items-center justify-between border-b border-edge px-3 py-1.5 text-xs text-gray-400">
+                  <span>
+                    {result.rowCount} satır · {result.elapsedMs} ms
+                  </span>
+                  <div className="flex gap-2">
+                    <button className="hover:text-brand-500" onClick={exportCsv}>
+                      CSV
+                    </button>
+                    <button className="hover:text-brand-500" onClick={exportXlsx}>
+                      Excel
+                    </button>
+                  </div>
                 </div>
                 <div className="flex-1 overflow-hidden">
                   <ResultsTable result={result} />

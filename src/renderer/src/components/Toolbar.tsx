@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { useDashboard } from '../store/dashboard'
 import { Button } from './common/Button'
+import { ParameterManager } from './FilterBar/ParameterManager'
 
 export function Toolbar() {
   const { dashboard, filePath, dirty, setName, loadDashboard, markSaved, reset } = useDashboard()
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   function flash(msg: string) {
     setToast(msg)
@@ -41,6 +43,16 @@ export function Toolbar() {
     reset()
   }
 
+  async function exportPdf() {
+    setBusy(true)
+    const res = await window.api.dashboard.exportPdf(`${dashboard.name || 'pano'}.pdf`)
+    setBusy(false)
+    if (res.ok) flash('PDF kaydedildi.')
+    else if (res.error !== 'İptal edildi.') flash('Hata: ' + res.error)
+  }
+
+  const paramCount = dashboard.parameters?.length ?? 0
+
   return (
     <header className="flex items-center gap-3 border-b border-edge bg-panel px-4 py-2">
       <div className="flex items-center gap-2">
@@ -60,6 +72,13 @@ export function Toolbar() {
 
       <div className="ml-auto flex items-center gap-2">
         {toast && <span className="text-xs text-gray-400">{toast}</span>}
+        <Button variant="ghost" onClick={() => setFiltersOpen(true)} disabled={busy}>
+          Filtreler{paramCount > 0 ? ` (${paramCount})` : ''}
+        </Button>
+        <Button variant="ghost" onClick={exportPdf} disabled={busy}>
+          PDF
+        </Button>
+        <div className="mx-1 h-5 w-px bg-edge" />
         <Button variant="ghost" onClick={newDashboard} disabled={busy}>
           Yeni
         </Button>
@@ -73,6 +92,8 @@ export function Toolbar() {
           Kaydet
         </Button>
       </div>
+
+      <ParameterManager open={filtersOpen} onClose={() => setFiltersOpen(false)} />
     </header>
   )
 }

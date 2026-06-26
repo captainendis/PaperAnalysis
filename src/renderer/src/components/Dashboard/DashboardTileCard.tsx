@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type ReactECharts from 'echarts-for-react'
 import type { DashboardTile, QueryResult } from '@shared/types'
 import { ChartView } from '../ChartBuilder/ChartView'
+import { useDashboard } from '../../store/dashboard'
+import { paramValues } from '../../lib/params'
+import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 interface Props {
   tile: DashboardTile
@@ -11,26 +14,42 @@ interface Props {
 
 /** Pano üzerindeki tek bir grafik kartı; kendi sorgusunu çalıştırır. */
 export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
+  const parameters = useDashboard((s) => s.dashboard.parameters)
+  const refreshIntervalSec = useDashboard((s) => s.dashboard.refreshIntervalSec)
   const [result, setResult] = useState<QueryResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const chartRef = useRef<ReactECharts>(null)
 
-  async function load() {
+  // Parametre değerlerinin serileştirilmiş hali — değişince yeniden yükle.
+  const paramKey = JSON.stringify(parameters?.map((p) => [p.name, p.value]) ?? [])
+
+  const load = useCallback(async () => {
     if (!tile.connectionId || !tile.sql.trim()) return
     setLoading(true)
     setError(null)
-    const res = await window.api.query.run(tile.connectionId, tile.sql)
+    const res = await window.api.query.run(
+      tile.connectionId,
+      tile.sql,
+      paramValues(parameters)
+    )
     setLoading(false)
     if (res.ok) setResult(res.data)
     else setError(res.error)
-  }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tile.connectionId, tile.sql, paramKey])
 
-  // Sorgu, bağlantı değiştiğinde yeniden çalıştır.
+  // Sorgu, bağlantı veya parametre değiştiğinde yeniden çalıştır.
   useEffect(() => {
     load()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tile.sql, tile.connectionId])
+  }, [load])
+
+  // Otomatik yenileme.
+  useEffect(() => {
+    if (!refreshIntervalSec || refreshIntervalSec <= 0) return
+    const id = setInterval(load, refreshIntervalSec * 1000)
+    return () => clearInterval(id)
+  }, [refreshIntervalSec, load])
 
   async function exportPng() {
     const inst = chartRef.current?.getEchartsInstance()
@@ -38,6 +57,18 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
     const dataUrl = inst.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#252731' })
     await window.api.dashboard.exportPng(dataUrl, `${tile.title || 'grafik'}.png`)
   }
+
+  async function exportCsv() {
+    if (!result) return
+    await window.api.file.saveText(toCsv(result), `${tile.title || 'veri'}.csv`, ['csv'])
+  }
+
+  async function exportXlsx() {
+    if (!result) return
+    await window.api.file.saveBinary(toXlsxBase64(result), `${tile.title || 'veri'}.xlsx`, ['xlsx'])
+  }
+
+  const isChart = tile.chart.type !== 'kpi' && tile.chart.type !== 'table'
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-edge bg-surface">
@@ -49,9 +80,21 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
           <button title="Yenile" className="hover:text-brand-500" onClick={load}>
             ⟳
           </button>
-          <button title="PNG dışa aktar" className="hover:text-brand-500" onClick={exportPng}>
-            ⤓
-          </button>
+          {result && (
+            <>
+              <button title="CSV dışa aktar" className="hover:text-brand-500" onClick={exportCsv}>
+                CSV
+              </button>
+              <button title="Excel dışa aktar" className="hover:text-brand-500" onClick={exportXlsx}>
+                XLS
+              </button>
+            </>
+          )}
+          {isChart && (
+            <button title="PNG dışa aktar" className="hover:text-brand-500" onClick={exportPng}>
+              ⤓
+            </button>
+          )}
           <button title="Düzenle" className="hover:text-brand-500" onClick={onEdit}>
             ✎
           </button>

@@ -5,7 +5,8 @@ import type {
   Dashboard,
   IpcResult,
   QueryResult,
-  SafeConnection
+  SafeConnection,
+  SchemaInfo
 } from '@shared/types'
 
 const api = {
@@ -18,8 +19,16 @@ const api = {
     delete: (id: string): Promise<IpcResult<true>> => ipcRenderer.invoke(CH.connDelete, id)
   },
   query: {
-    run: (connectionId: string, sql: string): Promise<IpcResult<QueryResult>> =>
-      ipcRenderer.invoke(CH.query, { connectionId, sql })
+    run: (
+      connectionId: string,
+      sql: string,
+      params?: Record<string, unknown>
+    ): Promise<IpcResult<QueryResult>> =>
+      ipcRenderer.invoke(CH.query, { connectionId, sql, params })
+  },
+  schema: {
+    introspect: (connectionId: string): Promise<IpcResult<SchemaInfo>> =>
+      ipcRenderer.invoke(CH.schemaIntrospect, connectionId)
   },
   dashboard: {
     save: (dashboard: Dashboard, path?: string): Promise<IpcResult<{ path: string }>> =>
@@ -30,7 +39,23 @@ const api = {
       dataUrl: string,
       suggestedName: string
     ): Promise<IpcResult<{ path: string }>> =>
-      ipcRenderer.invoke(CH.dashExport, { dataUrl, suggestedName })
+      ipcRenderer.invoke(CH.dashExport, { dataUrl, suggestedName }),
+    exportPdf: (suggestedName: string): Promise<IpcResult<{ path: string }>> =>
+      ipcRenderer.invoke(CH.dashExportPdf, { suggestedName })
+  },
+  file: {
+    saveText: (
+      text: string,
+      suggestedName: string,
+      extensions: string[]
+    ): Promise<IpcResult<{ path: string }>> =>
+      ipcRenderer.invoke(CH.fileSaveText, { text, suggestedName, extensions }),
+    saveBinary: (
+      base64: string,
+      suggestedName: string,
+      extensions: string[]
+    ): Promise<IpcResult<{ path: string }>> =>
+      ipcRenderer.invoke(CH.fileSaveBinary, { base64, suggestedName, extensions })
   }
 }
 
