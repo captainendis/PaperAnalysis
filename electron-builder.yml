@@ -1,0 +1,19 @@
+appId: com.paperanalysis.powerbi
+productName: PowerBI Tarzı Analiz
+directories:
+  output: release
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+asarUnpack:
+  - '**/*.node'
+win:
+  target: nsis
+mac:
+  target: dmg
+  category: public.app-category.business
+linux:
+  target: AppImage
+  category: Office
+npmRebuild: true
