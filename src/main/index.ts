@@ -3,6 +3,7 @@ import { join } from 'path'
 import { registerConnectionIpc } from './ipc/connections'
 import { registerQueryIpc } from './ipc/query'
 import { registerSchemaIpc } from './ipc/schema'
+import { registerSampleIpc } from './ipc/sample'
 import { registerStorageIpc } from './ipc/storage'
 import { connectionManager } from './db/manager'
 
@@ -42,6 +43,7 @@ app.whenReady().then(() => {
   registerConnectionIpc()
   registerQueryIpc()
   registerSchemaIpc()
+  registerSampleIpc()
   registerStorageIpc()
 
   createWindow()

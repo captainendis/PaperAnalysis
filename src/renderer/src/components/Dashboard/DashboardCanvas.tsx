@@ -4,20 +4,50 @@ import { useDashboard } from '../../store/dashboard'
 import { useConnections } from '../../store/connections'
 import { DashboardTileCard } from './DashboardTileCard'
 import { TileEditor } from '../TileEditor/TileEditor'
-import { defaultTile } from '../../lib/serialize'
+import { defaultTile, uid } from '../../lib/serialize'
+import { salesOverviewTemplate } from '../../lib/templates'
 import { Button } from '../common/Button'
 import type { DashboardTile } from '@shared/types'
 
 export function DashboardCanvas() {
   const ResponsiveGrid = useMemo(() => WidthProvider(RGL), [])
-  const { dashboard, addTile, updateTile, removeTile, updateLayouts } = useDashboard()
+  const { dashboard, addTile, updateTile, removeTile, updateLayouts, loadDashboard } =
+    useDashboard()
   const activeConnId = useConnections((s) => s.activeId)
+  const saveConnection = useConnections((s) => s.save)
   const [editing, setEditing] = useState<DashboardTile | null>(null)
   const [isNew, setIsNew] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [sampleError, setSampleError] = useState<string | null>(null)
 
   function startNew() {
     setEditing(defaultTile(activeConnId))
     setIsNew(true)
+  }
+
+  // Tek tıkla: örnek SQLite veritabanı üret → bağlantı kaydet → şablon panoyu yükle.
+  async function createSample() {
+    setCreating(true)
+    setSampleError(null)
+    const res = await window.api.sample.create()
+    if (!res.ok) {
+      setCreating(false)
+      setSampleError(res.error)
+      return
+    }
+    const connId = uid('conn')
+    const ok = await saveConnection({
+      id: connId,
+      name: 'Örnek Satış (SQLite)',
+      kind: 'sqlite',
+      filePath: res.data.filePath
+    })
+    if (ok) {
+      loadDashboard(salesOverviewTemplate(connId), null)
+    } else {
+      setSampleError('Bağlantı kaydedilemedi.')
+    }
+    setCreating(false)
   }
 
   function startEdit(tile: DashboardTile) {
@@ -47,14 +77,26 @@ export function DashboardCanvas() {
   return (
     <div className="relative h-full overflow-auto bg-[#15161b] p-4">
       {dashboard.tiles.length === 0 ? (
-        <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
-          <p className="text-lg text-gray-300">Panonuz boş</p>
-          <p className="max-w-sm text-sm text-gray-500">
-            Bir SQL sorgusu yazıp grafiğe dönüştürün ve bu panoya ekleyin.
+        <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
+          <div className="text-5xl text-brand-500">▦</div>
+          <p className="text-lg text-gray-200">Power BI Tarzı Analize Hoş Geldiniz</p>
+          <p className="max-w-md text-sm text-gray-500">
+            Hızlı başlamak için tek tıkla örnek bir veritabanı ve hazır bir pano
+            oluşturun; ya da kendi SQL bağlantınızla bir grafik ekleyin.
           </p>
-          <Button variant="primary" onClick={startNew}>
-            + İlk Grafiği Ekle
-          </Button>
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            <Button variant="primary" onClick={createSample} disabled={creating}>
+              {creating ? 'Oluşturuluyor…' : '✨ Örnek veri + pano oluştur'}
+            </Button>
+            <Button variant="ghost" onClick={startNew}>
+              + İlk Grafiği Ekle
+            </Button>
+          </div>
+          {sampleError && (
+            <p className="rounded-md bg-red-500/15 px-3 py-2 text-sm text-red-300">
+              {sampleError}
+            </p>
+          )}
         </div>
       ) : (
         <ResponsiveGrid

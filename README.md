@@ -67,6 +67,18 @@ npm test               # Vitest birim/entegrasyon testleri (chartSpec + SQLite v
 npm run typecheck      # main ve renderer için TypeScript tip kontrolü
 ```
 
+## Hızlı Başlangıç (Örnek Veri)
+
+Uygulama ilk açıldığında, boş pano ekranındaki **“✨ Örnek veri + pano oluştur”**
+düğmesine tıklayın. Bu, harici bir sunucu gerektirmeden:
+
+1. Yerel bir örnek SQLite veritabanı (`ornek-satis.sqlite`, ~400 satışlık veri) üretir,
+2. Otomatik olarak bir bağlantı kaydeder,
+3. Hazır **“Satış Genel Bakış”** panosunu (KPI'lar, kategori/bölge/trend grafikleri
+   ve en çok satan ürünler tablosu) yükler.
+
+Böylece SQL yazmadan aracın tüm yeteneklerini anında görebilirsiniz.
+
 ## Kullanım
 
 1. Sol panelden **+ Yeni** ile bir bağlantı ekleyin (türü seçin, bilgileri girin,

@@ -30,6 +30,10 @@ const api = {
     introspect: (connectionId: string): Promise<IpcResult<SchemaInfo>> =>
       ipcRenderer.invoke(CH.schemaIntrospect, connectionId)
   },
+  sample: {
+    create: (): Promise<IpcResult<{ filePath: string; rowCount: number }>> =>
+      ipcRenderer.invoke(CH.sampleCreate)
+  },
   dashboard: {
     save: (dashboard: Dashboard, path?: string): Promise<IpcResult<{ path: string }>> =>
       ipcRenderer.invoke(CH.dashSave, { dashboard, path }),
