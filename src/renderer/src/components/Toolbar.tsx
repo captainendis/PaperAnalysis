@@ -9,7 +9,8 @@ import { ScheduledReportModal } from './ScheduledReport/ScheduledReportModal'
 import { PublishModal } from './Publish/PublishModal'
 
 export function Toolbar() {
-  const { dashboard, filePath, dirty, setName, markSaved } = useDashboard()
+  const { dashboard, filePath, dirty, setName, markSaved, setRefreshInterval } = useDashboard()
+  const refreshIntervalSec = dashboard.refreshIntervalSec ?? 0
   const { newTab, newTabWith } = useWorkspace()
   const { theme, toggleTheme, palette, setPalette } = useSettings()
   const [busy, setBusy] = useState(false)
@@ -80,6 +81,28 @@ export function Toolbar() {
         title="Pano adı"
       />
       {dirty && <span className="text-xs text-amber-400">● kaydedilmedi</span>}
+
+      <div className="mx-2 h-5 w-px bg-edge" />
+      <label
+        className="flex items-center gap-1.5 text-xs text-gray-400"
+        title="Panolar veritabanından bu aralıkta canlı olarak tazelenir"
+      >
+        <span className={refreshIntervalSec > 0 ? 'text-red-400' : ''}>
+          {refreshIntervalSec > 0 ? '● Canlı' : 'Canlı'}
+        </span>
+        <select
+          className="rounded-md border border-edge bg-surface px-2 py-1 text-xs text-gray-200 outline-none"
+          value={String(refreshIntervalSec)}
+          onChange={(e) => setRefreshInterval(Number(e.target.value))}
+        >
+          <option value="0">Kapalı</option>
+          <option value="5">5 sn</option>
+          <option value="10">10 sn</option>
+          <option value="30">30 sn</option>
+          <option value="60">1 dk</option>
+          <option value="300">5 dk</option>
+        </select>
+      </label>
 
       <div className="ml-auto flex items-center gap-2">
         {toast && <span className="text-xs text-gray-400">{toast}</span>}
