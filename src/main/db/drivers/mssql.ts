@@ -41,12 +41,9 @@ export function createMssqlDriver(config: ConnectionConfig): Driver {
       }
       const result = await request.query(bound.sql)
       const recordset = result.recordset ?? []
-      const columns = recordset.columns
-        ? Object.keys(recordset.columns)
-        : recordset.length > 0
-          ? Object.keys(recordset[0])
-          : []
-      return buildResult(columns, recordset as Record<string, unknown>[], Date.now() - start)
+      // Meta veriden sütunları al; boş/eksikse buildResult satır anahtarlarına düşer.
+      const metaCols = recordset.columns ? Object.keys(recordset.columns) : []
+      return buildResult(metaCols, recordset as Record<string, unknown>[], Date.now() - start)
     },
     async introspect(): Promise<SchemaInfo> {
       const p = await getPool()

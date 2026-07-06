@@ -20,14 +20,22 @@ export interface Driver {
 
 export type DriverFactory = (config: ConnectionConfig) => Driver
 
-/** Sütun adı listesi ve satır dizisinden QueryResult oluşturan yardımcı. */
+/**
+ * Sütun adı listesi ve satır dizisinden QueryResult oluşturan yardımcı.
+ * Sütun adları boş ama satır varsa (bazı sürücüler meta veri vermez, ör. MSSQL),
+ * sütunlar ilk satırın anahtarlarından türetilir — böylece alanlar her zaman görünür.
+ */
 export function buildResult(
   columnNames: string[],
   rows: Record<string, unknown>[],
   elapsedMs: number
 ): QueryResult {
+  let names = columnNames
+  if (names.length === 0 && rows.length > 0) {
+    names = Object.keys(rows[0])
+  }
   return {
-    columns: columnNames.map((name) => ({ name })),
+    columns: names.map((name) => ({ name })),
     rows,
     rowCount: rows.length,
     elapsedMs
