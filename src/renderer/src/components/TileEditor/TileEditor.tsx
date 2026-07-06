@@ -234,14 +234,14 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
         </div>
 
         {/* Sağ: önizleme (hep açık) + grafik yapılandırma */}
-        <div className="flex w-96 flex-col gap-2">
-          <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="flex w-[480px] shrink-0 flex-col gap-2">
+          <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-300">
             Canlı Önizleme
           </span>
-          <div className="h-56 shrink-0 overflow-hidden rounded-md border border-edge bg-surface p-2">
+          <div className="h-64 shrink-0 overflow-hidden rounded-md border border-edge bg-surface p-2">
             <ChartView result={result} chart={draft.chart} />
           </div>
-          <div className="flex-1 overflow-auto rounded-md border border-edge bg-surface p-4">
+          <div className="flex-1 overflow-auto rounded-md border border-edge bg-surface p-5">
             <ChartBuilder
               chart={draft.chart}
               result={result}

@@ -60,9 +60,9 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <button
-        className="self-start rounded-md bg-brand-500/20 px-3 py-1.5 text-sm font-medium text-brand-500 hover:bg-brand-500/30 disabled:opacity-50"
+        className="self-start rounded-md bg-brand-500/20 px-4 py-2 text-[15px] font-medium text-brand-500 hover:bg-brand-500/30 disabled:opacity-50"
         disabled={!result}
         title="Sonuca göre otomatik grafik öner"
         onClick={() => result && onChange({ ...chart, ...suggestChart(result) })}
@@ -177,12 +177,12 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
       {/* Çoklu seri grafikleri: çoklu ölçü seçimi */}
       {supportsMulti && chart.aggregation !== 'count' && (
         <Field label="Değerler / Ölçüler (çoklu seri)">
-          <div className="flex max-h-40 flex-col gap-1 overflow-auto rounded-md border border-edge bg-surface p-2">
+          <div className="flex max-h-56 flex-col gap-1.5 overflow-auto rounded-md border border-edge bg-surface p-2">
             {columns.length === 0 && (
               <span className="text-xs text-gray-500">Önce sorgu çalıştırın.</span>
             )}
             {columns.map((c) => (
-              <label key={c} className="flex items-center gap-2 text-sm text-gray-200">
+              <label key={c} className="flex items-center gap-2 text-[15px] text-gray-200">
                 <input
                   type="checkbox"
                   checked={selectedMeasures.includes(c)}
@@ -198,11 +198,11 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
       {/* Drill-down: sıralı boyut seviyeleri */}
       {!isTable && !isKpi && !isScatter && columns.length > 0 && (
         <Field label="Drill-Down Seviyeleri (sıralı)">
-          <div className="flex max-h-40 flex-col gap-1 overflow-auto rounded-md border border-edge bg-surface p-2">
+          <div className="flex max-h-56 flex-col gap-1.5 overflow-auto rounded-md border border-edge bg-surface p-2">
             {columns.map((c) => {
               const idx = drillLevels.indexOf(c)
               return (
-                <label key={c} className="flex items-center gap-2 text-sm text-gray-200">
+                <label key={c} className="flex items-center gap-2 text-[15px] text-gray-200">
                   <input
                     type="checkbox"
                     checked={idx >= 0}

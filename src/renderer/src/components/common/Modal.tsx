@@ -19,7 +19,7 @@ export function Modal({ open, title, onClose, children, wide, footer }: Props) {
     >
       <div
         className={`flex max-h-[92vh] w-full flex-col overflow-hidden rounded-xl border border-edge bg-panel shadow-2xl ${
-          wide ? 'max-w-6xl' : 'max-w-lg'
+          wide ? 'max-w-7xl' : 'max-w-lg'
         }`}
         onMouseDown={(e) => e.stopPropagation()}
       >

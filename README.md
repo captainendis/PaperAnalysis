@@ -87,9 +87,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.1.7 && git push origin v0.1.7
+  git tag v0.1.8 && git push origin v0.1.8
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.1.7.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.1.8.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
