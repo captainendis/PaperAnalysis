@@ -126,6 +126,13 @@ export interface Dashboard {
   refreshIntervalSec?: number
 }
 
+/** LAN yayın durumu. */
+export interface PublishStatus {
+  active: boolean
+  url: string | null
+  port: number | null
+}
+
 /** Zamanlanmış rapor durumu. */
 export interface ReportStatus {
   active: boolean

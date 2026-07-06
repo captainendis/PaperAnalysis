@@ -16,5 +16,9 @@ export const CH = {
   reportPickFolder: 'report:pickFolder',
   reportSchedule: 'report:schedule',
   reportCancel: 'report:cancel',
-  reportStatus: 'report:status'
+  reportStatus: 'report:status',
+  publishStart: 'publish:start',
+  publishRepublish: 'publish:republish',
+  publishStop: 'publish:stop',
+  publishStatus: 'publish:status'
 } as const

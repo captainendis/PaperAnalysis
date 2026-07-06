@@ -6,6 +6,7 @@ import { PALETTES } from '../lib/palettes'
 import { Button } from './common/Button'
 import { ParameterManager } from './FilterBar/ParameterManager'
 import { ScheduledReportModal } from './ScheduledReport/ScheduledReportModal'
+import { PublishModal } from './Publish/PublishModal'
 
 export function Toolbar() {
   const { dashboard, filePath, dirty, setName, markSaved } = useDashboard()
@@ -15,6 +16,7 @@ export function Toolbar() {
   const [toast, setToast] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [reportOpen, setReportOpen] = useState(false)
+  const [publishOpen, setPublishOpen] = useState(false)
 
   function flash(msg: string) {
     setToast(msg)
@@ -110,6 +112,9 @@ export function Toolbar() {
         <Button variant="ghost" onClick={() => setReportOpen(true)} disabled={busy}>
           Zamanla
         </Button>
+        <Button variant="ghost" onClick={() => setPublishOpen(true)} disabled={busy}>
+          🌐 Yayınla
+        </Button>
         <div className="mx-1 h-5 w-px bg-edge" />
         <Button variant="ghost" onClick={newDashboard} disabled={busy}>
           Yeni
@@ -127,6 +132,7 @@ export function Toolbar() {
 
       <ParameterManager open={filtersOpen} onClose={() => setFiltersOpen(false)} />
       <ScheduledReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
+      <PublishModal open={publishOpen} onClose={() => setPublishOpen(false)} />
     </header>
   )
 }

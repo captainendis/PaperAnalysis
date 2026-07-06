@@ -39,6 +39,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **Sürükle-bırak pano:** Grafik kartlarını taşıma ve yeniden boyutlandırma (react-grid-layout)
 - **Dışa aktarma:** Sorgu sonuçlarını **CSV / Excel (.xlsx)**, grafikleri **PNG**,
   panoyu **PDF** olarak dışa aktarma
+- **LAN'da yayınlama:** Panoyu yerel ağda `http://<ip>:<port>` adresinden anlık
+  görüntü olarak yayınlama — aynı ağdaki cihazlar tarayıcıyla görür (kimlik bilgisi
+  paylaşılmaz; sadece hazır sayfa sunulur)
 - **Kaydetme / paylaşma:** Panoyu `.pbdash` (JSON) dosyası olarak kaydetme/açma
 - **Güvenli kimlik bilgisi:** Parolalar Electron `safeStorage` (OS keychain) ile şifrelenir;
   paylaşılan pano dosyalarına parola **yazılmaz**.
@@ -87,9 +90,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.1.9 && git push origin v0.1.9
+  git tag v0.2.0 && git push origin v0.2.0
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.1.9.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.0.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -199,3 +202,15 @@ Grafik düzenleyicide bir bağlantı seçip **🔗 Birleştir** düğmesine tık
 Alternatif olarak **Alt Alta (Union)** sekmesiyle iki tablonun satırlarını
 birleştirebilirsiniz. Üretilen SQL, bağlantı türüne uygundur (MSSQL `TOP`, diğerleri
 `LIMIT`; tanımlayıcılar doğru tırnaklanır).
+
+### Panoyu yerel ağda (LAN) yayınlama
+
+Üst çubuktan **🌐 Yayınla** → bir port (varsayılan **8080**) girip **Yayınla**'ya
+basın. Uygulama size `http://<bilgisayarınızın-ip'si>:8080` gibi bir adres verir;
+aynı ağdaki başka bir cihazın tarayıcısında bu adresi açan herkes panoyu görür.
+
+- **Anlık görüntü:** Yayınladığınız andaki veriyle sabit bir sayfadır. Veriyi
+  güncellemek için **Yeniden Yayınla**. Durdurmak için **Durdur**.
+- **Güvenlik:** Sunucu yalnızca hazır HTML sunar; veritabanı bağlantınız/kimlik
+  bilgileriniz ağa açılmaz. Kimlik doğrulama yoktur — yalnızca güvendiğiniz yerel
+  ağda kullanın. Windows ilk yayında güvenlik duvarı izni isteyebilir.

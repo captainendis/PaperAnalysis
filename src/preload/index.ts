@@ -4,6 +4,7 @@ import type {
   ConnectionConfig,
   Dashboard,
   IpcResult,
+  PublishStatus,
   QueryResult,
   ReportStatus,
   SafeConnection,
@@ -73,6 +74,14 @@ const api = {
       ipcRenderer.invoke(CH.reportSchedule, { folder, intervalMinutes, baseName }),
     cancel: (): Promise<IpcResult<ReportStatus>> => ipcRenderer.invoke(CH.reportCancel),
     status: (): Promise<IpcResult<ReportStatus>> => ipcRenderer.invoke(CH.reportStatus)
+  },
+  publish: {
+    start: (html: string, port: number): Promise<IpcResult<PublishStatus>> =>
+      ipcRenderer.invoke(CH.publishStart, { html, port }),
+    republish: (html: string): Promise<IpcResult<PublishStatus>> =>
+      ipcRenderer.invoke(CH.publishRepublish, { html }),
+    stop: (): Promise<IpcResult<PublishStatus>> => ipcRenderer.invoke(CH.publishStop),
+    status: (): Promise<IpcResult<PublishStatus>> => ipcRenderer.invoke(CH.publishStatus)
   }
 }
 
