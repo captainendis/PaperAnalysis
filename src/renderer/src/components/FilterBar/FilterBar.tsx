@@ -4,8 +4,11 @@ import { useDashboard } from '../../store/dashboard'
 export function FilterBar() {
   const parameters = useDashboard((s) => s.dashboard.parameters)
   const setParamValue = useDashboard((s) => s.setParamValue)
+  const clearParamValues = useDashboard((s) => s.clearParamValues)
 
   if (!parameters || parameters.length === 0) return null
+
+  const hasActive = parameters.some((p) => p.value !== '')
 
   return (
     <div className="flex flex-wrap items-center gap-3 border-b border-edge bg-panel px-4 py-2">
@@ -24,6 +27,15 @@ export function FilterBar() {
           <code className="text-[10px] text-gray-600">:{p.name}</code>
         </label>
       ))}
+      {hasActive && (
+        <button
+          className="rounded-md border border-edge px-2 py-1 text-xs text-gray-300 hover:bg-white/10"
+          onClick={clearParamValues}
+          title="Tüm filtre değerlerini temizle"
+        >
+          Tümünü Temizle
+        </button>
+      )}
     </div>
   )
 }

@@ -65,4 +65,23 @@ describe('createSampleDatabase', () => {
 
     await driver.close()
   })
+
+  it('çapraz filtre koruyucu sorgusu parametreye göre süzer', async () => {
+    createSampleDatabase(dbPath)
+    const driver = createSqliteDriver({ id: 's', name: 's', kind: 'sqlite', filePath: dbPath })
+
+    const guardSql =
+      'SELECT DISTINCT kategori FROM satislar WHERE (:kategori IS NULL OR kategori = :kategori)'
+
+    // Parametre null → tüm kategoriler.
+    const all = await driver.query(guardSql, { kategori: null })
+    expect(all.rowCount).toBeGreaterThan(1)
+
+    // Parametre atanmış → yalnızca o kategori.
+    const one = await driver.query(guardSql, { kategori: 'Elektronik' })
+    expect(one.rowCount).toBe(1)
+    expect(one.rows[0].kategori).toBe('Elektronik')
+
+    await driver.close()
+  })
 })

@@ -14,6 +14,7 @@ interface DashboardState {
   updateLayouts: (layouts: { i: string; x: number; y: number; w: number; h: number }[]) => void
   setParameters: (parameters: DashboardParameter[]) => void
   setParamValue: (name: string, value: string) => void
+  clearParamValues: () => void
   setRefreshInterval: (sec: number) => void
   loadDashboard: (dashboard: Dashboard, path: string | null) => void
   markSaved: (path: string) => void
@@ -71,6 +72,15 @@ export const useDashboard = create<DashboardState>((set) => ({
         parameters: (s.dashboard.parameters ?? []).map((p) =>
           p.name === name ? { ...p, value } : p
         )
+      },
+      dirty: true
+    })),
+
+  clearParamValues: () =>
+    set((s) => ({
+      dashboard: {
+        ...s.dashboard,
+        parameters: (s.dashboard.parameters ?? []).map((p) => ({ ...p, value: '' }))
       },
       dirty: true
     })),

@@ -90,6 +90,8 @@ export interface ChartConfig {
   xMeasure?: string | null
   aggregation: Aggregation
   title?: string
+  /** Bu grafiğe tıklanınca ayarlanacak pano parametresi (çapraz filtre). */
+  crossFilterParam?: string | null
 }
 
 export interface DashboardTile {

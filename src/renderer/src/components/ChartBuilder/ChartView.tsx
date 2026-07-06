@@ -7,6 +7,8 @@ import { ResultsTable } from '../QueryEditor/ResultsTable'
 interface Props {
   result: QueryResult | null
   chart: ChartConfig
+  /** Bir kategoriye (bar/çizgi/pasta) tıklanınca çağrılır (çapraz filtre). */
+  onCategoryClick?: (value: string) => void
 }
 
 function formatNumber(n: number): string {
@@ -26,7 +28,7 @@ const empty = (msg: string) => (
  * türlerinde PNG dışa aktarımı için doludur.
  */
 export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
-  { result, chart },
+  { result, chart, onCategoryClick },
   ref
 ) {
   const option = useMemo(() => {
@@ -57,6 +59,16 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   if (!chart.dimension) return empty('Kategori (X) alanı seçin.')
   if (chart.type === 'scatter' && !chart.xMeasure) return empty('Saçılım için sayısal X alanı seçin.')
 
+  // Çapraz filtre: tıklanan kategorinin adını yakala (bar/çizgi/pasta).
+  const onEvents =
+    onCategoryClick && chart.type !== 'scatter'
+      ? {
+          click: (params: { name?: string }) => {
+            if (params?.name != null) onCategoryClick(String(params.name))
+          }
+        }
+      : undefined
+
   return (
     <ReactECharts
       ref={ref}
@@ -65,6 +77,7 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
       notMerge
       lazyUpdate
       opts={{ renderer: 'canvas' }}
+      onEvents={onEvents}
     />
   )
 })

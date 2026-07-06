@@ -1,6 +1,7 @@
 import type { Aggregation, ChartConfig, ChartType, QueryResult } from '@shared/types'
 import { Field, Select, TextInput } from '../common/Field'
 import { resolveMeasures } from '../../lib/chartSpec'
+import { useDashboard } from '../../store/dashboard'
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: 'bar', label: 'Sütun (Bar)' },
@@ -30,6 +31,7 @@ interface Props {
 
 export function ChartBuilder({ chart, result, onChange }: Props) {
   const columns = result?.columns.map((c) => c.name) ?? []
+  const dashboardParams = useDashboard((s) => s.dashboard.parameters) ?? []
   const set = (patch: Partial<ChartConfig>) => onChange({ ...chart, ...patch })
 
   const selectedMeasures = resolveMeasures(chart)
@@ -172,6 +174,30 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
               </label>
             ))}
           </div>
+        </Field>
+      )}
+
+      {/* Çapraz filtre: tıklanınca bir pano parametresi ayarla */}
+      {!isTable && !isKpi && !isScatter && (
+        <Field label="Tıklanınca Filtrele (Çapraz Filtre)">
+          {dashboardParams.length === 0 ? (
+            <p className="text-xs text-gray-500">
+              Önce üst çubuktaki <strong>Filtreler</strong>'den bir parametre tanımlayın;
+              sonra bu grafiği ona bağlayabilirsiniz.
+            </p>
+          ) : (
+            <Select
+              value={chart.crossFilterParam ?? ''}
+              onChange={(e) => set({ crossFilterParam: e.target.value || null })}
+            >
+              <option value="">— yok —</option>
+              {dashboardParams.map((p) => (
+                <option key={p.name} value={p.name}>
+                  {p.label || p.name} (:{p.name})
+                </option>
+              ))}
+            </Select>
+          )}
         </Field>
       )}
 

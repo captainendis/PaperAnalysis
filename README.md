@@ -18,6 +18,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   - **Çoklu seri** desteği (birden fazla ölçü)
 - **Filtreler & etkileşim:** Pano genelinde parametreler (`:ad` yer tutucuları ile,
   güvenli parametre bağlama), filtre çubuğu ve **otomatik yenileme**
+- **Çapraz filtreleme (cross-filter):** Bir grafikte bir kategoriye/dilime tıklayınca
+  ilgili pano parametresi ayarlanır ve diğer grafikler o değere göre süzülür
+  (aynı değere tekrar tıklamak filtreyi temizler)
 - **Sürükle-bırak pano:** Grafik kartlarını taşıma ve yeniden boyutlandırma (react-grid-layout)
 - **Dışa aktarma:** Sorgu sonuçlarını **CSV / Excel (.xlsx)**, grafikleri **PNG**,
   panoyu **PDF** olarak dışa aktarma
@@ -116,3 +119,23 @@ GROUP BY urun;
 Filtre çubuğundan değer girdiğinizde ilgili tüm grafikler otomatik yenilenir.
 Değerler SQL'e **parametre bağlama** ile geçirildiğinden enjeksiyon riski yoktur.
 Aynı ekrandan **otomatik yenileme** aralığı da ayarlanabilir.
+
+### Çapraz filtreleme (cross-filter)
+
+Bir grafiğe tıklayarak diğerlerini süzebilirsiniz. Bunun için:
+
+1. **Filtreler**'den bir parametre tanımlayın (ör. `kategori`).
+2. Süzülmesini istediğiniz grafiklerin SQL'ine koruyucu koşul ekleyin:
+   ```sql
+   SELECT ay, SUM(tutar) FROM satislar
+   WHERE (:kategori IS NULL OR kategori = :kategori)
+   GROUP BY ay;
+   ```
+   Bu koşul, parametre boşken tüm satırları döndürür.
+3. Tıklanacak grafiğin **Ayarlar → Tıklanınca Filtrele** alanında ilgili parametreyi
+   seçin.
+
+Artık o grafikte bir kategoriye tıkladığınızda parametre ayarlanır ve `:kategori`ye
+referans veren tüm grafikler süzülür. **Örnek veri panosu** bu davranışı hazır sunar:
+kategori sütununa veya bölge dilimine tıklayıp deneyin; üst çubuktaki
+**Tümünü Temizle** ile sıfırlayın.

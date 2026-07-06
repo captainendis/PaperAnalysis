@@ -32,4 +32,26 @@ describe('salesOverviewTemplate', () => {
     const ids = dash.tiles.map((t) => t.id)
     expect(new Set(ids).size).toBe(ids.length)
   })
+
+  it('çapraz filtre parametrelerini tanımlar', () => {
+    const names = (dash.parameters ?? []).map((p) => p.name)
+    expect(names).toContain('kategori')
+    expect(names).toContain('bolge')
+    expect((dash.parameters ?? []).every((p) => p.value === '')).toBe(true)
+  })
+
+  it('kategori bar grafiği kategori parametresini yayar', () => {
+    const bar = dash.tiles.find((t) => t.chart.type === 'bar')
+    expect(bar?.chart.crossFilterParam).toBe('kategori')
+  })
+
+  it('bölge pasta grafiği bolge parametresini yayar', () => {
+    const pie = dash.tiles.find((t) => t.chart.type === 'pie')
+    expect(pie?.chart.crossFilterParam).toBe('bolge')
+  })
+
+  it('trend grafiği koruyucu WHERE koşulu içerir', () => {
+    const line = dash.tiles.find((t) => t.chart.type === 'line')
+    expect(line?.sql).toContain(':kategori IS NULL OR kategori = :kategori')
+  })
 })
