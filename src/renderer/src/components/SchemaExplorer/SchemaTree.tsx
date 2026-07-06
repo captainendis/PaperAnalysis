@@ -14,9 +14,14 @@ export function SchemaTree({ connectionId, onPickTable, onPickColumn }: Props) {
   const { cache, loadingId, error, load } = useSchema()
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [filter, setFilter] = useState('')
+  const [selected, setSelected] = useState<string | null>(null)
+  const [selectedName, setSelectedName] = useState<string | null>(null)
 
   useEffect(() => {
     if (connectionId) load(connectionId)
+    // Bağlantı değişince seçili tablo göstergesini sıfırla.
+    setSelected(null)
+    setSelectedName(null)
   }, [connectionId, load])
 
   if (!connectionId) {
@@ -63,9 +68,16 @@ export function SchemaTree({ connectionId, onPickTable, onPickColumn }: Props) {
         {tables.map((t) => {
           const key = `${t.schema ?? ''}.${t.name}`
           const isOpen = expanded[key]
+          const isSelected = selected === key
           return (
             <div key={key} className="mb-0.5">
-              <div className="flex items-center gap-1 rounded px-1 py-1 hover:bg-white/5">
+              <div
+                className={`flex items-center gap-1 rounded px-1 py-1 ${
+                  isSelected
+                    ? 'bg-brand-500/20 ring-1 ring-brand-500/40'
+                    : 'hover:bg-white/5'
+                }`}
+              >
                 <button
                   className="text-gray-500 hover:text-gray-300"
                   onClick={() => setExpanded((e) => ({ ...e, [key]: !e[key] }))}
@@ -73,9 +85,15 @@ export function SchemaTree({ connectionId, onPickTable, onPickColumn }: Props) {
                   {isOpen ? '▾' : '▸'}
                 </button>
                 <button
-                  className="flex-1 truncate text-left text-gray-200"
+                  className={`flex-1 truncate text-left ${
+                    isSelected ? 'font-medium text-brand-500' : 'text-gray-200'
+                  }`}
                   title="Tabloyu sorgula"
-                  onClick={() => onPickTable(t)}
+                  onClick={() => {
+                    setSelected(key)
+                    setSelectedName(t.name)
+                    onPickTable(t)
+                  }}
                 >
                   🗄 {t.name}
                 </button>
@@ -99,6 +117,18 @@ export function SchemaTree({ connectionId, onPickTable, onPickColumn }: Props) {
             </div>
           )
         })}
+      </div>
+      <div className="border-t border-edge px-2 py-1.5 text-[11px]">
+        {selectedName ? (
+          <span className="flex items-center gap-1 truncate text-gray-300">
+            <span className="text-gray-500">Seçili tablo:</span>
+            <span className="truncate font-medium text-brand-500" title={selectedName}>
+              {selectedName}
+            </span>
+          </span>
+        ) : (
+          <span className="text-gray-600">Tablo seçilmedi</span>
+        )}
       </div>
     </div>
   )
