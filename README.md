@@ -91,9 +91,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.2 && git push origin v0.2.2
+  git tag v0.2.3 && git push origin v0.2.3
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.2.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.3.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -117,17 +117,6 @@ npm test               # Vitest birim/entegrasyon testleri (chartSpec + SQLite v
 npm run typecheck      # main ve renderer için TypeScript tip kontrolü
 ```
 
-## Hızlı Başlangıç (Örnek Veri)
-
-Uygulama ilk açıldığında, boş pano ekranındaki **“✨ Örnek veri + pano oluştur”**
-düğmesine tıklayın. Bu, harici bir sunucu gerektirmeden:
-
-1. Yerel bir örnek SQLite veritabanı (`ornek-satis.sqlite`, ~400 satışlık veri) üretir,
-2. Otomatik olarak bir bağlantı kaydeder,
-3. Hazır **“Satış Genel Bakış”** panosunu (KPI'lar, kategori/bölge/trend grafikleri
-   ve en çok satan ürünler tablosu) yükler.
-
-Böylece SQL yazmadan aracın tüm yeteneklerini anında görebilirsiniz.
 
 ## Kullanım
 
@@ -183,9 +172,7 @@ Bir grafiğe tıklayarak diğerlerini süzebilirsiniz. Bunun için:
    seçin.
 
 Artık o grafikte bir kategoriye tıkladığınızda parametre ayarlanır ve `:kategori`ye
-referans veren tüm grafikler süzülür. **Örnek veri panosu** bu davranışı hazır sunar:
-kategori sütununa veya bölge dilimine tıklayıp deneyin; üst çubuktaki
-**Tümünü Temizle** ile sıfırlayın.
+referans veren tüm grafikler süzülür; üst çubuktaki **Tümünü Temizle** ile sıfırlayın.
 
 ### İki tabloyu birleştirme (Join Sihirbazı)
 

@@ -6,7 +6,6 @@ export const CH = {
   connDelete: 'connection:delete',
   query: 'query:run',
   schemaIntrospect: 'schema:introspect',
-  sampleCreate: 'sample:create',
   dashSave: 'dashboard:save',
   dashOpen: 'dashboard:open',
   dashExport: 'dashboard:export',
