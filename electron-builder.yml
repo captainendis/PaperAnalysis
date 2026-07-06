@@ -1,5 +1,5 @@
-appId: com.paperanalysis.veripano
-productName: VeriPano
+appId: com.paperanalysis.app
+productName: PaperAnalysis
 directories:
   output: release
   buildResources: build
@@ -21,7 +21,7 @@ nsis:
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
   createStartMenuShortcut: true
-  shortcutName: VeriPano
+  shortcutName: PaperAnalysis
 mac:
   target: dmg
   category: public.app-category.business

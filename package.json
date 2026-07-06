@@ -1,7 +1,7 @@
 {
-  "name": "powerbi-tarzi-analiz",
+  "name": "paperanalysis",
   "version": "0.1.0",
-  "description": "Power BI tarzı masaüstü veri analiz aracı - SQL sunuculardan veri çekip grafikleştirir",
+  "description": "PaperAnalysis - SQL sunuculardan veri çekip grafikleştiren masaüstü veri analiz aracı",
   "main": "./out/main/index.js",
   "author": "PaperAnalysis",
   "license": "MIT",

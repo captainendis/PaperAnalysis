@@ -47,7 +47,7 @@ jobs:
         with:
           # Etiketli push'ta o etiketi, dal push'unda sabit v0.1.0'ı kullan.
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.0' }}
-          name: VeriPano ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.0' }}
+          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.1.0' }}
           files: release/*.exe
           generate_release_notes: true
           make_latest: 'true'

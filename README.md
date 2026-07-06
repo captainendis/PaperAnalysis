@@ -1,7 +1,7 @@
-# Power BI Tarzı Veri Analiz Aracı
+# PaperAnalysis
 
 SQL sunucularından veri çekip grafikleştiren, sürükle-bırak panolar oluşturmanıza
-olanak tanıyan **masaüstü** veri analiz aracı (Microsoft Power BI'a benzer).
+olanak tanıyan **masaüstü** veri analiz aracı.
 
 Electron + React + TypeScript ile geliştirilmiştir.
 
@@ -82,7 +82,7 @@ derler). İki şekilde tetiklenir:
   ```bash
   git tag v0.1.0 && git push origin v0.1.0
   ```
-  İş akışı çalışır, `VeriPano-Setup-0.1.0.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.1.0.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

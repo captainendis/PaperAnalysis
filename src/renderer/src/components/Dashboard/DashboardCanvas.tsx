@@ -79,7 +79,7 @@ export function DashboardCanvas() {
       {dashboard.tiles.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
           <div className="text-5xl text-brand-500">▦</div>
-          <p className="text-lg text-gray-200">Power BI Tarzı Analize Hoş Geldiniz</p>
+          <p className="text-lg text-gray-200">PaperAnalysis'e Hoş Geldiniz</p>
           <p className="max-w-md text-sm text-gray-500">
             Hızlı başlamak için tek tıkla örnek bir veritabanı ve hazır bir pano
             oluşturun; ya da kendi SQL bağlantınızla bir grafik ekleyin.
