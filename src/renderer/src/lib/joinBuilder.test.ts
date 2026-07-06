@@ -1,0 +1,94 @@
+import { describe, it, expect } from 'vitest'
+import { buildJoinSql, buildUnionSql, type JoinSpec } from './joinBuilder'
+
+const base: JoinSpec = {
+  mode: 'join',
+  left: { name: 'stok' },
+  right: { name: 'olcu' },
+  joinType: 'inner',
+  keys: [{ left: 'urun_kodu', right: 'urun_kodu' }],
+  columns: [],
+  filters: []
+}
+
+describe('buildJoinSql', () => {
+  it('postgres INNER join + LIMIT üretir', () => {
+    const sql = buildJoinSql('postgres', { ...base, limit: 1000 })
+    expect(sql).toContain('INNER JOIN "olcu" b ON a."urun_kodu" = b."urun_kodu"')
+    expect(sql).toContain('SELECT a.*, b.*')
+    expect(sql.trim().endsWith('LIMIT 1000')).toBe(true)
+  })
+
+  it('MSSQL TOP kullanır (LIMIT değil)', () => {
+    const sql = buildJoinSql('mssql', { ...base, limit: 500 })
+    expect(sql).toContain('SELECT TOP 500 ')
+    expect(sql).not.toContain('LIMIT')
+    expect(sql).toContain('[olcu] b ON a.[urun_kodu] = b.[urun_kodu]')
+  })
+
+  it('onlyUnmatched → LEFT JOIN + b.key IS NULL', () => {
+    const sql = buildJoinSql('postgres', { ...base, onlyUnmatched: true })
+    expect(sql).toContain('LEFT JOIN')
+    expect(sql).toContain('WHERE b."urun_kodu" IS NULL')
+  })
+
+  it('filtreleri biçimlendirir (sayı, metin, IS NULL, LIKE)', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filters: [
+        { table: 'a', column: 'stok', op: '>', value: '0' },
+        { table: 'a', column: 'ad', op: 'LIKE', value: '%kablo%' },
+        { table: 'b', column: 'olcu', op: 'IS NULL' }
+      ]
+    })
+    expect(sql).toContain('a."stok" > 0')
+    expect(sql).toContain("a.\"ad\" LIKE '%kablo%'")
+    expect(sql).toContain('b."olcu" IS NULL')
+  })
+
+  it("metindeki tek tırnağı kaçırır", () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filters: [{ table: 'a', column: 'ad', op: '=', value: "O'Brien" }]
+    })
+    expect(sql).toContain("a.\"ad\" = 'O''Brien'")
+  })
+
+  it('çakışan sütun adında benzersiz alias verir', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      columns: [
+        { table: 'a', column: 'urun_kodu' },
+        { table: 'b', column: 'urun_kodu' }
+      ]
+    })
+    expect(sql).toContain('a."urun_kodu" AS "urun_kodu"')
+    expect(sql).toContain('b."urun_kodu" AS "urun_kodu_2"')
+  })
+})
+
+describe('buildUnionSql', () => {
+  it('UNION ALL üretir', () => {
+    const sql = buildUnionSql('postgres', {
+      mode: 'union',
+      left: { name: 'a' },
+      right: { name: 'b' },
+      all: true
+    })
+    expect(sql).toContain('UNION ALL')
+    expect(sql).toContain('SELECT * FROM "a"')
+    expect(sql).toContain('SELECT * FROM "b"')
+  })
+
+  it('limit ile MSSQL alt sorguyu TOP ile sarar', () => {
+    const sql = buildUnionSql('mssql', {
+      mode: 'union',
+      left: { name: 'a' },
+      right: { name: 'b' },
+      all: false,
+      limit: 100
+    })
+    expect(sql).toContain('SELECT TOP 100 * FROM (')
+    expect(sql).toContain('UNION\n')
+  })
+})

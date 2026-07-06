@@ -10,6 +10,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **Çoklu veritabanı bağlantısı:** Microsoft SQL Server, PostgreSQL, MySQL/MariaDB, SQLite
 - **Veritabanı şema gezgini:** Bağlantının tablo/sütun ağacı; tabloya tıklayınca
   otomatik `SELECT`, sütuna tıklayınca sorguya alan ekleme
+- **Görsel Birleştirme (Join) Sihirbazı:** SQL yazmadan aynı veritabanındaki iki tabloyu
+  birleştirme — INNER/LEFT/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
+  filtreleri; üretilen sorguyu çalıştırıp **Excel** olarak dışa aktarma
 - **SQL sorgu editörü:** Monaco tabanlı, söz dizimi vurgusu, `Ctrl/Cmd+Enter` ile çalıştırma
 - **Sonuç tablosu:** Sorgu sonuçlarını anında tablolaştırma
 - **Grafikler (Apache ECharts):** Sütun (bar), yığılmış sütun, çizgi, alan (area),
@@ -82,9 +85,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.1.4 && git push origin v0.1.4
+  git tag v0.1.5 && git push origin v0.1.5
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.1.4.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.1.5.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -177,3 +180,20 @@ Artık o grafikte bir kategoriye tıkladığınızda parametre ayarlanır ve `:k
 referans veren tüm grafikler süzülür. **Örnek veri panosu** bu davranışı hazır sunar:
 kategori sütununa veya bölge dilimine tıklayıp deneyin; üst çubuktaki
 **Tümünü Temizle** ile sıfırlayın.
+
+### İki tabloyu birleştirme (Join Sihirbazı)
+
+Grafik düzenleyicide bir bağlantı seçip **🔗 Birleştir** düğmesine tıklayın:
+
+1. **Tablo A** ve **Tablo B**'yi seçin (aynı veritabanı).
+2. **Eşleştirme anahtarını** belirtin (ör. `A.urun_kodu = B.urun_kodu`).
+3. Birleştirme türünü seçin ve gerekiyorsa **"Yalnızca eşleşmeyenler (B boş)"**
+   kutusunu işaretleyin — örneğin *stoğu olan ama ölçüsü olmayan* ürünler için
+   (LEFT JOIN + `WHERE b.urun_kodu IS NULL`).
+4. İsterseniz sütunları seçin ve **değer filtreleri** ekleyin (ör. `A.stok > 0`).
+5. Sağdaki **üretilen SQL**'i görün → **Sorguya Ekle** → **▶ Çalıştır** →
+   sonuç tablosundaki **Excel** düğmesiyle dışa aktarın.
+
+Alternatif olarak **Alt Alta (Union)** sekmesiyle iki tablonun satırlarını
+birleştirebilirsiniz. Üretilen SQL, bağlantı türüne uygundur (MSSQL `TOP`, diğerleri
+`LIMIT`; tanımlayıcılar doğru tırnaklanır).

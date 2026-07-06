@@ -9,6 +9,7 @@ import { QueryLibrary } from '../QueryEditor/QueryLibrary'
 import { ChartBuilder } from '../ChartBuilder/ChartBuilder'
 import { ChartView } from '../ChartBuilder/ChartView'
 import { SchemaTree } from '../SchemaExplorer/SchemaTree'
+import { JoinBuilderModal } from '../JoinBuilder/JoinBuilderModal'
 import { useConnections } from '../../store/connections'
 import { useDashboard } from '../../store/dashboard'
 import { useQueries } from '../../store/queries'
@@ -50,6 +51,9 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const [error, setError] = useState<string | null>(null)
   const [tab, setTab] = useState<Tab>('data')
   const [showSchema, setShowSchema] = useState(true)
+  const [joinOpen, setJoinOpen] = useState(false)
+
+  const activeKind = connections.find((c) => c.id === draft.connectionId)?.kind ?? 'sqlite'
 
   async function runQuery() {
     if (!draft.connectionId) {
@@ -166,6 +170,14 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
                 </option>
               ))}
             </Select>
+            <Button
+              variant="ghost"
+              onClick={() => setJoinOpen(true)}
+              disabled={!draft.connectionId}
+              title="İki tabloyu birleştir (Join/Union)"
+            >
+              🔗 Birleştir
+            </Button>
             <Button variant="primary" onClick={runQuery} disabled={running}>
               {running ? 'Çalışıyor…' : '▶ Çalıştır'}
             </Button>
@@ -249,6 +261,17 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
           )}
         </div>
       </div>
+
+      <JoinBuilderModal
+        open={joinOpen}
+        connectionId={draft.connectionId}
+        kind={activeKind}
+        onClose={() => setJoinOpen(false)}
+        onGenerate={(generatedSql) => {
+          setDraft((d) => ({ ...d, sql: generatedSql }))
+          setJoinOpen(false)
+        }}
+      />
     </Modal>
   )
 }
