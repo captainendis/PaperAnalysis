@@ -5,6 +5,7 @@ import type {
   Dashboard,
   IpcResult,
   QueryResult,
+  ReportStatus,
   SafeConnection,
   SchemaInfo
 } from '@shared/types'
@@ -60,6 +61,18 @@ const api = {
       extensions: string[]
     ): Promise<IpcResult<{ path: string }>> =>
       ipcRenderer.invoke(CH.fileSaveBinary, { base64, suggestedName, extensions })
+  },
+  report: {
+    pickFolder: (): Promise<IpcResult<{ folder: string }>> =>
+      ipcRenderer.invoke(CH.reportPickFolder),
+    schedule: (
+      folder: string,
+      intervalMinutes: number,
+      baseName: string
+    ): Promise<IpcResult<ReportStatus>> =>
+      ipcRenderer.invoke(CH.reportSchedule, { folder, intervalMinutes, baseName }),
+    cancel: (): Promise<IpcResult<ReportStatus>> => ipcRenderer.invoke(CH.reportCancel),
+    status: (): Promise<IpcResult<ReportStatus>> => ipcRenderer.invoke(CH.reportStatus)
   }
 }
 

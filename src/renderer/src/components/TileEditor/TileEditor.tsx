@@ -5,11 +5,13 @@ import { Button } from '../common/Button'
 import { Select } from '../common/Field'
 import { SqlEditor } from '../QueryEditor/SqlEditor'
 import { ResultsTable } from '../QueryEditor/ResultsTable'
+import { QueryLibrary } from '../QueryEditor/QueryLibrary'
 import { ChartBuilder } from '../ChartBuilder/ChartBuilder'
 import { ChartView } from '../ChartBuilder/ChartView'
 import { SchemaTree } from '../SchemaExplorer/SchemaTree'
 import { useConnections } from '../../store/connections'
 import { useDashboard } from '../../store/dashboard'
+import { useQueries } from '../../store/queries'
 import { paramValues } from '../../lib/params'
 import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
@@ -40,6 +42,7 @@ function canSave(tile: DashboardTile): boolean {
 export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const connections = useConnections((s) => s.items)
   const parameters = useDashboard((s) => s.dashboard.parameters)
+  const addHistory = useQueries((s) => s.addHistory)
   const [draft, setDraft] = useState<DashboardTile>(tile)
   const [result, setResult] = useState<QueryResult | null>(null)
   const [running, setRunning] = useState(false)
@@ -59,6 +62,7 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
     if (res.ok) {
       setResult(res.data)
       setTab('chart')
+      addHistory(draft.sql, draft.connectionId)
     } else {
       setError(res.error)
     }
@@ -163,6 +167,12 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
               {running ? 'Çalışıyor…' : '▶ Çalıştır'}
             </Button>
           </div>
+
+          <QueryLibrary
+            sql={draft.sql}
+            connectionId={draft.connectionId}
+            onLoad={(sql) => setDraft({ ...draft, sql })}
+          />
 
           <div className="h-2/5 overflow-hidden rounded-md border border-edge">
             <SqlEditor

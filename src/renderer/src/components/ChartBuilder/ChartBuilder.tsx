@@ -50,6 +50,14 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
     set({ measures: arr, measure: arr[0] ?? null })
   }
 
+  const drillLevels = chart.drillLevels ?? []
+  function toggleDrill(name: string) {
+    const arr = drillLevels.includes(name)
+      ? drillLevels.filter((d) => d !== name)
+      : [...drillLevels, name] // sıra korunur
+    set({ drillLevels: arr })
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <Field label="Grafik Başlığı">
@@ -174,6 +182,36 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
               </label>
             ))}
           </div>
+        </Field>
+      )}
+
+      {/* Drill-down: sıralı boyut seviyeleri */}
+      {!isTable && !isKpi && !isScatter && columns.length > 0 && (
+        <Field label="Drill-Down Seviyeleri (sıralı)">
+          <div className="flex max-h-40 flex-col gap-1 overflow-auto rounded-md border border-edge bg-surface p-2">
+            {columns.map((c) => {
+              const idx = drillLevels.indexOf(c)
+              return (
+                <label key={c} className="flex items-center gap-2 text-sm text-gray-200">
+                  <input
+                    type="checkbox"
+                    checked={idx >= 0}
+                    onChange={() => toggleDrill(c)}
+                  />
+                  {c}
+                  {idx >= 0 && (
+                    <span className="ml-auto rounded bg-brand-500/20 px-1.5 text-[10px] text-brand-500">
+                      {idx + 1}
+                    </span>
+                  )}
+                </label>
+              )
+            })}
+          </div>
+          <span className="mt-1 text-[11px] text-gray-500">
+            2+ seviye seçilirse grafiğe tıklamak alt kırılıma iner. Sorgu tüm seçilen
+            sütunları döndürmelidir.
+          </span>
         </Field>
       )}
 

@@ -92,6 +92,8 @@ export interface ChartConfig {
   title?: string
   /** Bu grafiğe tıklanınca ayarlanacak pano parametresi (çapraz filtre). */
   crossFilterParam?: string | null
+  /** Drill-down seviyeleri (sıralı boyut sütunları). Örn: ['kategori','urun']. */
+  drillLevels?: string[]
 }
 
 export interface DashboardTile {
@@ -122,6 +124,16 @@ export interface Dashboard {
   parameters?: DashboardParameter[]
   /** Otomatik yenileme aralığı (saniye); 0 / tanımsız = kapalı. */
   refreshIntervalSec?: number
+}
+
+/** Zamanlanmış rapor durumu. */
+export interface ReportStatus {
+  active: boolean
+  folder: string
+  intervalMinutes: number
+  baseName: string
+  lastAt: number | null
+  lastFile: string | null
 }
 
 export const DEFAULT_PORTS: Record<DbKind, number | undefined> = {

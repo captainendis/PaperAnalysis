@@ -21,6 +21,14 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **Çapraz filtreleme (cross-filter):** Bir grafikte bir kategoriye/dilime tıklayınca
   ilgili pano parametresi ayarlanır ve diğer grafikler o değere göre süzülür
   (aynı değere tekrar tıklamak filtreyi temizler)
+- **Grafik içi drill-down:** Sıralı boyut seviyeleri (ör. kategori → ürün); grafiğe
+  tıklayarak alt kırılıma inme ve breadcrumb ile geri dönme (istemci tarafı, yeni sorgu yok)
+- **Tema & grafik paleti:** Açık/koyu tema geçişi ve erişilebilir (CVD-güvenli)
+  seçilebilir grafik renk paletleri
+- **Sorgu geçmişi & kayıtlı sorgular:** Çalıştırılan sorguların geçmişi + adlandırılmış
+  kayıtlı sorgular (yerel olarak saklanır, yeniden yükleme)
+- **Zamanlanmış rapor:** Panoyu belirli aralıklarla (15 dk – 24 s) otomatik olarak
+  bir klasöre PDF kaydetme (uygulama açıkken)
 - **Sürükle-bırak pano:** Grafik kartlarını taşıma ve yeniden boyutlandırma (react-grid-layout)
 - **Dışa aktarma:** Sorgu sonuçlarını **CSV / Excel (.xlsx)**, grafikleri **PNG**,
   panoyu **PDF** olarak dışa aktarma

@@ -1,5 +1,6 @@
 import type { Aggregation, ChartConfig, QueryResult } from '@shared/types'
 import type { EChartsOption } from 'echarts'
+import { DEFAULT_CHART_THEME, type ChartTheme } from './chartTheme'
 
 /** Bir değeri sayıya çevirmeyi dener; başarısızsa null. */
 export function toNumber(v: unknown): number | null {
@@ -125,56 +126,51 @@ export function computeKpi(result: QueryResult, chart: ChartConfig): number {
   return aggregate(values, chart.aggregation === 'none' ? 'sum' : chart.aggregation)
 }
 
-const PALETTE = [
-  '#2563eb',
-  '#16a34a',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#06b6d4',
-  '#ec4899',
-  '#84cc16',
-  '#f97316',
-  '#14b8a6'
-]
-
-const baseTextStyle = { color: '#cbd5e1' }
-
-function axisCommon(title: string | undefined, multi: boolean): EChartsOption {
+function axisCommon(
+  title: string | undefined,
+  multi: boolean,
+  theme: ChartTheme
+): EChartsOption {
+  const textStyle = { color: theme.text }
   return {
     title: title
-      ? { text: title, left: 'center', textStyle: { color: '#e5e7eb', fontSize: 14 } }
+      ? { text: title, left: 'center', textStyle: { color: theme.text, fontSize: 14 } }
       : undefined,
     tooltip: { trigger: 'axis' },
-    legend: multi ? { top: title ? 26 : 4, textStyle: baseTextStyle, type: 'scroll' } : undefined,
+    legend: multi ? { top: title ? 26 : 4, textStyle, type: 'scroll' } : undefined,
     grid: { left: 48, right: 24, top: title ? 56 : 36, bottom: 56, containLabel: true },
-    color: PALETTE,
-    textStyle: baseTextStyle
+    color: theme.palette,
+    textStyle
   }
 }
 
 /** Grafik yapılandırması + sorgu sonucundan ECharts option üretir. */
-export function buildEChartsOption(result: QueryResult, chart: ChartConfig): EChartsOption {
+export function buildEChartsOption(
+  result: QueryResult,
+  chart: ChartConfig,
+  theme: ChartTheme = DEFAULT_CHART_THEME
+): EChartsOption {
   const title = chart.title?.trim() || undefined
+  const textStyle = { color: theme.text }
 
   // Pasta: tekil ölçü.
   if (chart.type === 'pie') {
     const points = aggregateRows(result, chart)
     return {
       title: title
-        ? { text: title, left: 'center', textStyle: { color: '#e5e7eb', fontSize: 14 } }
+        ? { text: title, left: 'center', textStyle: { color: theme.text, fontSize: 14 } }
         : undefined,
       tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle: baseTextStyle, type: 'scroll' },
-      color: PALETTE,
-      textStyle: baseTextStyle,
+      legend: { bottom: 0, textStyle, type: 'scroll' },
+      color: theme.palette,
+      textStyle,
       series: [
         {
           type: 'pie',
           radius: ['35%', '65%'],
           center: ['50%', '46%'],
           data: points.map((p) => ({ name: p.category, value: p.value })),
-          label: { color: '#cbd5e1' }
+          label: { color: theme.text }
         }
       ]
     }
@@ -193,19 +189,19 @@ export function buildEChartsOption(result: QueryResult, chart: ChartConfig): ECh
       }
     }
     return {
-      ...axisCommon(title, false),
+      ...axisCommon(title, false, theme),
       tooltip: { trigger: 'item' },
       xAxis: {
         type: 'value',
         name: xKey ?? '',
-        axisLabel: { color: '#94a3b8' },
-        splitLine: { lineStyle: { color: '#2a2c36' } }
+        axisLabel: { color: theme.axis },
+        splitLine: { lineStyle: { color: theme.grid } }
       },
       yAxis: {
         type: 'value',
         name: yKey ?? '',
-        axisLabel: { color: '#94a3b8' },
-        splitLine: { lineStyle: { color: '#2a2c36' } }
+        axisLabel: { color: theme.axis },
+        splitLine: { lineStyle: { color: theme.grid } }
       },
       series: [{ type: 'scatter', data, symbolSize: 10 }]
     }
@@ -219,17 +215,17 @@ export function buildEChartsOption(result: QueryResult, chart: ChartConfig): ECh
   const echartsType: 'bar' | 'line' = isLineLike ? 'line' : 'bar'
 
   return {
-    ...axisCommon(title, multi),
+    ...axisCommon(title, multi, theme),
     xAxis: {
       type: 'category',
       data: categories,
-      axisLabel: { color: '#94a3b8', rotate: categories.length > 8 ? 35 : 0 },
-      axisLine: { lineStyle: { color: '#475569' } }
+      axisLabel: { color: theme.axis, rotate: categories.length > 8 ? 35 : 0 },
+      axisLine: { lineStyle: { color: theme.axis } }
     },
     yAxis: {
       type: 'value',
-      axisLabel: { color: '#94a3b8' },
-      splitLine: { lineStyle: { color: '#2a2c36' } }
+      axisLabel: { color: theme.axis },
+      splitLine: { lineStyle: { color: theme.grid } }
     },
     series: series.map((s) => ({
       name: s.name,

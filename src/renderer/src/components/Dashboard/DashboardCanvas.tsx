@@ -75,7 +75,7 @@ export function DashboardCanvas() {
   }
 
   return (
-    <div className="relative h-full overflow-auto bg-[#15161b] p-4">
+    <div className="relative h-full overflow-auto bg-base p-4">
       {dashboard.tiles.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
           <div className="text-5xl text-brand-500">▦</div>

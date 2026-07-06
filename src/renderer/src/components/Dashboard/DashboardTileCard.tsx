@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type ReactECharts from 'echarts-for-react'
 import type { DashboardTile, QueryResult } from '@shared/types'
 import { ChartView } from '../ChartBuilder/ChartView'
@@ -6,6 +6,7 @@ import { useDashboard } from '../../store/dashboard'
 import { paramValues } from '../../lib/params'
 import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 import { toggleCrossFilter } from '../../lib/crossFilter'
+import { applyDrill } from '../../lib/drilldown'
 
 interface Props {
   tile: DashboardTile
@@ -21,6 +22,7 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
   const [result, setResult] = useState<QueryResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [drillPath, setDrillPath] = useState<string[]>([])
   const chartRef = useRef<ReactECharts>(null)
 
   // Parametre değerlerinin serileştirilmiş hali — değişince yeniden yükle.
@@ -36,8 +38,10 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
       paramValues(parameters)
     )
     setLoading(false)
-    if (res.ok) setResult(res.data)
-    else setError(res.error)
+    if (res.ok) {
+      setResult(res.data)
+      setDrillPath([]) // yeni veri gelince drill sıfırlanır
+    } else setError(res.error)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tile.connectionId, tile.sql, paramKey])
 
@@ -72,12 +76,32 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
 
   const isChart = tile.chart.type !== 'kpi' && tile.chart.type !== 'table'
 
+  // Drill-down: yapılandırıldıysa (≥2 seviye) tıklama alt kırılıma iner.
+  const drillLevels = tile.chart.drillLevels ?? []
+  const drillActive = drillLevels.length > 1
+  const drilled = useMemo(
+    () => (result && drillActive ? applyDrill(result, drillLevels, drillPath) : null),
+    [result, drillActive, drillLevels, drillPath]
+  )
+  const effectiveChart =
+    drilled?.dimension ? { ...tile.chart, dimension: drilled.dimension } : tile.chart
+  const effectiveResult = drilled ? drilled.result : result
+
   // Çapraz filtre: bu grafik bir parametre yayıyorsa tıklama değeri ayarlar.
   const cfParam = tile.chart.crossFilterParam || null
   const cfCurrent = cfParam ? (parameters?.find((p) => p.name === cfParam)?.value ?? '') : ''
-  const handleCategoryClick = cfParam
-    ? (value: string) => setParamValue(cfParam, toggleCrossFilter(cfCurrent, value))
-    : undefined
+
+  // Tıklama önceliği: önce drill (son seviyeye kadar), sonra çapraz filtre.
+  const handleCategoryClick =
+    drillActive || cfParam
+      ? (value: string) => {
+          if (drillActive && drillPath.length < drillLevels.length - 1) {
+            setDrillPath([...drillPath, value])
+          } else if (cfParam) {
+            setParamValue(cfParam, toggleCrossFilter(cfCurrent, value))
+          }
+        }
+      : undefined
 
   return (
     <div className="flex h-full flex-col overflow-hidden rounded-lg border border-edge bg-surface">
@@ -121,6 +145,25 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
           </button>
         </div>
       </div>
+      {/* Drill-down breadcrumb */}
+      {drillActive && drillPath.length > 0 && (
+        <div className="flex items-center gap-1 border-b border-edge px-3 py-1 text-[11px] text-gray-400">
+          <button className="hover:text-brand-500" onClick={() => setDrillPath([])}>
+            Tümü
+          </button>
+          {drillPath.map((v, i) => (
+            <span key={i} className="flex items-center gap-1">
+              <span className="text-gray-600">›</span>
+              <button
+                className="hover:text-brand-500"
+                onClick={() => setDrillPath(drillPath.slice(0, i + 1))}
+              >
+                {v}
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
       <div className="relative flex-1 overflow-hidden p-1">
         {error ? (
           <div className="flex h-full items-center justify-center px-3 text-center text-xs text-red-300">
@@ -129,8 +172,8 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
         ) : (
           <ChartView
             ref={chartRef}
-            result={result}
-            chart={tile.chart}
+            result={effectiveResult}
+            chart={effectiveChart}
             onCategoryClick={handleCategoryClick}
           />
         )}

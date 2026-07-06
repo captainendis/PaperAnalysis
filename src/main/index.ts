@@ -5,6 +5,7 @@ import { registerQueryIpc } from './ipc/query'
 import { registerSchemaIpc } from './ipc/schema'
 import { registerSampleIpc } from './ipc/sample'
 import { registerStorageIpc } from './ipc/storage'
+import { registerReportIpc, stopReportTimer } from './ipc/report'
 import { connectionManager } from './db/manager'
 
 function createWindow(): void {
@@ -45,6 +46,7 @@ app.whenReady().then(() => {
   registerSchemaIpc()
   registerSampleIpc()
   registerStorageIpc()
+  registerReportIpc()
 
   createWindow()
 
@@ -59,5 +61,6 @@ app.on('window-all-closed', async () => {
 })
 
 app.on('before-quit', async () => {
+  stopReportTimer()
   await connectionManager.closeAll()
 })

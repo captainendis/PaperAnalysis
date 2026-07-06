@@ -12,5 +12,9 @@ export const CH = {
   dashExport: 'dashboard:export',
   dashExportPdf: 'dashboard:exportPdf',
   fileSaveText: 'file:saveText',
-  fileSaveBinary: 'file:saveBinary'
+  fileSaveBinary: 'file:saveBinary',
+  reportPickFolder: 'report:pickFolder',
+  reportSchedule: 'report:schedule',
+  reportCancel: 'report:cancel',
+  reportStatus: 'report:status'
 } as const

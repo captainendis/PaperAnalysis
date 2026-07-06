@@ -41,8 +41,25 @@
   border-bottom: 2px solid rgba(255, 255, 255, 0.4);
 }
 
+/* Tema değişkenleri — koyu (varsayılan) ve açık. data-theme kök elemana yazılır. */
 :root {
+  --base: #15161b;
+  --panel: #1e1f26;
+  --surface: #252731;
+  --edge: #34363f;
+  --fg: #e5e7eb;
+  --muted: #94a3b8;
   color-scheme: dark;
+}
+
+:root[data-theme='light'] {
+  --base: #f4f5f7;
+  --panel: #ffffff;
+  --surface: #ffffff;
+  --edge: #dfe1e6;
+  --fg: #1f2430;
+  --muted: #5b6472;
+  color-scheme: light;
 }
 
 html,
@@ -54,8 +71,28 @@ body,
 
 body {
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  background-color: #1a1b21;
-  color: #e5e7eb;
+  background-color: var(--base);
+  color: var(--fg);
+}
+
+/* Açık temada Tailwind gri metin yardımcılarını okunur renklere eşle
+   (14 dosyada tek tek değiştirmek yerine merkezi yeniden eşleme). */
+:root[data-theme='light'] .text-gray-100,
+:root[data-theme='light'] .text-gray-200,
+:root[data-theme='light'] .text-gray-300 {
+  color: var(--fg);
+}
+:root[data-theme='light'] .text-gray-400,
+:root[data-theme='light'] .text-gray-500,
+:root[data-theme='light'] .text-gray-600 {
+  color: var(--muted);
+}
+/* Açık temada beyaz-alfa yıkamaları görünür kalsın diye koyu-alfaya çevir. */
+:root[data-theme='light'] .bg-white\/5 {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+:root[data-theme='light'] .bg-white\/10 {
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 /* İnce kaydırma çubukları */
@@ -64,7 +101,7 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3a3c46;
+  background: var(--edge);
   border-radius: 6px;
 }
 ::-webkit-scrollbar-track {

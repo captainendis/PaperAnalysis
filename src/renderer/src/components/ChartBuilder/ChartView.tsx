@@ -2,6 +2,8 @@ import { useMemo, forwardRef } from 'react'
 import ReactECharts from 'echarts-for-react'
 import type { ChartConfig, QueryResult } from '@shared/types'
 import { buildEChartsOption, computeKpi, resolveMeasures } from '../../lib/chartSpec'
+import { chartTheme } from '../../lib/chartTheme'
+import { useSettings } from '../../store/settings'
 import { ResultsTable } from '../QueryEditor/ResultsTable'
 
 interface Props {
@@ -31,10 +33,13 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   { result, chart, onCategoryClick },
   ref
 ) {
+  const themeMode = useSettings((s) => s.theme)
+  const paletteName = useSettings((s) => s.palette)
+
   const option = useMemo(() => {
     if (!result || chart.type === 'kpi' || chart.type === 'table') return null
-    return buildEChartsOption(result, chart)
-  }, [result, chart])
+    return buildEChartsOption(result, chart, chartTheme(themeMode, paletteName))
+  }, [result, chart, themeMode, paletteName])
 
   if (!result) return empty('Önce sorgu çalıştırın.')
 

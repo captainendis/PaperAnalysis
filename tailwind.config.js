@@ -11,9 +11,12 @@ export default {
           600: '#1d4ed8',
           700: '#1e40af'
         },
-        panel: '#1e1f26',
-        surface: '#252731',
-        edge: '#34363f'
+        panel: 'var(--panel)',
+        surface: 'var(--surface)',
+        edge: 'var(--edge)',
+        base: 'var(--base)',
+        fg: 'var(--fg)',
+        muted: 'var(--muted)'
       }
     }
   },

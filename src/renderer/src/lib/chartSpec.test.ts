@@ -98,6 +98,16 @@ describe('buildEChartsOption', () => {
     expect(option.series[0].stack).toBe('total')
   })
 
+  it('verilen tema paletini option.color olarak kullanır', () => {
+    const theme = { text: '#000', axis: '#111', grid: '#222', palette: ['#abcabc', '#defdef'] }
+    const option = buildEChartsOption(
+      result,
+      { type: 'bar', dimension: 'kategori', measure: 'tutar', aggregation: 'sum' },
+      theme
+    ) as { color: string[] }
+    expect(option.color).toEqual(['#abcabc', '#defdef'])
+  })
+
   it('saçılım için scatter series ve value eksenleri üretir', () => {
     const option = buildEChartsOption(result, {
       type: 'scatter',

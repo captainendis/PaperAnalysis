@@ -1,13 +1,18 @@
 import { useState } from 'react'
 import { useDashboard } from '../store/dashboard'
+import { useSettings } from '../store/settings'
+import { PALETTES } from '../lib/palettes'
 import { Button } from './common/Button'
 import { ParameterManager } from './FilterBar/ParameterManager'
+import { ScheduledReportModal } from './ScheduledReport/ScheduledReportModal'
 
 export function Toolbar() {
   const { dashboard, filePath, dirty, setName, loadDashboard, markSaved, reset } = useDashboard()
+  const { theme, toggleTheme, palette, setPalette } = useSettings()
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [reportOpen, setReportOpen] = useState(false)
 
   function flash(msg: string) {
     setToast(msg)
@@ -72,11 +77,34 @@ export function Toolbar() {
 
       <div className="ml-auto flex items-center gap-2">
         {toast && <span className="text-xs text-gray-400">{toast}</span>}
+        <button
+          className="rounded-md border border-edge px-2 py-1.5 text-sm text-gray-200 hover:bg-white/10"
+          onClick={toggleTheme}
+          title={theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç'}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </button>
+        <select
+          className="rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-gray-200 outline-none hover:bg-white/5"
+          value={palette}
+          onChange={(e) => setPalette(e.target.value)}
+          title="Grafik paleti"
+        >
+          {PALETTES.map((p) => (
+            <option key={p.name} value={p.name}>
+              🎨 {p.label}
+            </option>
+          ))}
+        </select>
+        <div className="mx-1 h-5 w-px bg-edge" />
         <Button variant="ghost" onClick={() => setFiltersOpen(true)} disabled={busy}>
           Filtreler{paramCount > 0 ? ` (${paramCount})` : ''}
         </Button>
         <Button variant="ghost" onClick={exportPdf} disabled={busy}>
           PDF
+        </Button>
+        <Button variant="ghost" onClick={() => setReportOpen(true)} disabled={busy}>
+          Zamanla
         </Button>
         <div className="mx-1 h-5 w-px bg-edge" />
         <Button variant="ghost" onClick={newDashboard} disabled={busy}>
@@ -94,6 +122,7 @@ export function Toolbar() {
       </div>
 
       <ParameterManager open={filtersOpen} onClose={() => setFiltersOpen(false)} />
+      <ScheduledReportModal open={reportOpen} onClose={() => setReportOpen(false)} />
     </header>
   )
 }
