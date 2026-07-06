@@ -51,7 +51,8 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const [showSchema, setShowSchema] = useState(true)
   const [joinOpen, setJoinOpen] = useState(false)
 
-  const activeKind = connections.find((c) => c.id === draft.connectionId)?.kind ?? 'sqlite'
+  const activeConn = connections.find((c) => c.id === draft.connectionId)
+  const activeKind = activeConn?.kind ?? 'sqlite'
 
   async function runQuery() {
     if (!draft.connectionId) {
@@ -122,13 +123,34 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
       <div className="flex h-[68vh] gap-3">
         {/* En sol: şema ağacı */}
         {showSchema && (
-          <div className="flex w-52 flex-col rounded-md border border-edge bg-panel">
-            <div className="flex items-center justify-between border-b border-edge px-2 py-1.5">
-              <span className="text-xs font-semibold uppercase tracking-wide text-gray-400">
-                Şema
-              </span>
+          <div className="flex w-56 flex-col rounded-md border border-edge bg-panel">
+            <div className="flex items-start justify-between gap-1 border-b border-edge px-2 py-1.5">
+              <div className="min-w-0">
+                <div className="text-xs font-semibold uppercase tracking-wide text-gray-400">Şema</div>
+                {activeConn ? (
+                  <div className="truncate text-[13px] font-medium text-gray-100" title={activeConn.name}>
+                    {activeConn.name}
+                    <span className="ml-1 rounded bg-white/10 px-1 py-0.5 text-[10px] uppercase text-gray-300">
+                      {activeConn.kind}
+                    </span>
+                    {activeConn.kind === 'sqlite'
+                      ? activeConn.filePath && (
+                          <div className="truncate text-[11px] text-gray-500" title={activeConn.filePath}>
+                            {activeConn.filePath}
+                          </div>
+                        )
+                      : (activeConn.database || activeConn.host) && (
+                          <div className="truncate text-[11px] text-gray-500">
+                            {[activeConn.host, activeConn.database].filter(Boolean).join(' / ')}
+                          </div>
+                        )}
+                  </div>
+                ) : (
+                  <div className="text-[11px] text-gray-500">bağlantı seçilmedi</div>
+                )}
+              </div>
               <button
-                className="text-xs text-gray-500 hover:text-gray-300"
+                className="shrink-0 text-xs text-gray-500 hover:text-gray-300"
                 onClick={() => setShowSchema(false)}
                 title="Gizle"
               >
