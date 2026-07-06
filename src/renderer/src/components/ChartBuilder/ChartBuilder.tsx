@@ -1,6 +1,7 @@
 import type { Aggregation, ChartConfig, ChartType, QueryResult } from '@shared/types'
 import { Field, Select, TextInput } from '../common/Field'
 import { resolveMeasures } from '../../lib/chartSpec'
+import { suggestChart } from '../../lib/chartSuggest'
 import { useDashboard } from '../../store/dashboard'
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
@@ -60,6 +61,15 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      <button
+        className="self-start rounded-md bg-brand-500/20 px-3 py-1.5 text-sm font-medium text-brand-500 hover:bg-brand-500/30 disabled:opacity-50"
+        disabled={!result}
+        title="Sonuca göre otomatik grafik öner"
+        onClick={() => result && onChange({ ...chart, ...suggestChart(result) })}
+      >
+        ✨ Otomatik grafik öner
+      </button>
+
       <Field label="Grafik Başlığı">
         <TextInput
           value={chart.title ?? ''}

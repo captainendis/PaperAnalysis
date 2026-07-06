@@ -19,6 +19,8 @@ Electron + React + TypeScript ile geliştirilmiştir.
   saçılım (scatter), pasta, **KPI kartı** ve **tablo** görselleri
   - Kategori (X) / ölçü (Y) eşleme + agregasyon (SUM/AVG/COUNT/MIN/MAX)
   - **Çoklu seri** desteği (birden fazla ölçü)
+  - **✨ Otomatik grafik:** Sorgu çalışınca sütun tipleri (metin/tarih/sayı) algılanıp
+    makul bir grafik (X, Y, tür) otomatik önerilir ve anında önizlenir
 - **Filtreler & etkileşim:** Pano genelinde parametreler (`:ad` yer tutucuları ile,
   güvenli parametre bağlama), filtre çubuğu ve **otomatik yenileme**
 - **Çapraz filtreleme (cross-filter):** Bir grafikte bir kategoriye/dilime tıklayınca
@@ -85,9 +87,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.1.5 && git push origin v0.1.5
+  git tag v0.1.6 && git push origin v0.1.6
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.1.5.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.1.6.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

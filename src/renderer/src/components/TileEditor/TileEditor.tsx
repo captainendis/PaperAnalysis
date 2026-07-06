@@ -15,6 +15,7 @@ import { useDashboard } from '../../store/dashboard'
 import { useQueries } from '../../store/queries'
 import { paramValues } from '../../lib/params'
 import { previewSelect } from '../../lib/sqlDialect'
+import { suggestChart } from '../../lib/chartSuggest'
 import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 interface Props {
@@ -68,6 +69,13 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
       setResult(res.data)
       setTab('chart')
       addHistory(draft.sql, draft.connectionId)
+      // Grafik henüz yapılandırılmadıysa otomatik makul bir grafik öner.
+      setDraft((d) => {
+        const c = d.chart
+        const configured =
+          !!c.dimension || (c.measures?.length ?? 0) > 0 || c.type === 'table' || c.type === 'kpi'
+        return configured ? d : { ...d, chart: { ...c, ...suggestChart(res.data) } }
+      })
     } else {
       setError(res.error)
     }
