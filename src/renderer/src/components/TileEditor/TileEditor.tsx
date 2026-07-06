@@ -13,6 +13,7 @@ import { useConnections } from '../../store/connections'
 import { useDashboard } from '../../store/dashboard'
 import { useQueries } from '../../store/queries'
 import { paramValues } from '../../lib/params'
+import { previewSelect } from '../../lib/sqlDialect'
 import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 interface Props {
@@ -69,8 +70,10 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   }
 
   function pickTable(t: TableInfo) {
-    const qualified = t.schema ? `${t.schema}.${t.name}` : t.name
-    setDraft((d) => ({ ...d, sql: `SELECT * FROM ${qualified} LIMIT 100`, title: d.title || t.name }))
+    // Veritabanı türüne uygun önizleme sorgusu (MSSQL TOP, diğerleri LIMIT).
+    const kind = connections.find((c) => c.id === draft.connectionId)?.kind ?? 'sqlite'
+    const sql = previewSelect(kind, t.schema, t.name)
+    setDraft((d) => ({ ...d, sql, title: d.title || t.name }))
   }
 
   function pickColumn(col: string) {
