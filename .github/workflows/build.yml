@@ -2,6 +2,8 @@ name: Windows Kurulumu Oluştur
 
 on:
   push:
+    branches:
+      - 'claude/power-bi-data-tool-jd5d1j'
     tags:
       - 'v*'
   workflow_dispatch:
