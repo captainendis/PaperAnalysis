@@ -118,7 +118,10 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
             </button>
           )}
         </span>
-        <div className="flex items-center gap-1.5 text-gray-400">
+        <div
+          className="flex items-center gap-1.5 text-gray-400"
+          onMouseDown={(e) => e.stopPropagation()}
+        >
           <button title="Yenile" className="hover:text-brand-500" onClick={load}>
             ⟳
           </button>

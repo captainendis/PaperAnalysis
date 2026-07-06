@@ -105,6 +105,7 @@ export function DashboardCanvas() {
           cols={12}
           rowHeight={36}
           draggableHandle=".drag-handle"
+          draggableCancel="button,select,input,textarea,a,label"
           onLayoutChange={onLayoutChange}
           compactType="vertical"
           margin={[12, 12]}
