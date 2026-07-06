@@ -69,6 +69,34 @@ npm run dev            # geliştirme modunda uygulamayı başlat
 ```bash
 npm run build          # main/preload/renderer paketlerini derle (out/)
 npm run package        # electron-builder ile kurulabilir paket üret (release/)
+npm run package:win    # yalnızca Windows NSIS kurulumu (.exe) — Windows'ta çalıştırın
+```
+
+### Windows kurulumu (.exe) oluşturma — GitHub Actions
+
+Windows kurulum dosyası `.github/workflows/build.yml` iş akışıyla otomatik üretilir
+(Windows'a özgü paketleme Linux/macOS'ta yapılamaz; CI `windows-latest` runner'ında
+derler). İki şekilde tetiklenir:
+
+- **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
+  ```bash
+  git tag v0.1.0 && git push origin v0.1.0
+  ```
+  İş akışı çalışır, `VeriPano-Setup-0.1.0.exe` üretir ve bir **GitHub Release**'e ekler.
+- **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
+
+Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
+altından da indirilebilir.
+
+> Not: İkili kod imzalanmaz. İlk çalıştırmada Windows SmartScreen uyarı gösterebilir;
+> “Yine de çalıştır” ile devam edilir.
+
+### Uygulama ikonu
+
+`build/icon.png`, bağımlılıksız üreteçle oluşturulur:
+
+```bash
+npm run make-icon      # scripts/make-icon.mjs → build/icon.png (1024×1024)
 ```
 
 ### Test ve tip kontrolü

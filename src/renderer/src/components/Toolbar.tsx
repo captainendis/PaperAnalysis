@@ -62,7 +62,8 @@ export function Toolbar() {
     <header className="flex items-center gap-3 border-b border-edge bg-panel px-4 py-2">
       <div className="flex items-center gap-2">
         <span className="text-brand-500 text-lg font-bold">▦</span>
-        <span className="text-sm font-semibold text-gray-200">Power BI Tarzı Analiz</span>
+        <span className="text-sm font-semibold text-gray-200">VeriPano</span>
+        <span className="text-[11px] text-gray-500">— Veri Analiz Panosu</span>
       </div>
 
       <div className="mx-2 h-5 w-px bg-edge" />

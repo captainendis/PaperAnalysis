@@ -15,6 +15,8 @@
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "test": "vitest run",
     "package": "electron-vite build && electron-builder",
+    "package:win": "electron-vite build && electron-builder --win --publish never",
+    "make-icon": "node scripts/make-icon.mjs",
     "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {

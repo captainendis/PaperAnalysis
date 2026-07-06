@@ -16,7 +16,7 @@ function createWindow(): void {
     minHeight: 640,
     show: false,
     backgroundColor: '#1e1f26',
-    title: 'Power BI Tarzı Analiz',
+    title: 'VeriPano',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       contextIsolation: true,
