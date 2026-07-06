@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Toolbar } from './components/Toolbar'
+import { DashboardTabs } from './components/DashboardTabs'
 import { ConnectionPanel } from './components/ConnectionManager/ConnectionPanel'
 import { DashboardCanvas } from './components/Dashboard/DashboardCanvas'
 import { FilterBar } from './components/FilterBar/FilterBar'
@@ -16,6 +17,7 @@ export default function App() {
   return (
     <div className="flex h-screen flex-col bg-base">
       <Toolbar />
+      <DashboardTabs />
       <FilterBar />
       <div className="flex flex-1 overflow-hidden">
         <ConnectionPanel />

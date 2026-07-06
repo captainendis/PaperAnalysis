@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useDashboard } from '../store/dashboard'
+import { useWorkspace } from '../store/workspace'
 import { useSettings } from '../store/settings'
 import { PALETTES } from '../lib/palettes'
 import { Button } from './common/Button'
@@ -7,7 +8,8 @@ import { ParameterManager } from './FilterBar/ParameterManager'
 import { ScheduledReportModal } from './ScheduledReport/ScheduledReportModal'
 
 export function Toolbar() {
-  const { dashboard, filePath, dirty, setName, loadDashboard, markSaved, reset } = useDashboard()
+  const { dashboard, filePath, dirty, setName, markSaved } = useDashboard()
+  const { newTab, newTabWith } = useWorkspace()
   const { theme, toggleTheme, palette, setPalette } = useSettings()
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
@@ -36,16 +38,17 @@ export function Toolbar() {
     const res = await window.api.dashboard.open()
     setBusy(false)
     if (res.ok) {
-      loadDashboard(res.data.dashboard, res.data.path)
-      flash('Pano açıldı.')
+      // Yeni bir sekmede aç (mevcut panoyu kapatmadan).
+      newTabWith(res.data.dashboard, res.data.path)
+      flash('Pano yeni sekmede açıldı.')
     } else if (res.error !== 'İptal edildi.') {
       flash('Hata: ' + res.error)
     }
   }
 
   function newDashboard() {
-    if (dirty && !confirm('Kaydedilmemiş değişiklikler var. Yeni pano oluşturulsun mu?')) return
-    reset()
+    // Yeni bir pano sekmesi aç (mevcut sekme korunur).
+    newTab()
   }
 
   async function exportPdf() {

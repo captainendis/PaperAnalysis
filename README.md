@@ -29,6 +29,8 @@ Electron + React + TypeScript ile geliştirilmiştir.
   kayıtlı sorgular (yerel olarak saklanır, yeniden yükleme)
 - **Zamanlanmış rapor:** Panoyu belirli aralıklarla (15 dk – 24 s) otomatik olarak
   bir klasöre PDF kaydetme (uygulama açıkken)
+- **Çoklu pano & sekmeler:** Aynı anda birden fazla panoyu sekmelerde açma ve
+  aralarında geçiş yapma (üst sekme çubuğu; + ile yeni, ✕ ile kapatma)
 - **Sürükle-bırak pano:** Grafik kartlarını taşıma ve yeniden boyutlandırma (react-grid-layout)
 - **Dışa aktarma:** Sorgu sonuçlarını **CSV / Excel (.xlsx)**, grafikleri **PNG**,
   panoyu **PDF** olarak dışa aktarma
@@ -80,9 +82,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.1.2 && git push origin v0.1.2
+  git tag v0.1.3 && git push origin v0.1.3
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.1.2.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.1.3.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

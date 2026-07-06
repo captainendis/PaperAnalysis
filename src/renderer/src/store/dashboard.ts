@@ -17,6 +17,8 @@ interface DashboardState {
   clearParamValues: () => void
   setRefreshInterval: (sec: number) => void
   loadDashboard: (dashboard: Dashboard, path: string | null) => void
+  /** Bir pano sekmesini (dirty durumuyla birlikte) aktif eder. */
+  restoreDoc: (dashboard: Dashboard, path: string | null, dirty: boolean) => void
   markSaved: (path: string) => void
   reset: () => void
 }
@@ -89,6 +91,8 @@ export const useDashboard = create<DashboardState>((set) => ({
     set((s) => ({ dashboard: { ...s.dashboard, refreshIntervalSec: sec }, dirty: true })),
 
   loadDashboard: (dashboard, path) => set({ dashboard, filePath: path, dirty: false }),
+
+  restoreDoc: (dashboard, path, dirty) => set({ dashboard, filePath: path, dirty }),
 
   markSaved: (path) => set({ filePath: path, dirty: false }),
 
