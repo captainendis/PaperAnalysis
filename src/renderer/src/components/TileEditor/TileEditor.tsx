@@ -25,8 +25,6 @@ interface Props {
   onSave: (tile: DashboardTile) => void
 }
 
-type Tab = 'data' | 'chart'
-
 /** Grafik yapılandırmasının panoya kaydedilebilir olup olmadığını belirler. */
 function canSave(tile: DashboardTile): boolean {
   const c = tile.chart
@@ -50,7 +48,6 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const [result, setResult] = useState<QueryResult | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [tab, setTab] = useState<Tab>('data')
   const [showSchema, setShowSchema] = useState(true)
   const [joinOpen, setJoinOpen] = useState(false)
 
@@ -67,7 +64,6 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
     setRunning(false)
     if (res.ok) {
       setResult(res.data)
-      setTab('chart')
       addHistory(draft.sql, draft.connectionId)
       // Grafik henüz yapılandırılmadıysa otomatik makul bir grafik öner.
       setDraft((d) => {
@@ -237,36 +233,21 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
           </div>
         </div>
 
-        {/* Sağ: grafik yapılandırma + önizleme */}
-        <div className="flex w-80 flex-col gap-3">
-          <div className="flex rounded-md border border-edge bg-surface p-0.5 text-sm">
-            <button
-              className={`flex-1 rounded px-3 py-1 ${tab === 'data' ? 'bg-brand-500 text-white' : 'text-gray-300'}`}
-              onClick={() => setTab('data')}
-            >
-              Ayarlar
-            </button>
-            <button
-              className={`flex-1 rounded px-3 py-1 ${tab === 'chart' ? 'bg-brand-500 text-white' : 'text-gray-300'}`}
-              onClick={() => setTab('chart')}
-            >
-              Önizleme
-            </button>
+        {/* Sağ: önizleme (hep açık) + grafik yapılandırma */}
+        <div className="flex w-96 flex-col gap-2">
+          <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
+            Canlı Önizleme
+          </span>
+          <div className="h-56 shrink-0 overflow-hidden rounded-md border border-edge bg-surface p-2">
+            <ChartView result={result} chart={draft.chart} />
           </div>
-
-          {tab === 'data' ? (
-            <div className="flex-1 overflow-auto rounded-md border border-edge bg-surface p-4">
-              <ChartBuilder
-                chart={draft.chart}
-                result={result}
-                onChange={(chart) => setDraft({ ...draft, chart })}
-              />
-            </div>
-          ) : (
-            <div className="flex-1 overflow-hidden rounded-md border border-edge bg-surface p-2">
-              <ChartView result={result} chart={draft.chart} />
-            </div>
-          )}
+          <div className="flex-1 overflow-auto rounded-md border border-edge bg-surface p-4">
+            <ChartBuilder
+              chart={draft.chart}
+              result={result}
+              onChange={(chart) => setDraft({ ...draft, chart })}
+            />
+          </div>
         </div>
       </div>
 
