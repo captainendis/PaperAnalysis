@@ -9,7 +9,8 @@ Electron + React + TypeScript ile geliştirilmiştir.
 
 - **Çoklu veritabanı bağlantısı:** Microsoft SQL Server, PostgreSQL, MySQL/MariaDB, SQLite
 - **Veritabanı şema gezgini:** Bağlantının tablo/sütun ağacı; tabloya tıklayınca
-  otomatik `SELECT`, sütuna tıklayınca sorguya alan ekleme
+  otomatik `SELECT` (ayarlanabilir **satır sınırı**; 0 = tüm veri), sütuna tıklayınca
+  sorguya alan ekleme
 - **Görsel Birleştirme (Join) Sihirbazı:** SQL yazmadan aynı veritabanındaki iki tabloyu
   birleştirme — INNER/LEFT/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
   filtreleri; üretilen sorguyu çalıştırıp **Excel** olarak dışa aktarma
@@ -90,9 +91,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.0 && git push origin v0.2.0
+  git tag v0.2.1 && git push origin v0.2.1
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.0.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.1.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -211,6 +212,9 @@ aynı ağdaki başka bir cihazın tarayıcısında bu adresi açan herkes panoyu
 
 - **Anlık görüntü:** Yayınladığınız andaki veriyle sabit bir sayfadır. Veriyi
   güncellemek için **Yeniden Yayınla**. Durdurmak için **Durdur**.
+- **Otomatik yenileme:** Yayınlarken bir aralık (10 sn – 5 dk) seçerseniz pano
+  veriyi periyodik tekrar çeker ve yayınlanan sayfa izleyicinin tarayıcısında
+  kendiliğinden yenilenir.
 - **Güvenlik:** Sunucu yalnızca hazır HTML sunar; veritabanı bağlantınız/kimlik
   bilgileriniz ağa açılmaz. Kimlik doğrulama yoktur — yalnızca güvendiğiniz yerel
   ağda kullanın. Windows ilk yayında güvenlik duvarı izni isteyebilir.

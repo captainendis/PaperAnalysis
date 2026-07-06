@@ -15,16 +15,25 @@ export function quoteIdent(kind: DbKind, name: string): string {
 }
 
 /**
- * Bir tabloyu önizlemek için ilk 100 satırı çeken, veritabanı türüne uygun
- * SELECT üretir. MSSQL `TOP` kullanır; diğerleri `LIMIT`.
+ * Bir tabloyu önizlemek için veritabanı türüne uygun SELECT üretir.
+ * `limit` verilmezse (0/undefined) satır sınırı eklenmez (tüm veri).
+ * MSSQL `TOP` kullanır; diğerleri `LIMIT`.
  */
-export function previewSelect(kind: DbKind, schema: string | undefined, table: string): string {
+export function previewSelect(
+  kind: DbKind,
+  schema: string | undefined,
+  table: string,
+  limit?: number
+): string {
   const qualified = schema
     ? `${quoteIdent(kind, schema)}.${quoteIdent(kind, table)}`
     : quoteIdent(kind, table)
 
-  if (kind === 'mssql') {
-    return `SELECT TOP 100 * FROM ${qualified}`
+  if (!limit || limit <= 0) {
+    return `SELECT * FROM ${qualified}`
   }
-  return `SELECT * FROM ${qualified} LIMIT 100`
+  if (kind === 'mssql') {
+    return `SELECT TOP ${limit} * FROM ${qualified}`
+  }
+  return `SELECT * FROM ${qualified} LIMIT ${limit}`
 }

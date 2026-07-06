@@ -61,13 +61,16 @@ export function tileSectionHtml(s: TileSection): string {
 export function assembleDashboardHtml(
   name: string,
   sections: string[],
-  generatedAtText: string
+  generatedAtText: string,
+  refreshSec = 0
 ): string {
+  const refreshMeta =
+    refreshSec > 0 ? `\n<meta http-equiv="refresh" content="${Math.round(refreshSec)}" />` : ''
   return `<!doctype html>
 <html lang="tr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />${refreshMeta}
 <title>${escapeHtml(name || 'Pano')}</title>
 <style>
   * { box-sizing: border-box; }
@@ -130,7 +133,8 @@ function renderChartPng(result: QueryResult, tile: DashboardTile, paletteName: s
 export async function buildPublishHtml(
   dashboard: Dashboard,
   params: Record<string, unknown>,
-  paletteName: string
+  paletteName: string,
+  refreshSec = 0
 ): Promise<string> {
   const sections: string[] = []
 
@@ -163,5 +167,7 @@ export async function buildPublishHtml(
     sections.push(tileSectionHtml({ title: 'Boş pano', error: 'Bu panoda grafik yok.' }))
   }
 
-  return assembleDashboardHtml(dashboard.name, sections, `Oluşturuldu`)
+  const note =
+    refreshSec > 0 ? `Her ${refreshSec} sn'de yenilenir` : 'Anlık görüntü'
+  return assembleDashboardHtml(dashboard.name, sections, note, refreshSec)
 }

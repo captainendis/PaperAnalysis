@@ -59,5 +59,11 @@ describe('assembleDashboardHtml', () => {
     expect(doc).toContain('<title>Panom</title>')
     expect(doc).toContain('<section>A</section>')
     expect(doc).toContain('PaperAnalysis')
+    expect(doc).not.toContain('http-equiv="refresh"')
+  })
+
+  it('refreshSec verilince otomatik yenileme meta etiketi ekler', () => {
+    const doc = assembleDashboardHtml('P', [], 'x', 30)
+    expect(doc).toContain('<meta http-equiv="refresh" content="30" />')
   })
 })

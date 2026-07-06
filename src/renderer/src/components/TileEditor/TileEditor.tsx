@@ -13,6 +13,7 @@ import { JoinBuilderModal } from '../JoinBuilder/JoinBuilderModal'
 import { useConnections } from '../../store/connections'
 import { useDashboard } from '../../store/dashboard'
 import { useQueries } from '../../store/queries'
+import { useSettings } from '../../store/settings'
 import { paramValues } from '../../lib/params'
 import { previewSelect } from '../../lib/sqlDialect'
 import { suggestChart } from '../../lib/chartSuggest'
@@ -44,6 +45,8 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const connections = useConnections((s) => s.items)
   const parameters = useDashboard((s) => s.dashboard.parameters)
   const addHistory = useQueries((s) => s.addHistory)
+  const previewLimit = useSettings((s) => s.previewLimit)
+  const setPreviewLimit = useSettings((s) => s.setPreviewLimit)
   const [draft, setDraft] = useState<DashboardTile>(tile)
   const [result, setResult] = useState<QueryResult | null>(null)
   const [running, setRunning] = useState(false)
@@ -81,7 +84,7 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   function pickTable(t: TableInfo) {
     // Veritabanı türüne uygun önizleme sorgusu (MSSQL TOP, diğerleri LIMIT).
     const kind = connections.find((c) => c.id === draft.connectionId)?.kind ?? 'sqlite'
-    const sql = previewSelect(kind, t.schema, t.name)
+    const sql = previewSelect(kind, t.schema, t.name, previewLimit)
     setDraft((d) => ({ ...d, sql, title: d.title || t.name }))
   }
 
@@ -196,6 +199,20 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
                 </option>
               ))}
             </Select>
+            <label
+              className="flex items-center gap-1 rounded-md border border-edge bg-surface px-2 py-1.5 text-xs text-gray-400"
+              title="Şemadan tabloya tıklayınca önizleme satır sınırı (0 = Tümü)"
+            >
+              Satır:
+              <input
+                type="number"
+                min={0}
+                className="w-16 bg-transparent text-[13px] text-gray-100 outline-none"
+                value={previewLimit || ''}
+                placeholder="Tümü"
+                onChange={(e) => setPreviewLimit(Math.max(0, Number(e.target.value) || 0))}
+              />
+            </label>
             <Button
               variant="ghost"
               onClick={() => setJoinOpen(true)}

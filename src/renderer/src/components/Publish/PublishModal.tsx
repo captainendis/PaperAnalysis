@@ -2,11 +2,12 @@ import { useEffect, useState } from 'react'
 import type { PublishStatus } from '@shared/types'
 import { Modal } from '../common/Modal'
 import { Button } from '../common/Button'
-import { Field, TextInput } from '../common/Field'
+import { Field, Select, TextInput } from '../common/Field'
 import { useDashboard } from '../../store/dashboard'
 import { useSettings } from '../../store/settings'
 import { paramValues } from '../../lib/params'
 import { buildPublishHtml } from '../../lib/publish'
+import { startAutoRepublish, stopAutoRepublish } from '../../lib/publishAuto'
 
 interface Props {
   open: boolean
@@ -19,6 +20,7 @@ export function PublishModal({ open, onClose }: Props) {
   const parameters = useDashboard((s) => s.dashboard.parameters)
   const palette = useSettings((s) => s.palette)
   const [port, setPort] = useState(8080)
+  const [refreshSec, setRefreshSec] = useState(0)
   const [status, setStatus] = useState<PublishStatus | null>(null)
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<string | null>(null)
@@ -34,7 +36,7 @@ export function PublishModal({ open, onClose }: Props) {
   }, [open])
 
   async function buildHtml(): Promise<string> {
-    return buildPublishHtml(dashboard, paramValues(parameters), palette)
+    return buildPublishHtml(dashboard, paramValues(parameters), palette, refreshSec)
   }
 
   async function publish() {
@@ -46,6 +48,8 @@ export function PublishModal({ open, onClose }: Props) {
       if (r.ok) {
         setStatus(r.data)
         setMsg('Yayında.')
+        if (refreshSec > 0) startAutoRepublish(refreshSec)
+        else stopAutoRepublish()
       } else {
         setMsg('Hata: ' + r.error)
       }
@@ -70,6 +74,7 @@ export function PublishModal({ open, onClose }: Props) {
 
   async function stop() {
     setBusy(true)
+    stopAutoRepublish()
     const r = await window.api.publish.stop()
     if (r.ok) {
       setStatus(r.data)
@@ -109,13 +114,28 @@ export function PublishModal({ open, onClose }: Props) {
       </p>
 
       {!active ? (
-        <Field label="Port">
-          <TextInput
-            type="number"
-            value={port}
-            onChange={(e) => setPort(Number(e.target.value) || 0)}
-          />
-        </Field>
+        <div className="flex flex-col gap-4">
+          <Field label="Port">
+            <TextInput
+              type="number"
+              value={port}
+              onChange={(e) => setPort(Number(e.target.value) || 0)}
+            />
+          </Field>
+          <Field label="Otomatik Yenileme">
+            <Select value={String(refreshSec)} onChange={(e) => setRefreshSec(Number(e.target.value))}>
+              <option value="0">Kapalı (anlık görüntü)</option>
+              <option value="10">10 saniye</option>
+              <option value="30">30 saniye</option>
+              <option value="60">1 dakika</option>
+              <option value="300">5 dakika</option>
+            </Select>
+          </Field>
+          <p className="text-xs text-gray-500">
+            Açık olduğunda pano seçtiğiniz aralıkta veriyi tekrar çeker ve yayınlanan
+            sayfa izleyicinin tarayıcısında otomatik yenilenir.
+          </p>
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           <div className="rounded-md bg-green-500/15 px-3 py-2 text-sm text-green-300">

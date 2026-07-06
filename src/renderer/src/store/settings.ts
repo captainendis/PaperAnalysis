@@ -6,16 +6,20 @@ const KEY = 'pb-settings'
 interface Persisted {
   theme: ThemeMode
   palette: string
+  /** Şema ağacından tablo önizleme satır sınırı. 0 = Tümü (sınırsız). */
+  previewLimit: number
 }
+
+const DEFAULTS: Persisted = { theme: 'dark', palette: 'default', previewLimit: 0 }
 
 function load(): Persisted {
   try {
     const raw = localStorage.getItem(KEY)
-    if (raw) return { theme: 'dark', palette: 'default', ...JSON.parse(raw) }
+    if (raw) return { ...DEFAULTS, ...JSON.parse(raw) }
   } catch {
     /* yoksay */
   }
-  return { theme: 'dark', palette: 'default' }
+  return { ...DEFAULTS }
 }
 
 function persist(p: Persisted): void {
@@ -30,6 +34,7 @@ interface SettingsState extends Persisted {
   setTheme: (theme: ThemeMode) => void
   toggleTheme: () => void
   setPalette: (palette: string) => void
+  setPreviewLimit: (n: number) => void
 }
 
 export const useSettings = create<SettingsState>((set, get) => ({
@@ -37,17 +42,22 @@ export const useSettings = create<SettingsState>((set, get) => ({
 
   setTheme: (theme) => {
     set({ theme })
-    persist({ theme, palette: get().palette })
+    persist({ theme, palette: get().palette, previewLimit: get().previewLimit })
   },
 
   toggleTheme: () => {
     const theme: ThemeMode = get().theme === 'dark' ? 'light' : 'dark'
     set({ theme })
-    persist({ theme, palette: get().palette })
+    persist({ theme, palette: get().palette, previewLimit: get().previewLimit })
   },
 
   setPalette: (palette) => {
     set({ palette })
-    persist({ theme: get().theme, palette })
+    persist({ theme: get().theme, palette, previewLimit: get().previewLimit })
+  },
+
+  setPreviewLimit: (previewLimit) => {
+    set({ previewLimit })
+    persist({ theme: get().theme, palette: get().palette, previewLimit })
   }
 }))
