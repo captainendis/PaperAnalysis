@@ -54,6 +54,34 @@ describe('buildJoinSql', () => {
     expect(sql).toContain("a.\"ad\" = 'O''Brien'")
   })
 
+  it('MSSQL: collate işaretli anahtarda COLLATE DATABASE_DEFAULT ekler', () => {
+    const sql = buildJoinSql('mssql', {
+      ...base,
+      keys: [{ left: 'malzemekodu', right: 'malzemekodu', collate: true }]
+    })
+    expect(sql).toContain(
+      'a.[malzemekodu] COLLATE DATABASE_DEFAULT = b.[malzemekodu] COLLATE DATABASE_DEFAULT'
+    )
+  })
+
+  it('MSSQL: collate işaretsiz (sayısal) anahtarda COLLATE eklemez', () => {
+    const sql = buildJoinSql('mssql', {
+      ...base,
+      keys: [{ left: 'id', right: 'id', collate: false }]
+    })
+    expect(sql).not.toContain('COLLATE')
+    expect(sql).toContain('a.[id] = b.[id]')
+  })
+
+  it('COLLATE yalnızca MSSQL için — postgres yok sayar', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      keys: [{ left: 'malzemekodu', right: 'malzemekodu', collate: true }]
+    })
+    expect(sql).not.toContain('COLLATE')
+    expect(sql).toContain('a."malzemekodu" = b."malzemekodu"')
+  })
+
   it('çakışan sütun adında benzersiz alias verir', () => {
     const sql = buildJoinSql('postgres', {
       ...base,

@@ -21,6 +21,8 @@ export interface TableRef {
 export interface JoinKey {
   left: string
   right: string
+  /** MSSQL'de farklı collation'lı metin sütunlarında COLLATE DATABASE_DEFAULT uygula. */
+  collate?: boolean
 }
 
 export interface FilterCond {
@@ -99,10 +101,17 @@ export function buildJoinSql(kind: DbKind, spec: JoinSpec): string {
     : 'a.*, b.*'
 
   const top = kind === 'mssql' && spec.limit ? `TOP ${spec.limit} ` : ''
+  // MSSQL'de farklı collation'lı metin anahtarlarında karşılaştırmayı ortak
+  // collation'a zorla (yalnızca collate işaretli anahtarlarda; sayısal anahtarlarda
+  // COLLATE hata verirdi).
+  const side = (alias: 'a' | 'b', col: string, collate?: boolean): string => {
+    const c = `${alias}.${quoteIdent(kind, col)}`
+    return collate && kind === 'mssql' ? `${c} COLLATE DATABASE_DEFAULT` : c
+  }
   const on =
     spec.keys.length > 0
       ? spec.keys
-          .map((k) => `a.${quoteIdent(kind, k.left)} = b.${quoteIdent(kind, k.right)}`)
+          .map((k) => `${side('a', k.left, k.collate)} = ${side('b', k.right, k.collate)}`)
           .join(' AND ')
       : '1 = 1'
 

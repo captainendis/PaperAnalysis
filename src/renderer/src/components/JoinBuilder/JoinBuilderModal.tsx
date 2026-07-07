@@ -34,6 +34,11 @@ function tableRef(t: TableInfo | null) {
   return t ? { schema: t.schema, name: t.name } : { name: '' }
 }
 
+/** Sütun tipi metinsel mi? (char/varchar/nchar/nvarchar/text/ntext) */
+function isTextType(type?: string): boolean {
+  return !!type && /char|text/i.test(type)
+}
+
 export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate }: Props) {
   const { cache, load } = useSchema()
   const schema = connectionId ? cache[connectionId] : undefined
@@ -50,6 +55,7 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
   const [filters, setFilters] = useState<FilterCond[]>([])
   const [unionAll, setUnionAll] = useState(true)
   const [limit, setLimit] = useState(0)
+  const [fixCollation, setFixCollation] = useState(true)
 
   useEffect(() => {
     if (open && connectionId) load(connectionId)
@@ -99,18 +105,29 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
         limit: limit || undefined
       })
     }
+    const leftType = (name: string) => leftT.columns.find((c) => c.name === name)?.type
+    const rightType = (name: string) => rightT.columns.find((c) => c.name === name)?.type
     return buildJoinSql(kind, {
       mode: 'join',
       left: tableRef(leftT),
       right: tableRef(rightT),
       joinType,
-      keys: keys.filter((k) => k.left && k.right),
+      keys: keys
+        .filter((k) => k.left && k.right)
+        .map((k) => ({
+          ...k,
+          // COLLATE yalnızca MSSQL + metin anahtarlarda (sayısalda COLLATE hata verir).
+          collate:
+            kind === 'mssql' &&
+            fixCollation &&
+            (isTextType(leftType(k.left)) || isTextType(rightType(k.right)))
+        })),
       onlyUnmatched,
       columns,
       filters: filters.filter((f) => f.column),
       limit: limit || undefined
     })
-  }, [mode, leftT, rightT, kind, joinType, keys, hasValidKey, onlyUnmatched, columns, filters, unionAll, limit])
+  }, [mode, leftT, rightT, kind, joinType, keys, hasValidKey, onlyUnmatched, columns, filters, unionAll, limit, fixCollation])
 
   return (
     <Modal
@@ -247,6 +264,25 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
                   />
                   Yalnızca eşleşmeyenler (B tarafı boş) — “stoğu olup ölçüsü olmayan” gibi
                 </label>
+
+                {kind === 'mssql' && (
+                  <label className="flex items-start gap-2 text-sm text-gray-200">
+                    <input
+                      type="checkbox"
+                      className="mt-0.5"
+                      checked={fixCollation}
+                      onChange={(e) => setFixCollation(e.target.checked)}
+                    />
+                    <span>
+                      Metin anahtarlarında collation farkını yok say (COLLATE
+                      DATABASE_DEFAULT)
+                      <span className="block text-[11px] text-gray-500">
+                        MSSQL'de farklı collation'lı metin sütunları birleştirilirken
+                        gerekir (“cannot resolve the collation conflict” hatasını önler).
+                      </span>
+                    </span>
+                  </label>
+                )}
 
                 <label className="flex items-center gap-2 text-sm text-gray-200">
                   <input
