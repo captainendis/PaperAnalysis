@@ -13,10 +13,13 @@ Electron + React + TypeScript ile geliştirilmiştir.
   sorguya alan ekleme. Seçili tablo vurgulanır ve ağacın altında **"Seçili tablo: …"**
   göstergesiyle belirtilir
 - **Görsel Birleştirme (Join) Sihirbazı:** SQL yazmadan aynı veritabanındaki iki tabloyu
-  birleştirme — INNER/LEFT/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
+  birleştirme — LEFT/INNER/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
   filtreleri; üretilen sorguyu çalıştırıp **Excel** olarak dışa aktarma. **Ortak bir
   sütuna göre** (ör. `malzemekodu`) iki veri setinin farklı özelliklerini tek tabloda
-  birleştirmek için idealdir. Satır sınırı **0 = Tümü** (varsayılan; sınırsız).
+  birleştirmek için idealdir. Varsayılan **LEFT** (A’nın tüm satırları korunur, B’nin
+  özellikleri eşleşince eklenir); yalnızca iki tabloda da olan kayıtlar için **INNER**.
+  En az bir eşleştirme anahtarı gerekir (yanlışlıkla kartezyen join engellenir).
+  Satır sınırı **0 = Tümü** (varsayılan; sınırsız).
 - **SQL sorgu editörü:** Monaco tabanlı, söz dizimi vurgusu, `Ctrl/Cmd+Enter` ile çalıştırma
 - **Sonuç tablosu:** Sorgu sonuçlarını anında tablolaştırma; **sütun başlığına
   tıklayarak sıralama** ve başlıktaki **▾ menüsünden açık "A → Z" / "Z → A"**
@@ -101,9 +104,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.8 && git push origin v0.2.8
+  git tag v0.2.9 && git push origin v0.2.9
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.8.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.9.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

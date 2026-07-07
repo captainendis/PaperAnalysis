@@ -22,10 +22,10 @@ interface Props {
 }
 
 const JOIN_TYPES: { value: JoinType; label: string }[] = [
-  { value: 'inner', label: 'Eşleşenler (INNER)' },
-  { value: 'left', label: 'Sol + eksikler (LEFT)' },
-  { value: 'right', label: 'Sağ + eksikler (RIGHT)' },
-  { value: 'full', label: 'Tümü (FULL)' }
+  { value: 'left', label: 'A’nın tümü + eşleşenler (LEFT)' },
+  { value: 'inner', label: 'Yalnızca eşleşenler (INNER)' },
+  { value: 'right', label: 'B’nin tümü + eşleşenler (RIGHT)' },
+  { value: 'full', label: 'İki tablonun tümü (FULL)' }
 ]
 
 const OPS: FilterOp[] = ['=', '<>', '>', '<', '>=', '<=', 'LIKE', 'IS NULL', 'IS NOT NULL']
@@ -42,7 +42,7 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
   const [mode, setMode] = useState<'join' | 'union'>('join')
   const [leftName, setLeftName] = useState('')
   const [rightName, setRightName] = useState('')
-  const [joinType, setJoinType] = useState<JoinType>('inner')
+  const [joinType, setJoinType] = useState<JoinType>('left')
   const [keys, setKeys] = useState<JoinKey[]>([{ left: '', right: '' }])
   const [onlyUnmatched, setOnlyUnmatched] = useState(false)
   const [allColumns, setAllColumns] = useState(true)
@@ -83,8 +83,13 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
     return out
   }, [mode, allColumns, leftCols, rightCols, pickedCols])
 
+  const hasValidKey = keys.some((k) => k.left && k.right)
+
   const sql = useMemo(() => {
     if (!leftT || !rightT) return ''
+    // Birleştirmede en az bir eşleştirme anahtarı gerekli — yoksa yanlışlıkla
+    // kartezyen (cross) join üretmeyelim.
+    if (mode === 'join' && !hasValidKey) return ''
     if (mode === 'union') {
       return buildUnionSql(kind, {
         mode: 'union',
@@ -105,7 +110,7 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
       filters: filters.filter((f) => f.column),
       limit: limit || undefined
     })
-  }, [mode, leftT, rightT, kind, joinType, keys, onlyUnmatched, columns, filters, unionAll, limit])
+  }, [mode, leftT, rightT, kind, joinType, keys, hasValidKey, onlyUnmatched, columns, filters, unionAll, limit])
 
   return (
     <Modal
@@ -377,7 +382,19 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
             <span className="mb-1 text-xs font-medium uppercase tracking-wide text-gray-400">
               Üretilen SQL
             </span>
-            <pre className="h-full min-h-[300px] overflow-auto whitespace-pre-wrap rounded-md border border-edge bg-surface p-3 text-xs text-gray-200">
+            {mode === 'join' && leftT && rightT && !hasValidKey && (
+              <div className="mb-1 rounded bg-amber-500/15 px-2 py-1 text-[11px] text-amber-300">
+                Bir eşleştirme anahtarı seçin (ör. A.malzemekodu = B.malzemekodu).
+                Anahtar olmadan birleştirme yapılmaz.
+              </div>
+            )}
+            {mode === 'join' && (
+              <div className="mb-1 text-[11px] text-gray-500">
+                İpucu: A’daki tüm satırların gelmesi için <b>LEFT</b> seçin; yalnızca
+                iki tabloda da olan kayıtlar için <b>INNER</b>.
+              </div>
+            )}
+            <pre className="h-full min-h-[280px] overflow-auto whitespace-pre-wrap rounded-md border border-edge bg-surface p-3 text-xs text-gray-200">
               {sql || '— Tabloları ve anahtarları seçin —'}
             </pre>
           </div>
