@@ -1,5 +1,13 @@
 appId: com.paperanalysis.app
 productName: PaperAnalysis
+# Otomatik güncelleme: uygulama GitHub Releases'i kontrol eder, yeni sürümü
+# indirip yerinde kurar (silip yeniden kurmaya gerek yok). Bu yapılandırma,
+# pakete gömülen app-update.yml'i üretir (electron-updater bunu okur) ve
+# derleme sırasında latest.yml + .blockmap güncelleme meta dosyalarını yaratır.
+publish:
+  provider: github
+  owner: captainendis
+  repo: PaperAnalysis
 directories:
   output: release
   buildResources: build

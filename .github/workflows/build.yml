@@ -42,12 +42,17 @@ jobs:
           path: release/*.exe
           if-no-files-found: error
 
-      - name: Release oluştur/güncelle (.exe ekli)
+      - name: Release oluştur/güncelle (.exe + otomatik güncelleme meta dosyaları)
         uses: softprops/action-gh-release@v2
         with:
-          # Etiketli push'ta o etiketi, dal push'unda sabit v0.1.0'ı kullan.
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.10' }}
-          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.10' }}
-          files: release/*.exe
+          # Etiketli push'ta o etiketi, dal push'unda sabit sürümü kullan.
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.11' }}
+          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.11' }}
+          # latest.yml ve .blockmap, electron-updater'ın otomatik güncelleme için
+          # ihtiyaç duyduğu meta dosyalarıdır; .exe ile birlikte yüklenmelidir.
+          files: |
+            release/*.exe
+            release/*.exe.blockmap
+            release/latest.yml
           generate_release_notes: true
           make_latest: 'true'

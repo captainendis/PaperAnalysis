@@ -106,9 +106,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.10 && git push origin v0.2.10
+  git tag v0.2.11 && git push origin v0.2.11
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.10.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.11.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -116,6 +116,21 @@ altından da indirilebilir.
 
 > Not: İkili kod imzalanmaz. İlk çalıştırmada Windows SmartScreen uyarı gösterebilir;
 > “Yine de çalıştır” ile devam edilir.
+
+### Otomatik güncelleme (auto-update)
+
+Uygulama açılışta ve saatlik olarak GitHub Releases'i denetler (`electron-updater`).
+Yeni bir sürüm yayımlandığında **arka planda indirilir** ve “Güncelleme hazır”
+uyarısında **Şimdi yeniden başlat** dediğinizde **yerinde kurulur** — eskiyi silip
+yeniden kurmanıza gerek yoktur. “Sonra” derseniz güncelleme, uygulamayı bir sonraki
+kapatışınızda otomatik uygulanır.
+
+- Çalışması için Release'e `.exe` ile birlikte `latest.yml` ve `.blockmap` dosyaları
+  da eklenir (CI bunu otomatik yapar); güncelleme kaynağı `electron-builder.yml`
+  içindeki `publish` (GitHub) ayarıyla belirlenir.
+- Otomatik güncelleme yalnızca **paketlenmiş** uygulamada çalışır (geliştirmede değil).
+- Bu sürümü (veya sonrasını) bir kez kurduktan sonra, gelecek sürümler kendiliğinden
+  gelir.
 
 ### Uygulama ikonu
 
