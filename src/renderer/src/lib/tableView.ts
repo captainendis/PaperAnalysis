@@ -108,6 +108,42 @@ export function isNumericColumn(rows: Record<string, unknown>[], name: string): 
 }
 
 /**
+ * Bir sütundaki tekrarlayan (aynı) değerlere sahip satırları tek satırda birleştirir.
+ * Sayısal sütunlar toplanır; diğer (metin) sütunlarda ilk değer korunur; kaç satırın
+ * birleştiğini gösteren bir "Adet" sütunu eklenir. Grup sütunu bulunamazsa sonuç
+ * değişmeden döner.
+ */
+export function groupResult(result: QueryResult, groupBy: string): QueryResult {
+  const names = result.columns.map((c) => c.name)
+  if (!groupBy || !names.includes(groupBy)) return result
+
+  const sample = result.rows.slice(0, 200)
+  const numeric = new Set(names.filter((n) => n !== groupBy && isNumericColumn(sample, n)))
+  const countName = names.includes('Adet') ? '__adet' : 'Adet'
+
+  const groups = new Map<string, Record<string, unknown>>()
+  const order: string[] = []
+  for (const row of result.rows) {
+    const key = cellToText(row[groupBy])
+    const g = groups.get(key)
+    if (!g) {
+      const seed: Record<string, unknown> = {}
+      for (const n of names) seed[n] = numeric.has(n) ? (toFiniteNumber(row[n]) ?? 0) : row[n]
+      seed[countName] = 1
+      groups.set(key, seed)
+      order.push(key)
+    } else {
+      for (const n of numeric) g[n] = (toFiniteNumber(g[n]) ?? 0) + (toFiniteNumber(row[n]) ?? 0)
+      g[countName] = (g[countName] as number) + 1
+    }
+  }
+
+  const columns = [...names.map((name) => ({ name })), { name: countName }]
+  const rows = order.map((k) => groups.get(k)!)
+  return { columns, rows, rowCount: rows.length, elapsedMs: result.elapsedMs }
+}
+
+/**
  * Sayı-duyarlı hücre karşılaştırması. İkisi de sayıya çözülürse sayısal,
  * aksi halde yerel dize karşılaştırması. null/undefined en sona sıralanır.
  */

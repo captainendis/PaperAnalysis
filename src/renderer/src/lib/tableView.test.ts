@@ -6,8 +6,10 @@ import {
   buildViewResult,
   matchesFilter,
   sumValues,
-  isNumericColumn
+  isNumericColumn,
+  groupResult
 } from './tableView'
+import type { QueryResult } from '@shared/types'
 
 describe('cellToText', () => {
   it('null/undefined boş dize verir', () => {
@@ -109,6 +111,34 @@ describe('isNumericColumn', () => {
   })
   it('tamamen boş sütunda false', () => {
     expect(isNumericColumn([{ a: null }, { a: '' }], 'a')).toBe(false)
+  })
+})
+
+describe('groupResult', () => {
+  const r: QueryResult = {
+    columns: [{ name: 'malzeme' }, { name: 'depo' }, { name: 'adet' }],
+    rows: [
+      { malzeme: 'M1', depo: 'A', adet: 10 },
+      { malzeme: 'M1', depo: 'B', adet: 5 },
+      { malzeme: 'M2', depo: 'A', adet: 3 }
+    ],
+    rowCount: 3,
+    elapsedMs: 1
+  }
+  it('tekrarlayan değerleri birleştirir, sayısalı toplar, Adet ekler', () => {
+    const g = groupResult(r, 'malzeme')
+    expect(g.rowCount).toBe(2)
+    const m1 = g.rows.find((x) => x.malzeme === 'M1')!
+    expect(m1.adet).toBe(15) // 10 + 5
+    expect(m1.Adet).toBe(2) // 2 satır birleşti
+    expect(m1.depo).toBe('A') // ilk değer korunur
+    const m2 = g.rows.find((x) => x.malzeme === 'M2')!
+    expect(m2.adet).toBe(3)
+    expect(m2.Adet).toBe(1)
+    expect(g.columns.map((c) => c.name)).toContain('Adet')
+  })
+  it('bilinmeyen sütunda sonucu değiştirmez', () => {
+    expect(groupResult(r, 'yok')).toBe(r)
   })
 })
 

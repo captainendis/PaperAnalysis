@@ -173,6 +173,25 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                 Tablo Ayarları
               </span>
 
+              <Field label="Grupla (tekrarlayan değerleri birleştir)">
+                <Select
+                  value={tc.groupBy ?? ''}
+                  onChange={(e) => setTc({ groupBy: e.target.value || undefined })}
+                >
+                  <option value="">— gruplanmasın —</option>
+                  {columns.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </Select>
+                <span className="mt-1 text-[11px] text-gray-500">
+                  Seçilen sütunda aynı değere sahip satırlar tek satırda birleşir; sayısal
+                  sütunlar toplanır ve kaç satırın birleştiğini gösteren bir <b>Adet</b>
+                  sütunu eklenir.
+                </span>
+              </Field>
+
               <Field label="Görünür Sütunlar">
                 <div className="flex max-h-48 flex-col gap-1 overflow-auto rounded-md border border-edge bg-base p-2">
                   {columns.map((c) => (

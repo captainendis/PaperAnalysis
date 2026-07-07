@@ -3,6 +3,7 @@ import ReactECharts from 'echarts-for-react'
 import type { ChartConfig, QueryResult } from '@shared/types'
 import { buildEChartsOption, computeKpi, resolveMeasures } from '../../lib/chartSpec'
 import { chartTheme } from '../../lib/chartTheme'
+import { groupResult } from '../../lib/tableView'
 import { useSettings } from '../../store/settings'
 import { ResultsTable } from '../QueryEditor/ResultsTable'
 
@@ -56,9 +57,11 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
     )
   }
 
-  // Tablo görseli.
+  // Tablo görseli. groupBy ayarlıysa tekrarlayan değerler birleştirilir.
   if (chart.type === 'table') {
-    return <ResultsTable result={result} title={chart.title} config={chart.tableConfig} />
+    const gb = chart.tableConfig?.groupBy
+    const tableResult = gb ? groupResult(result, gb) : result
+    return <ResultsTable result={tableResult} title={chart.title} config={chart.tableConfig} />
   }
 
   if (!chart.dimension) return empty('Kategori (X) alanı seçin.')

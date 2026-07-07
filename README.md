@@ -42,7 +42,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   filtreli/sıralı, eklenen toplam sütunları dâhil). Bu ayarlar (**görünür sütunlar,
   alt toplam, toplam sütunları**) **Düzenle** panelindeki *Tablo Ayarları*'ndan
   yapılandırılıp **grafiğe gömülür** — panoda, kayıtlı dosyada ve LAN yayınında aynı
-  şekilde görünür. Ayrıca **sütun biçimlendirme** (sayı, **para** ₺/$/€, **yüzde**,
+  şekilde görünür. **Grupla:** bir sütundaki **tekrarlayan (aynı) değerlere** sahip
+  satırları tek satırda birleştirme (sayısal sütunlar toplanır, birleşen satır sayısını
+  gösteren **Adet** sütunu eklenir). Ayrıca **sütun biçimlendirme** (sayı, **para** ₺/$/€, **yüzde**,
   **tarih**; ondalık/binlik) ve **koşullu renklendirme** (kurala uyan hücreye yazı/zemin
   rengi — ör. `stok < 10` ise kırmızı) desteklenir. **Satır sanallaştırma** sayesinde
   on binlerce satırlık sonuçlar bile ekranı dondurmadan/karartmadan akıcı gösterilir.
@@ -122,9 +124,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.21 && git push origin v0.2.21
+  git tag v0.2.22 && git push origin v0.2.22
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.21.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.22.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

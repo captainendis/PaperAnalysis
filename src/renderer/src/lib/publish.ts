@@ -2,7 +2,7 @@ import * as echarts from 'echarts'
 import type { Dashboard, DashboardTile, QueryResult, TableConfig } from '@shared/types'
 import { buildEChartsOption, computeKpi } from './chartSpec'
 import { chartTheme } from './chartTheme'
-import { isNumericColumn, sumValues } from './tableView'
+import { groupResult, isNumericColumn, sumValues } from './tableView'
 import { cellStyle, formatValue, rulesByColumn } from './tableFormat'
 
 // ---------- Saf yardımcılar (test edilir) ----------
@@ -267,8 +267,14 @@ export async function buildPublishHtml(
     const result = res.data
     try {
       if (tile.chart.type === 'table') {
+        const gb = tile.chart.tableConfig?.groupBy
+        const tableResult = gb ? groupResult(result, gb) : result
         sections.push(
-          tileSectionHtml({ title, layout, tableHtml: configuredTableHtml(result, tile.chart.tableConfig) })
+          tileSectionHtml({
+            title,
+            layout,
+            tableHtml: configuredTableHtml(tableResult, tile.chart.tableConfig)
+          })
         )
       } else if (tile.chart.type === 'kpi') {
         sections.push(
