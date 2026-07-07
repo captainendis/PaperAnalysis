@@ -7,7 +7,10 @@ Electron + React + TypeScript ile geliştirilmiştir.
 
 ## Özellikler
 
-- **Çoklu veritabanı bağlantısı:** Microsoft SQL Server, PostgreSQL, MySQL/MariaDB, SQLite
+- **Çoklu veritabanı bağlantısı:** Microsoft SQL Server, PostgreSQL, MySQL/MariaDB, SQLite.
+  Bağlantı başına **sorgu zaman aşımı** ayarlanabilir (sn; **0 = sınırsız**, varsayılan
+  300 sn) — büyük veri çekmelerinde/join'lerde “request failed to complete” zaman aşımı
+  hatasını önler.
 - **Veritabanı şema gezgini:** Bağlantının tablo/sütun ağacı; tabloya tıklayınca
   otomatik `SELECT` (ayarlanabilir **satır sınırı**; 0 = tüm veri), sütuna tıklayınca
   sorguya alan ekleme. Seçili tablo vurgulanır ve ağacın altında **"Seçili tablo: …"**
@@ -110,9 +113,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.12 && git push origin v0.2.12
+  git tag v0.2.13 && git push origin v0.2.13
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.12.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.13.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

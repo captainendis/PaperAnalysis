@@ -1,6 +1,6 @@
 import pg from 'pg'
 import type { ConnectionConfig, SchemaInfo } from '@shared/types'
-import { buildResult, type Driver } from './types'
+import { buildResult, resolveTimeoutMs, type Driver } from './types'
 import { bindParams } from '../bindParams'
 import { groupColumns } from './introspect'
 
@@ -8,6 +8,8 @@ export function createPostgresDriver(config: ConnectionConfig): Driver {
   let pool: pg.Pool | null = null
   const getPool = (): pg.Pool => {
     if (!pool) {
+      // statement_timeout: 0 = sınırsız (büyük sorgularda erken kesilmeyi önler).
+      const statementTimeout = resolveTimeoutMs(config.queryTimeoutSec)
       pool = new pg.Pool({
         host: config.host,
         port: config.port ?? 5432,
@@ -15,7 +17,8 @@ export function createPostgresDriver(config: ConnectionConfig): Driver {
         password: config.password,
         database: config.database,
         ssl: config.ssl ? { rejectUnauthorized: false } : undefined,
-        connectionTimeoutMillis: 10_000,
+        connectionTimeoutMillis: 30_000,
+        statement_timeout: statementTimeout || undefined,
         max: 4
       })
     }

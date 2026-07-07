@@ -154,6 +154,20 @@ export function ConnectionForm({ open, initial, onClose }: Props) {
                 <option value="on">Açık</option>
               </Select>
             </Field>
+            <Field label="Sorgu Zaman Aşımı (sn, 0 = sınırsız)">
+              <TextInput
+                type="number"
+                min={0}
+                value={form.queryTimeoutSec ?? ''}
+                placeholder="300"
+                onChange={(e) =>
+                  set({
+                    queryTimeoutSec:
+                      e.target.value === '' ? undefined : Math.max(0, Number(e.target.value) || 0)
+                  })
+                }
+              />
+            </Field>
           </>
         )}
       </div>

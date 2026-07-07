@@ -1,6 +1,6 @@
 import sql from 'mssql'
 import type { ConnectionConfig, SchemaInfo } from '@shared/types'
-import { buildResult, type Driver } from './types'
+import { buildResult, resolveTimeoutMs, type Driver } from './types'
 import { bindParams } from '../bindParams'
 import { groupColumns } from './introspect'
 
@@ -9,14 +9,18 @@ export function createMssqlDriver(config: ConnectionConfig): Driver {
 
   const getPool = async (): Promise<sql.ConnectionPool> => {
     if (!pool) {
+      // requestTimeout: 0 = sınırsız (büyük sorgu/join'lerde erken kesilmeyi önler).
+      const requestTimeout = resolveTimeoutMs(config.queryTimeoutSec)
       pool = await new sql.ConnectionPool({
         server: config.host ?? 'localhost',
         port: config.port ?? 1433,
         user: config.user,
         password: config.password,
         database: config.database,
-        connectionTimeout: 10_000,
-        requestTimeout: 30_000,
+        connectionTimeout: 30_000,
+        requestTimeout,
+        // Havuzdan bağlantı beklerken de erken kesilme olmasın.
+        pool: { acquireTimeoutMillis: requestTimeout || 600_000 },
         options: {
           encrypt: config.ssl ?? true,
           trustServerCertificate: true

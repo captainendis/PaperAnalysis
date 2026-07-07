@@ -16,6 +16,8 @@ export interface ConnectionConfig {
   filePath?: string
   /** TLS/SSL kullanılsın mı (mssql/postgres/mysql). */
   ssl?: boolean
+  /** Sorgu zaman aşımı (saniye). 0 = sınırsız; tanımsız = varsayılan (300 sn). */
+  queryTimeoutSec?: number
 }
 
 /** Renderer'a gönderilen, parolası çıkarılmış bağlantı özeti. */

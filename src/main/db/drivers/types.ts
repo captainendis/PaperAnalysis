@@ -20,6 +20,18 @@ export interface Driver {
 
 export type DriverFactory = (config: ConnectionConfig) => Driver
 
+/** Varsayılan sorgu zaman aşımı (sn) — büyük veri çekmelerinde erken kesilmeyi önler. */
+export const DEFAULT_QUERY_TIMEOUT_SEC = 300
+
+/**
+ * Bağlantının sorgu zaman aşımını milisaniyeye çevirir.
+ * Tanımsız → varsayılan (300 sn); 0 veya negatif → 0 (sınırsız; sürücü hiç kesmez).
+ */
+export function resolveTimeoutMs(queryTimeoutSec?: number): number {
+  const sec = queryTimeoutSec ?? DEFAULT_QUERY_TIMEOUT_SEC
+  return sec <= 0 ? 0 : Math.round(sec * 1000)
+}
+
 /**
  * Sütun adı listesi ve satır dizisinden QueryResult oluşturan yardımcı.
  * Sütun adları boş ama satır varsa (bazı sürücüler meta veri vermez, ör. MSSQL),
