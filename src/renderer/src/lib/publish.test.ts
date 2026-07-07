@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { resultToHtmlTable, tileSectionHtml, assembleDashboardHtml, escapeHtml } from './publish'
+import {
+  resultToHtmlTable,
+  tileSectionHtml,
+  assembleDashboardHtml,
+  escapeHtml,
+  layoutStyle
+} from './publish'
 import type { QueryResult } from '@shared/types'
 
 const result: QueryResult = {
@@ -49,6 +55,26 @@ describe('tileSectionHtml', () => {
   })
   it('hata dalı', () => {
     expect(tileSectionHtml({ title: 'X', error: 'oops' })).toContain('class="err">oops')
+  })
+  it('layout ile ızgara konumunu uygular', () => {
+    const html = tileSectionHtml({ title: 'G', kpiText: '1', layout: { x: 2, y: 3, w: 4, h: 6 } })
+    expect(html).toContain('grid-column: 3 / span 4; grid-row: 4 / span 6;')
+  })
+})
+
+describe('layoutStyle', () => {
+  it('x/y 1-tabanlı, w/h span olur', () => {
+    expect(layoutStyle({ x: 0, y: 0, w: 6, h: 8 })).toBe(
+      'grid-column: 1 / span 6; grid-row: 1 / span 8;'
+    )
+  })
+  it('layout yoksa varsayılan span', () => {
+    expect(layoutStyle(undefined)).toContain('span')
+  })
+  it('sonsuz y değerini 0 kabul eder', () => {
+    expect(layoutStyle({ x: 1, y: Infinity, w: 3, h: 4 })).toBe(
+      'grid-column: 2 / span 3; grid-row: 1 / span 4;'
+    )
   })
 })
 

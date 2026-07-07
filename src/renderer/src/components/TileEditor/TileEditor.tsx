@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { DashboardTile, QueryResult, TableInfo } from '@shared/types'
 import { Modal } from '../common/Modal'
 import { Button } from '../common/Button'
@@ -55,6 +55,12 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
 
   const activeConn = connections.find((c) => c.id === draft.connectionId)
   const activeKind = activeConn?.kind ?? 'sqlite'
+
+  // Düzenleyici açılınca, mevcut grafiğin anlık verisini otomatik çek.
+  useEffect(() => {
+    if (draft.connectionId && draft.sql.trim()) runQuery()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function runQuery() {
     if (!draft.connectionId) {

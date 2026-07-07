@@ -38,12 +38,31 @@ export function resultToHtmlTable(result: QueryResult, limit = 200): string {
   return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>${more}`
 }
 
+export interface TileLayout {
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 export interface TileSection {
   title: string
   imgDataUrl?: string
   kpiText?: string
   tableHtml?: string
   error?: string
+  /** Pano ızgarasındaki konum/boyut — yayında panonun görünümünü birebir yansıtır. */
+  layout?: TileLayout
+}
+
+/** Tile'ın 12 sütunlu ızgaradaki yerleşim CSS'ini üretir (react-grid-layout ile aynı). */
+export function layoutStyle(layout?: TileLayout): string {
+  if (!layout) return 'grid-column: span 4; grid-row: span 6;'
+  const x = Math.max(0, Math.floor(layout.x))
+  const y = Number.isFinite(layout.y) ? Math.max(0, Math.floor(layout.y)) : 0
+  const w = Math.max(1, Math.floor(layout.w))
+  const h = Math.max(1, Math.floor(layout.h))
+  return `grid-column: ${x + 1} / span ${w}; grid-row: ${y + 1} / span ${h};`
 }
 
 /** Tek bir pano kartının HTML'ini üretir. */
@@ -54,7 +73,7 @@ export function tileSectionHtml(s: TileSection): string {
   else if (s.tableHtml !== undefined) body = `<div class="tablewrap">${s.tableHtml}</div>`
   else if (s.imgDataUrl) body = `<img src="${s.imgDataUrl}" alt="${escapeHtml(s.title)}" />`
   else body = '<div class="note">—</div>'
-  return `<section class="card"><h2>${escapeHtml(s.title || 'İsimsiz')}</h2>${body}</section>`
+  return `<section class="card" style="${layoutStyle(s.layout)}"><h2>${escapeHtml(s.title || 'İsimsiz')}</h2><div class="body">${body}</div></section>`
 }
 
 /** Bölümlerden tam, kendi kendine yeten HTML belgesi oluşturur (dış kaynak yok). */
@@ -80,19 +99,28 @@ export function assembleDashboardHtml(
     display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
   header h1 { margin: 0; font-size: 18px; }
   header .meta { color: #6b7280; font-size: 12px; }
-  main { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: 16px; padding: 16px 24px; }
-  .card { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; overflow: hidden; }
-  .card h2 { margin: 0 0 8px; font-size: 14px; color: #374151; }
-  .card img { width: 100%; height: auto; display: block; }
-  .kpi { font-size: 40px; font-weight: 700; text-align: center; padding: 24px 0; }
-  .tablewrap { overflow: auto; max-height: 360px; }
+  /* Pano ile aynı 12 sütunlu ızgara; kartlar kayıtlı konum/boyutlarında yerleşir. */
+  main { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 36px;
+    gap: 12px; padding: 16px 24px; align-items: stretch; }
+  .card { display: flex; flex-direction: column; background: #fff; border: 1px solid #e5e7eb;
+    border-radius: 10px; padding: 12px; overflow: hidden; min-height: 0; min-width: 0; }
+  .card h2 { margin: 0 0 8px; font-size: 14px; color: #374151; flex: 0 0 auto; }
+  .card .body { flex: 1 1 auto; min-height: 0; display: flex; }
+  .card img { width: 100%; height: 100%; object-fit: contain; display: block; margin: auto; }
+  .kpi { font-size: 40px; font-weight: 700; text-align: center; margin: auto; }
+  .tablewrap { flex: 1 1 auto; overflow: auto; width: 100%; }
   table { border-collapse: collapse; width: 100%; font-size: 13px; }
   th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; white-space: nowrap; }
   th { background: #fafafa; position: sticky; top: 0; }
-  .err { color: #b91c1c; font-size: 13px; }
-  .note { color: #9ca3af; font-size: 12px; }
+  .err { color: #b91c1c; font-size: 13px; margin: auto 0; }
+  .note { color: #9ca3af; font-size: 12px; margin: auto 0; }
   footer { padding: 12px 24px; color: #9ca3af; font-size: 12px; }
+  /* Dar ekranlarda ızgarayı tek sütuna indir (okunabilirlik). */
+  @media (max-width: 820px) {
+    main { display: block; padding: 16px; }
+    .card { height: auto !important; margin-bottom: 12px; }
+    .card .body { min-height: 220px; }
+  }
 </style>
 </head>
 <body>
@@ -115,10 +143,13 @@ function formatNumber(n: number): string {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 }).format(n)
 }
 
-/** Bir tile'ın grafiğini offscreen ECharts ile PNG data URL'ine çevirir. */
+/** Bir tile'ın grafiğini offscreen ECharts ile PNG data URL'ine çevirir.
+ * Boyut, tile'ın ızgaradaki en/boy oranına göre ayarlanır (görünüme sadık kalmak için). */
 function renderChartPng(result: QueryResult, tile: DashboardTile, paletteName: string): string {
+  const w = Math.max(360, Math.round((tile.layout?.w ?? 6) * 110))
+  const h = Math.max(200, Math.round((tile.layout?.h ?? 8) * 40))
   const div = document.createElement('div')
-  const inst = echarts.init(div, undefined, { renderer: 'canvas', width: 640, height: 360 })
+  const inst = echarts.init(div, undefined, { renderer: 'canvas', width: w, height: h })
   try {
     inst.setOption(buildEChartsOption(result, tile.chart, chartTheme('light', paletteName)))
     return inst.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' })
@@ -140,26 +171,31 @@ export async function buildPublishHtml(
 
   for (const tile of dashboard.tiles) {
     const title = tile.title || 'İsimsiz'
+    const layout = tile.layout
     if (!tile.connectionId || !tile.sql.trim()) {
-      sections.push(tileSectionHtml({ title, error: 'Bağlantı veya sorgu tanımlı değil.' }))
+      sections.push(tileSectionHtml({ title, layout, error: 'Bağlantı veya sorgu tanımlı değil.' }))
       continue
     }
     const res = await window.api.query.run(tile.connectionId, tile.sql, params)
     if (!res.ok) {
-      sections.push(tileSectionHtml({ title, error: res.error }))
+      sections.push(tileSectionHtml({ title, layout, error: res.error }))
       continue
     }
     const result = res.data
     try {
       if (tile.chart.type === 'table') {
-        sections.push(tileSectionHtml({ title, tableHtml: resultToHtmlTable(result) }))
+        sections.push(tileSectionHtml({ title, layout, tableHtml: resultToHtmlTable(result) }))
       } else if (tile.chart.type === 'kpi') {
-        sections.push(tileSectionHtml({ title, kpiText: formatNumber(computeKpi(result, tile.chart)) }))
+        sections.push(
+          tileSectionHtml({ title, layout, kpiText: formatNumber(computeKpi(result, tile.chart)) })
+        )
       } else {
-        sections.push(tileSectionHtml({ title, imgDataUrl: renderChartPng(result, tile, paletteName) }))
+        sections.push(
+          tileSectionHtml({ title, layout, imgDataUrl: renderChartPng(result, tile, paletteName) })
+        )
       }
     } catch (err) {
-      sections.push(tileSectionHtml({ title, error: (err as Error).message }))
+      sections.push(tileSectionHtml({ title, layout, error: (err as Error).message }))
     }
   }
 

@@ -64,7 +64,8 @@ Electron + React + TypeScript ile geliştirilmiştir.
   panoyu **PDF** olarak dışa aktarma
 - **LAN'da yayınlama:** Panoyu yerel ağda `http://<ip>:<port>` adresinden anlık
   görüntü olarak yayınlama — aynı ağdaki cihazlar tarayıcıyla görür (kimlik bilgisi
-  paylaşılmaz; sadece hazır sayfa sunulur)
+  paylaşılmaz; sadece hazır sayfa sunulur). Yayın, **panonun göründüğü düzeni**
+  (kartların 12 sütunlu ızgaradaki konum/boyutları) birebir yansıtır.
 - **Kaydetme / paylaşma:** Panoyu `.pbdash` (JSON) dosyası olarak kaydetme/açma
 - **Güvenli kimlik bilgisi:** Parolalar Electron `safeStorage` (OS keychain) ile şifrelenir;
   paylaşılan pano dosyalarına parola **yazılmaz**.
@@ -113,9 +114,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.13 && git push origin v0.2.13
+  git tag v0.2.14 && git push origin v0.2.14
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.13.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.14.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
