@@ -116,6 +116,8 @@ export interface ConditionalRule {
 export interface TableConfig {
   /** Bu sütundaki tekrarlayan değerlere sahip satırları tek satırda birleştir (grupla). */
   groupBy?: string
+  /** Gruplarken sayısal sütunlar toplansın mı (varsayılan true). false ise toplanmaz. */
+  groupSum?: boolean
   /** Gizlenecek sütun adları. */
   hiddenColumns?: string[]
   /** Alt toplam satırı göster (sayısal sütunların toplamı). */

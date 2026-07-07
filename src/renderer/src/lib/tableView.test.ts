@@ -137,6 +137,13 @@ describe('groupResult', () => {
     expect(m2.Adet).toBe(1)
     expect(g.columns.map((c) => c.name)).toContain('Adet')
   })
+  it('sum=false ise toplamaz, ilk değeri korur (yine de birleştirir + Adet)', () => {
+    const g = groupResult(r, 'malzeme', false)
+    expect(g.rowCount).toBe(2)
+    const m1 = g.rows.find((x) => x.malzeme === 'M1')!
+    expect(m1.adet).toBe(10) // toplanmadı, ilk satırın değeri
+    expect(m1.Adet).toBe(2) // yine 2 satır birleşti
+  })
   it('bilinmeyen sütunda sonucu değiştirmez', () => {
     expect(groupResult(r, 'yok')).toBe(r)
   })

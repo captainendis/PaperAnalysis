@@ -60,7 +60,9 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   // Tablo görseli. groupBy ayarlıysa tekrarlayan değerler birleştirilir.
   if (chart.type === 'table') {
     const gb = chart.tableConfig?.groupBy
-    const tableResult = gb ? groupResult(result, gb) : result
+    const tableResult = gb
+      ? groupResult(result, gb, chart.tableConfig?.groupSum !== false)
+      : result
     return <ResultsTable result={tableResult} title={chart.title} config={chart.tableConfig} />
   }
 

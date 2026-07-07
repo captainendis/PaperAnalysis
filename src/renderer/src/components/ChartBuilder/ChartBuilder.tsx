@@ -186,10 +186,19 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                   ))}
                 </Select>
                 <span className="mt-1 text-[11px] text-gray-500">
-                  Seçilen sütunda aynı değere sahip satırlar tek satırda birleşir; sayısal
-                  sütunlar toplanır ve kaç satırın birleştiğini gösteren bir <b>Adet</b>
-                  sütunu eklenir.
+                  Seçilen sütunda aynı değere sahip satırlar tek satırda birleşir ve kaç
+                  satırın birleştiğini gösteren bir <b>Adet</b> sütunu eklenir.
                 </span>
+                {tc.groupBy && (
+                  <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
+                    <input
+                      type="checkbox"
+                      checked={tc.groupSum !== false}
+                      onChange={(e) => setTc({ groupSum: e.target.checked })}
+                    />
+                    Sayısal sütunları topla (SUM) — kapalıyken toplanmaz, ilk değer korunur
+                  </label>
+                )}
               </Field>
 
               <Field label="Görünür Sütunlar">
