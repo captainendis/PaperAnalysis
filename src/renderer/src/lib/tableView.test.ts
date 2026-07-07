@@ -38,9 +38,14 @@ describe('compareCells', () => {
     // Dize olsaydı '9' > '10' olurdu; sayısal olduğu için değil.
     expect(compareCells('9', '10')).toBeLessThan(0)
   })
-  it('metni yerel karşılaştırır', () => {
+  it('metni yerel karşılaştırır (A→Z)', () => {
     expect(compareCells('elma', 'muz')).toBeLessThan(0)
     expect(compareCells('muz', 'elma')).toBeGreaterThan(0)
+  })
+  it('Türkçe harf sırasına göre A→Z sıralar', () => {
+    const words = ['zeytin', 'çilek', 'armut', 'şeftali', 'ıhlamur']
+    const sorted = [...words].sort(compareCells)
+    expect(sorted).toEqual(['armut', 'çilek', 'ıhlamur', 'şeftali', 'zeytin'])
   })
   it('null/undefined en sona', () => {
     expect(compareCells(null, 5)).toBeGreaterThan(0)

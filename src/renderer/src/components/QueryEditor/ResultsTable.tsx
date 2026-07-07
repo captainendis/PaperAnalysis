@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -16,6 +16,18 @@ export function ResultsTable({ result }: { result: QueryResult }) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [showFilters, setShowFilters] = useState(false)
+  const [menuCol, setMenuCol] = useState<string | null>(null)
+  const headRef = useRef<HTMLTableSectionElement>(null)
+
+  // Menü açıkken dışarı tıklayınca kapat.
+  useEffect(() => {
+    if (!menuCol) return
+    const onDown = (e: MouseEvent) => {
+      if (headRef.current && !headRef.current.contains(e.target as Node)) setMenuCol(null)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [menuCol])
 
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(
     () =>
@@ -87,24 +99,78 @@ export function ResultsTable({ result }: { result: QueryResult }) {
       </div>
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 z-10 bg-surface">
+          <thead ref={headRef} className="sticky top-0 z-10 bg-surface">
             {table.getHeaderGroups().map((hg) => (
               <tr key={hg.id}>
                 {hg.headers.map((h) => {
                   const sorted = h.column.getIsSorted()
+                  const open = menuCol === h.column.id
                   return (
                     <th
                       key={h.id}
-                      className="cursor-pointer select-none border-b border-edge px-3 py-2 text-left font-semibold text-gray-300 whitespace-nowrap hover:text-brand-500"
-                      title="Sıralamak için tıklayın"
-                      onClick={h.column.getToggleSortingHandler()}
+                      className="relative border-b border-edge px-3 py-2 text-left font-semibold text-gray-300 whitespace-nowrap"
                     >
                       <span className="inline-flex items-center gap-1">
-                        {flexRender(h.column.columnDef.header, h.getContext())}
-                        <span className="text-[10px] text-gray-500">
-                          {sorted === 'asc' ? '▲' : sorted === 'desc' ? '▼' : '↕'}
-                        </span>
+                        <button
+                          className="cursor-pointer select-none hover:text-brand-500"
+                          title="Sıralamak için tıklayın (A→Z / Z→A)"
+                          onClick={h.column.getToggleSortingHandler()}
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          {flexRender(h.column.columnDef.header, h.getContext())}
+                          <span className="ml-1 text-[10px] text-gray-500">
+                            {sorted === 'asc' ? '▲' : sorted === 'desc' ? '▼' : '↕'}
+                          </span>
+                        </button>
+                        <button
+                          className="rounded px-0.5 text-[10px] text-gray-500 hover:bg-white/10 hover:text-gray-300"
+                          title="Sıralama menüsü"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={() => setMenuCol(open ? null : h.column.id)}
+                        >
+                          ▾
+                        </button>
                       </span>
+                      {open && (
+                        <div
+                          className="absolute left-3 top-full z-20 mt-0.5 min-w-[130px] rounded border border-edge bg-surface py-1 text-xs font-normal shadow-lg"
+                          onMouseDown={(e) => e.stopPropagation()}
+                        >
+                          <button
+                            className={`flex w-full items-center gap-2 px-3 py-1 text-left hover:bg-white/10 ${
+                              sorted === 'asc' ? 'text-brand-500' : 'text-gray-200'
+                            }`}
+                            onClick={() => {
+                              h.column.toggleSorting(false)
+                              setMenuCol(null)
+                            }}
+                          >
+                            <span className="text-[10px]">▲</span> A → Z (artan)
+                          </button>
+                          <button
+                            className={`flex w-full items-center gap-2 px-3 py-1 text-left hover:bg-white/10 ${
+                              sorted === 'desc' ? 'text-brand-500' : 'text-gray-200'
+                            }`}
+                            onClick={() => {
+                              h.column.toggleSorting(true)
+                              setMenuCol(null)
+                            }}
+                          >
+                            <span className="text-[10px]">▼</span> Z → A (azalan)
+                          </button>
+                          {sorted && (
+                            <button
+                              className="flex w-full items-center gap-2 px-3 py-1 text-left text-gray-400 hover:bg-white/10"
+                              onClick={() => {
+                                h.column.clearSorting()
+                                setMenuCol(null)
+                              }}
+                            >
+                              <span className="text-[10px]">✕</span> Sıralamayı kaldır
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </th>
                   )
                 })}
