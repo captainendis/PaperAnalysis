@@ -4,7 +4,9 @@ import {
   tileSectionHtml,
   assembleDashboardHtml,
   escapeHtml,
-  layoutStyle
+  layoutStyle,
+  applyTableConfig,
+  configuredTableHtml
 } from './publish'
 import type { QueryResult } from '@shared/types'
 
@@ -75,6 +77,42 @@ describe('layoutStyle', () => {
     expect(layoutStyle({ x: 1, y: Infinity, w: 3, h: 4 })).toBe(
       'grid-column: 2 / span 3; grid-row: 1 / span 4;'
     )
+  })
+})
+
+describe('applyTableConfig', () => {
+  const r: QueryResult = {
+    columns: [{ name: 'urun' }, { name: 'depo1' }, { name: 'depo2' }],
+    rows: [
+      { urun: 'A', depo1: 2, depo2: 3 },
+      { urun: 'B', depo1: 5, depo2: 0 }
+    ],
+    rowCount: 2,
+    elapsedMs: 1
+  }
+  it('gizli sütunları çıkarır', () => {
+    const { columns } = applyTableConfig(r, { hiddenColumns: ['depo2'] })
+    expect(columns.map((c) => c.name)).toEqual(['urun', 'depo1'])
+  })
+  it('toplam sütunu ekler (satır bazında)', () => {
+    const { columns, rows } = applyTableConfig(r, {
+      sumColumns: [{ id: 's1', name: 'ToplamStok', cols: ['depo1', 'depo2'] }]
+    })
+    expect(columns.map((c) => c.name)).toContain('ToplamStok')
+    expect(rows[0].ToplamStok).toBe(5)
+    expect(rows[1].ToplamStok).toBe(5)
+  })
+  it('showTotals ile sayısal sütun toplamlarını hesaplar', () => {
+    const { totals } = applyTableConfig(r, { showTotals: true })
+    expect(totals).toBeDefined()
+    expect(totals!.depo1).toBe(7)
+    expect(totals!.depo2).toBe(3)
+    expect(totals!.urun).toBeUndefined() // metin sütun toplanmaz
+  })
+  it('configuredTableHtml alt toplam satırını üretir', () => {
+    const html = configuredTableHtml(r, { showTotals: true })
+    expect(html).toContain('<tfoot>')
+    expect(html).toContain('class="tot"')
   })
 })
 

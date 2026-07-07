@@ -11,7 +11,7 @@ import {
   type VisibilityState
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
-import type { QueryResult } from '@shared/types'
+import type { QueryResult, TableConfig } from '@shared/types'
 import {
   buildViewResult,
   compareCells,
@@ -35,21 +35,32 @@ function formatNumber(n: number): string {
   return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 }).format(n)
 }
 
+/** TableConfig.hiddenColumns → TanStack görünürlük durumu (gizli = false). */
+function visFromConfig(config?: TableConfig): VisibilityState {
+  const v: VisibilityState = {}
+  for (const id of config?.hiddenColumns ?? []) v[id] = false
+  return v
+}
+
 interface Props {
   result: QueryResult
   /** Dışa aktarım dosya adı için başlık. */
   title?: string
+  /** Grafiğe gömülü tablo ayarları (sütun gizleme, alt toplam, toplam sütunları). */
+  config?: TableConfig
 }
 
-export const ResultsTable = memo(function ResultsTable({ result, title }: Props) {
+export const ResultsTable = memo(function ResultsTable({ result, title, config }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() =>
+    visFromConfig(config)
+  )
   const [showFilters, setShowFilters] = useState(false)
   const [showCols, setShowCols] = useState(false)
-  const [showTotals, setShowTotals] = useState(false)
+  const [showTotals, setShowTotals] = useState(config?.showTotals ?? false)
   const [showSumMenu, setShowSumMenu] = useState(false)
-  const [sumColumns, setSumColumns] = useState<SumColumn[]>([])
+  const [sumColumns, setSumColumns] = useState<SumColumn[]>(config?.sumColumns ?? [])
   const [sumDraft, setSumDraft] = useState<{ name: string; cols: Set<string> }>({
     name: 'Toplam',
     cols: new Set()
@@ -61,11 +72,15 @@ export const ResultsTable = memo(function ResultsTable({ result, title }: Props)
   const scrollRef = useRef<HTMLDivElement>(null)
   const sumIdRef = useRef(0)
 
-  // Bağlantı/sonuç değişince eklenen toplam sütunlarını sıfırla.
+  // Gömülü ayarlar (config) veya sonuç sütunları değişince tablo durumunu eşitle.
+  const configKey = JSON.stringify(config ?? {})
   useEffect(() => {
-    setSumColumns([])
+    setColumnVisibility(visFromConfig(config))
+    setShowTotals(config?.showTotals ?? false)
+    setSumColumns(config?.sumColumns ?? [])
     setSumDraft({ name: 'Toplam', cols: new Set() })
-  }, [result.columns])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [configKey, result.columns])
 
   useEffect(() => {
     if (!menuCol) return

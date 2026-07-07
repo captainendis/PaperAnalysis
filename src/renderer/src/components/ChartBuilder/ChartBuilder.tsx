@@ -1,7 +1,15 @@
-import type { Aggregation, ChartConfig, ChartType, QueryResult } from '@shared/types'
+import { useState } from 'react'
+import type {
+  Aggregation,
+  ChartConfig,
+  ChartType,
+  QueryResult,
+  TableConfig
+} from '@shared/types'
 import { Field, Select, TextInput } from '../common/Field'
 import { resolveMeasures } from '../../lib/chartSpec'
 import { suggestChart } from '../../lib/chartSuggest'
+import { isNumericColumn } from '../../lib/tableView'
 import { useDashboard } from '../../store/dashboard'
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
@@ -34,6 +42,36 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
   const columns = result?.columns.map((c) => c.name) ?? []
   const dashboardParams = useDashboard((s) => s.dashboard.parameters) ?? []
   const set = (patch: Partial<ChartConfig>) => onChange({ ...chart, ...patch })
+
+  // ---- Tablo ayarları (gömülü) ----
+  const tc: TableConfig = chart.tableConfig ?? {}
+  const setTc = (patch: Partial<TableConfig>) => set({ tableConfig: { ...tc, ...patch } })
+  const hidden = new Set(tc.hiddenColumns ?? [])
+  const numericCols = result
+    ? columns.filter((c) => isNumericColumn(result.rows.slice(0, 200), c))
+    : []
+  const [sumDraft, setSumDraft] = useState<{ name: string; cols: Set<string> }>({
+    name: 'Toplam',
+    cols: new Set()
+  })
+  function toggleHidden(name: string) {
+    const h = new Set(hidden)
+    if (h.has(name)) h.delete(name)
+    else h.add(name)
+    setTc({ hiddenColumns: [...h] })
+  }
+  function addSumColumn() {
+    const cols = [...sumDraft.cols]
+    if (cols.length === 0) return
+    const id = `__col${Date.now().toString(36)}`
+    setTc({
+      sumColumns: [
+        ...(tc.sumColumns ?? []),
+        { id, name: sumDraft.name.trim() || 'Toplam', cols }
+      ]
+    })
+    setSumDraft({ name: 'Toplam', cols: new Set() })
+  }
 
   const selectedMeasures = resolveMeasures(chart)
   const supportsMulti = chart.type === 'bar' || chart.type === 'stackedBar' || chart.type === 'line' || chart.type === 'area'
@@ -89,9 +127,112 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
       </Field>
 
       {isTable && (
-        <p className="text-xs text-gray-500">
-          Tablo görseli ham sorgu sonucunu gösterir; alan seçimi gerekmez.
-        </p>
+        <>
+          {columns.length === 0 ? (
+            <p className="text-xs text-gray-500">
+              Tablo ayarlarını yapmak için önce bir sorgu çalıştırın.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4 rounded-md border border-edge bg-surface p-3">
+              <span className="text-[13px] font-semibold uppercase tracking-wide text-gray-300">
+                Tablo Ayarları
+              </span>
+
+              <Field label="Görünür Sütunlar">
+                <div className="flex max-h-48 flex-col gap-1 overflow-auto rounded-md border border-edge bg-base p-2">
+                  {columns.map((c) => (
+                    <label key={c} className="flex items-center gap-2 text-[15px] text-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={!hidden.has(c)}
+                        onChange={() => toggleHidden(c)}
+                      />
+                      {c}
+                    </label>
+                  ))}
+                </div>
+              </Field>
+
+              <label className="flex items-center gap-2 text-[15px] text-gray-200">
+                <input
+                  type="checkbox"
+                  checked={!!tc.showTotals}
+                  onChange={(e) => setTc({ showTotals: e.target.checked })}
+                />
+                Alt toplam satırı göster (sayısal sütunların toplamı)
+              </label>
+
+              <Field label="Toplam Sütunu Ekle (seçili sütunları her satırda toplar)">
+                {numericCols.length === 0 ? (
+                  <p className="text-xs text-gray-500">Sayısal sütun bulunamadı.</p>
+                ) : (
+                  <div className="flex flex-col gap-2">
+                    <div className="flex max-h-40 flex-col gap-1 overflow-auto rounded-md border border-edge bg-base p-2">
+                      {numericCols.map((c) => (
+                        <label key={c} className="flex items-center gap-2 text-[15px] text-gray-200">
+                          <input
+                            type="checkbox"
+                            checked={sumDraft.cols.has(c)}
+                            onChange={() =>
+                              setSumDraft((d) => {
+                                const cols = new Set(d.cols)
+                                if (cols.has(c)) cols.delete(c)
+                                else cols.add(c)
+                                return { ...d, cols }
+                              })
+                            }
+                          />
+                          {c}
+                        </label>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <TextInput
+                        className="flex-1"
+                        placeholder="Yeni sütun adı"
+                        value={sumDraft.name}
+                        onChange={(e) => setSumDraft((d) => ({ ...d, name: e.target.value }))}
+                      />
+                      <button
+                        className="rounded-md bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
+                        disabled={sumDraft.cols.size === 0}
+                        onClick={addSumColumn}
+                      >
+                        Ekle
+                      </button>
+                    </div>
+                  </div>
+                )}
+                {(tc.sumColumns?.length ?? 0) > 0 && (
+                  <div className="mt-2 flex flex-col gap-1">
+                    {tc.sumColumns!.map((sc) => (
+                      <div
+                        key={sc.id}
+                        className="flex items-center justify-between gap-2 rounded bg-base px-2 py-1 text-xs text-gray-300"
+                      >
+                        <span className="truncate" title={sc.cols.join(' + ')}>
+                          {sc.name} = {sc.cols.join(' + ')}
+                        </span>
+                        <button
+                          className="text-gray-500 hover:text-red-400"
+                          title="Kaldır"
+                          onClick={() =>
+                            setTc({ sumColumns: (tc.sumColumns ?? []).filter((x) => x.id !== sc.id) })
+                          }
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Field>
+              <p className="text-[11px] text-gray-500">
+                Bu ayarlar grafiğe kaydedilir; panoda ve yayında bu şekilde görünür.
+              </p>
+            </div>
+          )}
+        </>
       )}
 
       {needsDimension && (

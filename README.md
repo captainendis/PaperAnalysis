@@ -37,8 +37,10 @@ Electron + React + TypeScript ile geliştirilmiştir.
   (görünen/filtrelenen satırlar üzerinden) toplamını altta gösterme, **➕ Toplam
   sütunu** ile seçili sütunları her satırda toplayan yeni bir sütun ekleme, ve tablo
   araç çubuğundan **görünümü CSV/Excel** olarak dışa aktarma (gizli sütunlar hariç,
-  filtreli/sıralı, eklenen toplam sütunları dâhil). Aynı özellikler pano üzerindeki
-  **tablo grafiğinde** de geçerlidir. **Satır sanallaştırma** sayesinde on binlerce
+  filtreli/sıralı, eklenen toplam sütunları dâhil). Bu ayarlar (**görünür sütunlar,
+  alt toplam, toplam sütunları**) **Düzenle** panelindeki *Tablo Ayarları*'ndan
+  yapılandırılıp **grafiğe gömülür** — panoda, kayıtlı dosyada ve LAN yayınında aynı
+  şekilde görünür. **Satır sanallaştırma** sayesinde on binlerce
   satırlık sonuçlar bile ekranı dondurmadan/karartmadan akıcı gösterilir.
 - **Grafikler (Apache ECharts):** Sütun (bar), yığılmış sütun, çizgi, alan (area),
   saçılım (scatter), pasta, **KPI kartı** ve **tablo** görselleri
@@ -116,9 +118,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.15 && git push origin v0.2.15
+  git tag v0.2.16 && git push origin v0.2.16
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.15.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.16.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

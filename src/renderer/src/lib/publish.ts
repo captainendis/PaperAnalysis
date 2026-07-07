@@ -1,7 +1,8 @@
 import * as echarts from 'echarts'
-import type { Dashboard, DashboardTile, QueryResult } from '@shared/types'
+import type { Dashboard, DashboardTile, QueryResult, TableConfig } from '@shared/types'
 import { buildEChartsOption, computeKpi } from './chartSpec'
 import { chartTheme } from './chartTheme'
+import { isNumericColumn, sumValues } from './tableView'
 
 // ---------- Saf yardımcılar (test edilir) ----------
 
@@ -36,6 +37,74 @@ export function resultToHtmlTable(result: QueryResult, limit = 200): string {
       ? `<div class="note">… ${result.rows.length - limit} satır daha (kısaltıldı)</div>`
       : ''
   return `<table><thead><tr>${headers}</tr></thead><tbody>${rows}</tbody></table>${more}`
+}
+
+function pubNumber(n: number): string {
+  if (!Number.isFinite(n)) return '—'
+  return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 2 }).format(n)
+}
+
+/** Tablo ayarlarını (gizli sütun, toplam sütunu) uygulayarak sütun/satır üretir. */
+export function applyTableConfig(
+  result: QueryResult,
+  config?: TableConfig
+): { columns: { name: string }[]; rows: Record<string, unknown>[]; totals?: Record<string, number> } {
+  const hidden = new Set(config?.hiddenColumns ?? [])
+  const baseCols = result.columns.filter((c) => !hidden.has(c.name))
+  const sumCols = config?.sumColumns ?? []
+  const columns = [
+    ...baseCols.map((c) => ({ name: c.name })),
+    ...sumCols.map((s) => ({ name: s.name }))
+  ]
+  const rows = result.rows.map((r) => {
+    const o: Record<string, unknown> = {}
+    for (const c of baseCols) o[c.name] = r[c.name]
+    for (const s of sumCols) o[s.name] = sumValues(s.cols.map((cc) => r[cc]))
+    return o
+  })
+  let totals: Record<string, number> | undefined
+  if (config?.showTotals) {
+    totals = {}
+    const sample = rows.slice(0, 200)
+    for (const c of columns) {
+      const isSum = sumCols.some((s) => s.name === c.name)
+      if (isSum || isNumericColumn(sample, c.name)) {
+        totals[c.name] = sumValues(rows.map((r) => r[c.name]))
+      }
+    }
+  }
+  return { columns, rows, totals }
+}
+
+/** Tablo ayarlarını uygulayarak (gizli sütun, toplam sütunu, alt toplam) HTML tablo üretir. */
+export function configuredTableHtml(
+  result: QueryResult,
+  config?: TableConfig,
+  limit = 200
+): string {
+  const { columns, rows, totals } = applyTableConfig(result, config)
+  const headers = columns.map((c) => `<th>${escapeHtml(c.name)}</th>`).join('')
+  const body = rows
+    .slice(0, limit)
+    .map(
+      (r) =>
+        `<tr>${columns.map((c) => `<td>${escapeHtml(cell(r[c.name]))}</td>`).join('')}</tr>`
+    )
+    .join('')
+  const foot = totals
+    ? `<tfoot><tr>${columns
+        .map((c, i) =>
+          c.name in totals!
+            ? `<td class="tot">${escapeHtml(pubNumber(totals![c.name]))}</td>`
+            : `<td class="tot">${i === 0 ? 'Toplam' : ''}</td>`
+        )
+        .join('')}</tr></tfoot>`
+    : ''
+  const more =
+    rows.length > limit
+      ? `<div class="note">… ${rows.length - limit} satır daha (kısaltıldı)</div>`
+      : ''
+  return `<table><thead><tr>${headers}</tr></thead><tbody>${body}</tbody>${foot}</table>${more}`
 }
 
 export interface TileLayout {
@@ -112,6 +181,8 @@ export function assembleDashboardHtml(
   table { border-collapse: collapse; width: 100%; font-size: 13px; }
   th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; white-space: nowrap; }
   th { background: #fafafa; position: sticky; top: 0; }
+  tfoot .tot { font-weight: 700; border-top: 2px solid #e5e7eb; background: #fafafa;
+    position: sticky; bottom: 0; }
   .err { color: #b91c1c; font-size: 13px; margin: auto 0; }
   .note { color: #9ca3af; font-size: 12px; margin: auto 0; }
   footer { padding: 12px 24px; color: #9ca3af; font-size: 12px; }
@@ -184,7 +255,9 @@ export async function buildPublishHtml(
     const result = res.data
     try {
       if (tile.chart.type === 'table') {
-        sections.push(tileSectionHtml({ title, layout, tableHtml: resultToHtmlTable(result) }))
+        sections.push(
+          tileSectionHtml({ title, layout, tableHtml: configuredTableHtml(result, tile.chart.tableConfig) })
+        )
       } else if (tile.chart.type === 'kpi') {
         sections.push(
           tileSectionHtml({ title, layout, kpiText: formatNumber(computeKpi(result, tile.chart)) })

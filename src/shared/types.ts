@@ -80,6 +80,23 @@ export type ChartType =
   | 'table'
 export type Aggregation = 'none' | 'sum' | 'avg' | 'count' | 'min' | 'max'
 
+/** Tablo grafiğine gömülü ayarlar (Düzenle panelinden yapılandırılır, panoyla kaydedilir). */
+export interface TableSumColumn {
+  id: string
+  name: string
+  /** Toplanacak kaynak sütun adları. */
+  cols: string[]
+}
+
+export interface TableConfig {
+  /** Gizlenecek sütun adları. */
+  hiddenColumns?: string[]
+  /** Alt toplam satırı göster (sayısal sütunların toplamı). */
+  showTotals?: boolean
+  /** Satır bazında toplam veren (hesaplanan) ekstra sütunlar. */
+  sumColumns?: TableSumColumn[]
+}
+
 export interface ChartConfig {
   type: ChartType
   /** Kategori / X ekseni alanı (sütun adı). */
@@ -96,6 +113,8 @@ export interface ChartConfig {
   crossFilterParam?: string | null
   /** Drill-down seviyeleri (sıralı boyut sütunları). Örn: ['kategori','urun']. */
   drillLevels?: string[]
+  /** Tablo türü için gömülü ayarlar (sütun gizleme, alt toplam, toplam sütunları). */
+  tableConfig?: TableConfig
 }
 
 export interface DashboardTile {
