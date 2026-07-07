@@ -16,7 +16,10 @@ Electron + React + TypeScript ile geliştirilmiştir.
   birleştirme — INNER/LEFT/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
   filtreleri; üretilen sorguyu çalıştırıp **Excel** olarak dışa aktarma
 - **SQL sorgu editörü:** Monaco tabanlı, söz dizimi vurgusu, `Ctrl/Cmd+Enter` ile çalıştırma
-- **Sonuç tablosu:** Sorgu sonuçlarını anında tablolaştırma
+- **Sonuç tablosu:** Sorgu sonuçlarını anında tablolaştırma; **sütun başlığına
+  tıklayarak sıralama** (sayı-duyarlı) ve 🔍 ile **sütun bazında filtreleme**
+  (filtrelenen/toplam satır sayacı). Aynı özellikler pano üzerindeki **tablo
+  grafiğinde** de geçerlidir.
 - **Grafikler (Apache ECharts):** Sütun (bar), yığılmış sütun, çizgi, alan (area),
   saçılım (scatter), pasta, **KPI kartı** ve **tablo** görselleri
   - Kategori (X) / ölçü (Y) eşleme + agregasyon (SUM/AVG/COUNT/MIN/MAX)
@@ -92,9 +95,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.4 && git push origin v0.2.4
+  git tag v0.2.5 && git push origin v0.2.5
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.4.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.5.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
