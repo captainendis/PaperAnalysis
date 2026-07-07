@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
@@ -7,24 +7,35 @@ import {
   useReactTable,
   type ColumnDef,
   type ColumnFiltersState,
-  type SortingState
+  type SortingState,
+  type VisibilityState
 } from '@tanstack/react-table'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import type { QueryResult } from '@shared/types'
-import { compareCells, includesFilter } from '../../lib/tableView'
+import { buildViewResult, compareCells, includesFilter } from '../../lib/tableView'
+import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 /** Tahmini satır yüksekliği (px) — sanallaştırma için (py-1.5 + metin + kenarlık). */
 const ROW_HEIGHT = 33
 
-export function ResultsTable({ result }: { result: QueryResult }) {
+interface Props {
+  result: QueryResult
+  /** Dışa aktarım dosya adı için başlık. */
+  title?: string
+}
+
+export const ResultsTable = memo(function ResultsTable({ result, title }: Props) {
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [showFilters, setShowFilters] = useState(false)
+  const [showCols, setShowCols] = useState(false)
   const [menuCol, setMenuCol] = useState<string | null>(null)
   const headRef = useRef<HTMLTableSectionElement>(null)
+  const colsRef = useRef<HTMLDivElement>(null)
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  // Menü açıkken dışarı tıklayınca kapat.
+  // Sıralama menüsü açıkken dışarı tıklayınca kapat.
   useEffect(() => {
     if (!menuCol) return
     const onDown = (e: MouseEvent) => {
@@ -33,6 +44,16 @@ export function ResultsTable({ result }: { result: QueryResult }) {
     document.addEventListener('mousedown', onDown)
     return () => document.removeEventListener('mousedown', onDown)
   }, [menuCol])
+
+  // Sütun görünürlüğü menüsü açıkken dışarı tıklayınca kapat.
+  useEffect(() => {
+    if (!showCols) return
+    const onDown = (e: MouseEvent) => {
+      if (colsRef.current && !colsRef.current.contains(e.target as Node)) setShowCols(false)
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [showCols])
 
   const columns = useMemo<ColumnDef<Record<string, unknown>>[]>(
     () =>
@@ -54,9 +75,10 @@ export function ResultsTable({ result }: { result: QueryResult }) {
   const table = useReactTable({
     data: result.rows,
     columns,
-    state: { sorting, columnFilters },
+    state: { sorting, columnFilters, columnVisibility },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
+    onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel()
@@ -78,6 +100,25 @@ export function ResultsTable({ result }: { result: QueryResult }) {
   const paddingBottom =
     virtualRows.length > 0 ? totalSize - virtualRows[virtualRows.length - 1].end : 0
 
+  // Ekrandaki görünümü (görünür sütunlar + filtreli/sıralı satırlar) dışa aktarır.
+  function currentView(): QueryResult {
+    const cols = table.getVisibleLeafColumns().map((c) => c.id)
+    const viewRows = table.getSortedRowModel().rows.map((r) => {
+      const o: Record<string, unknown> = {}
+      for (const id of cols) o[id] = r.getValue(id)
+      return o
+    })
+    return buildViewResult(cols, viewRows)
+  }
+  async function exportCsv() {
+    await window.api.file.saveText(toCsv(currentView()), `${title || 'veri'}.csv`, ['csv'])
+  }
+  async function exportXlsx() {
+    await window.api.file.saveBinary(toXlsxBase64(currentView()), `${title || 'veri'}.xlsx`, [
+      'xlsx'
+    ])
+  }
+
   if (result.columns.length === 0) {
     return (
       <div className="p-4 text-sm text-gray-400">
@@ -89,6 +130,8 @@ export function ResultsTable({ result }: { result: QueryResult }) {
   const filteredCount = table.getFilteredRowModel().rows.length
   const totalCount = result.rows.length
   const isFiltered = columnFilters.some((f) => String(f.value ?? '').trim() !== '')
+  const allCols = table.getAllLeafColumns()
+  const hiddenCount = allCols.filter((c) => !c.getIsVisible()).length
 
   return (
     <div className="flex h-full flex-col">
@@ -96,15 +139,65 @@ export function ResultsTable({ result }: { result: QueryResult }) {
         className="flex items-center justify-between gap-2 px-2 py-1 text-[11px] text-gray-400"
         onMouseDown={(e) => e.stopPropagation()}
       >
-        <button
-          className={`rounded px-1.5 py-0.5 hover:bg-white/10 ${
-            showFilters ? 'text-brand-500' : ''
-          }`}
-          title={showFilters ? 'Filtre satırını gizle' : 'Sütun filtrelerini göster'}
-          onClick={() => setShowFilters((s) => !s)}
-        >
-          🔍 Filtrele
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            className={`rounded px-1.5 py-0.5 hover:bg-white/10 ${
+              showFilters ? 'text-brand-500' : ''
+            }`}
+            title={showFilters ? 'Filtre satırını gizle' : 'Sütun filtrelerini göster'}
+            onClick={() => setShowFilters((s) => !s)}
+          >
+            🔍 Filtrele
+          </button>
+          <div ref={colsRef} className="relative">
+            <button
+              className={`rounded px-1.5 py-0.5 hover:bg-white/10 ${
+                hiddenCount > 0 || showCols ? 'text-brand-500' : ''
+              }`}
+              title="Sütunları göster/gizle"
+              onClick={() => setShowCols((s) => !s)}
+            >
+              🗂 Sütunlar{hiddenCount > 0 ? ` (${allCols.length - hiddenCount}/${allCols.length})` : ''}
+            </button>
+            {showCols && (
+              <div className="absolute left-0 top-full z-30 mt-0.5 max-h-64 w-52 overflow-auto rounded border border-edge bg-surface p-1 shadow-lg">
+                <div className="flex items-center justify-between px-1 pb-1">
+                  <button
+                    className="rounded px-1 py-0.5 text-brand-500 hover:bg-white/10"
+                    onClick={() => table.toggleAllColumnsVisible(true)}
+                  >
+                    Tümü
+                  </button>
+                  <button
+                    className="rounded px-1 py-0.5 text-gray-400 hover:bg-white/10"
+                    onClick={() => table.toggleAllColumnsVisible(false)}
+                  >
+                    Hiçbiri
+                  </button>
+                </div>
+                {allCols.map((col) => (
+                  <label
+                    key={col.id}
+                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs text-gray-200 hover:bg-white/5"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={col.getIsVisible()}
+                      onChange={col.getToggleVisibilityHandler()}
+                    />
+                    <span className="truncate">{col.id}</span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+          <button className="rounded px-1.5 py-0.5 hover:bg-white/10 hover:text-brand-500" title="Görünümü CSV olarak indir" onClick={exportCsv}>
+            CSV
+          </button>
+          <button className="rounded px-1.5 py-0.5 hover:bg-white/10 hover:text-brand-500" title="Görünümü Excel olarak indir" onClick={exportXlsx}>
+            Excel
+          </button>
+        </div>
         <span>
           {isFiltered ? `${filteredCount} / ${totalCount} satır` : `${totalCount} satır`}
           {isFiltered && (
@@ -190,6 +283,15 @@ export function ResultsTable({ result }: { result: QueryResult }) {
                               <span className="text-[10px]">✕</span> Sıralamayı kaldır
                             </button>
                           )}
+                          <button
+                            className="flex w-full items-center gap-2 px-3 py-1 text-left text-gray-400 hover:bg-white/10"
+                            onClick={() => {
+                              h.column.toggleVisibility(false)
+                              setMenuCol(null)
+                            }}
+                          >
+                            <span className="text-[10px]">🗙</span> Sütunu gizle
+                          </button>
                         </div>
                       )}
                     </th>
@@ -221,7 +323,7 @@ export function ResultsTable({ result }: { result: QueryResult }) {
           <tbody>
             {paddingTop > 0 && (
               <tr>
-                <td colSpan={result.columns.length} style={{ height: paddingTop }} />
+                <td colSpan={allCols.length} style={{ height: paddingTop }} />
               </tr>
             )}
             {virtualRows.map((vr) => {
@@ -241,7 +343,7 @@ export function ResultsTable({ result }: { result: QueryResult }) {
             })}
             {paddingBottom > 0 && (
               <tr>
-                <td colSpan={result.columns.length} style={{ height: paddingBottom }} />
+                <td colSpan={allCols.length} style={{ height: paddingBottom }} />
               </tr>
             )}
           </tbody>
@@ -255,4 +357,4 @@ export function ResultsTable({ result }: { result: QueryResult }) {
       </div>
     </div>
   )
-}
+})

@@ -49,7 +49,7 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
   const [pickedCols, setPickedCols] = useState<Set<string>>(new Set())
   const [filters, setFilters] = useState<FilterCond[]>([])
   const [unionAll, setUnionAll] = useState(true)
-  const [limit, setLimit] = useState(1000)
+  const [limit, setLimit] = useState(0)
 
   useEffect(() => {
     if (open && connectionId) load(connectionId)
@@ -361,11 +361,13 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
               </>
             )}
 
-            <Field label="Satır sınırı">
+            <Field label="Satır sınırı (0 = Tümü)">
               <TextInput
                 type="number"
-                value={limit}
-                onChange={(e) => setLimit(Number(e.target.value) || 0)}
+                min={0}
+                value={limit || ''}
+                placeholder="Tümü"
+                onChange={(e) => setLimit(Math.max(0, Number(e.target.value) || 0))}
               />
             </Field>
           </div>

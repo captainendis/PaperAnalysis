@@ -75,6 +75,7 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
   }
 
   const isChart = tile.chart.type !== 'kpi' && tile.chart.type !== 'table'
+  const isTable = tile.chart.type === 'table'
 
   // Drill-down: yapılandırıldıysa (≥2 seviye) tıklama alt kırılıma iner.
   const drillLevels = tile.chart.drillLevels ?? []
@@ -125,7 +126,7 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
           <button title="Yenile" className="hover:text-brand-500" onClick={load}>
             ⟳
           </button>
-          {result && (
+          {result && !isTable && (
             <>
               <button title="CSV dışa aktar" className="hover:text-brand-500" onClick={exportCsv}>
                 CSV

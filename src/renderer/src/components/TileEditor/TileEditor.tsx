@@ -17,7 +17,6 @@ import { useSettings } from '../../store/settings'
 import { paramValues } from '../../lib/params'
 import { previewSelect } from '../../lib/sqlDialect'
 import { suggestChart } from '../../lib/chartSuggest'
-import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 interface Props {
   open: boolean
@@ -90,15 +89,6 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
 
   function pickColumn(col: string) {
     setDraft((d) => ({ ...d, sql: d.sql ? `${d.sql} ${col}` : col }))
-  }
-
-  async function exportCsv() {
-    if (!result) return
-    await window.api.file.saveText(toCsv(result), `${draft.title || 'veri'}.csv`, ['csv'])
-  }
-  async function exportXlsx() {
-    if (!result) return
-    await window.api.file.saveBinary(toXlsxBase64(result), `${draft.title || 'veri'}.xlsx`, ['xlsx'])
   }
 
   function handleSave() {
@@ -251,17 +241,12 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
                   <span>
                     {result.rowCount} satır · {result.elapsedMs} ms
                   </span>
-                  <div className="flex gap-2">
-                    <button className="hover:text-brand-500" onClick={exportCsv}>
-                      CSV
-                    </button>
-                    <button className="hover:text-brand-500" onClick={exportXlsx}>
-                      Excel
-                    </button>
-                  </div>
+                  <span className="text-[11px] text-gray-500">
+                    Dışa aktarma ve sütun seçimi tablo araç çubuğunda ↓
+                  </span>
                 </div>
                 <div className="flex-1 overflow-hidden">
-                  <ResultsTable result={result} />
+                  <ResultsTable result={result} title={draft.title} />
                 </div>
               </div>
             ) : (

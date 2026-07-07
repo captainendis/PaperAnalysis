@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { cellToText, includesFilter, compareCells } from './tableView'
+import { cellToText, includesFilter, compareCells, buildViewResult } from './tableView'
 
 describe('cellToText', () => {
   it('null/undefined boş dize verir', () => {
@@ -51,5 +51,17 @@ describe('compareCells', () => {
     expect(compareCells(null, 5)).toBeGreaterThan(0)
     expect(compareCells(5, null)).toBeLessThan(0)
     expect(compareCells(null, null)).toBe(0)
+  })
+})
+
+describe('buildViewResult', () => {
+  it('görünür sütun ve satırlardan QueryResult üretir', () => {
+    const r = buildViewResult(['ad', 'fiyat'], [
+      { ad: 'elma', fiyat: 3 },
+      { ad: 'muz', fiyat: 5 }
+    ])
+    expect(r.columns).toEqual([{ name: 'ad' }, { name: 'fiyat' }])
+    expect(r.rowCount).toBe(2)
+    expect(r.rows[0]).toEqual({ ad: 'elma', fiyat: 3 })
   })
 })

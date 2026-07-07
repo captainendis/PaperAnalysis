@@ -58,7 +58,7 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
 
   // Tablo görseli.
   if (chart.type === 'table') {
-    return <ResultsTable result={result} />
+    return <ResultsTable result={result} title={chart.title} />
   }
 
   if (!chart.dimension) return empty('Kategori (X) alanı seçin.')

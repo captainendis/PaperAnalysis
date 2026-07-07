@@ -1,6 +1,24 @@
 // Tablo görünümü (ResultsTable) için saf sıralama/filtreleme yardımcıları.
 // UI'dan bağımsız oldukları için birim test edilebilirler.
 
+import type { QueryResult } from '@shared/types'
+
+/**
+ * Görünürdeki sütunlar ve (filtrelenmiş/sıralanmış) satırlardan dışa aktarılabilir
+ * bir QueryResult üretir. Excel/CSV dışa aktarımının ekrandaki görünümü yansıtması için.
+ */
+export function buildViewResult(
+  columnNames: string[],
+  rows: Record<string, unknown>[]
+): QueryResult {
+  return {
+    columns: columnNames.map((name) => ({ name })),
+    rows,
+    rowCount: rows.length,
+    elapsedMs: 0
+  }
+}
+
 /** Hücre değerini görüntülemeyle tutarlı bir metne çevirir. */
 export function cellToText(v: unknown): string {
   if (v === null || v === undefined) return ''
