@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { DashboardTile, QueryResult, TableInfo } from '@shared/types'
 import { Modal } from '../common/Modal'
 import { Button } from '../common/Button'
@@ -14,9 +14,11 @@ import { useConnections } from '../../store/connections'
 import { useDashboard } from '../../store/dashboard'
 import { useQueries } from '../../store/queries'
 import { useSettings } from '../../store/settings'
+import { useSchema } from '../../store/schema'
 import { paramValues } from '../../lib/params'
 import { previewSelect } from '../../lib/sqlDialect'
 import { suggestChart } from '../../lib/chartSuggest'
+import { uid } from '../../lib/serialize'
 
 interface Props {
   open: boolean
@@ -46,12 +48,14 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
   const addHistory = useQueries((s) => s.addHistory)
   const previewLimit = useSettings((s) => s.previewLimit)
   const setPreviewLimit = useSettings((s) => s.setPreviewLimit)
+  const schemaCache = useSchema((s) => s.cache)
   const [draft, setDraft] = useState<DashboardTile>(tile)
   const [result, setResult] = useState<QueryResult | null>(null)
   const [running, setRunning] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showSchema, setShowSchema] = useState(true)
   const [joinOpen, setJoinOpen] = useState(false)
+  const runIdRef = useRef<string | null>(null)
 
   const activeConn = connections.find((c) => c.id === draft.connectionId)
   const activeKind = activeConn?.kind ?? 'sqlite'
@@ -67,9 +71,19 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
       setError('Lütfen bir bağlantı seçin.')
       return
     }
+    const reqId = uid('q')
+    runIdRef.current = reqId
     setRunning(true)
     setError(null)
-    const res = await window.api.query.run(draft.connectionId, draft.sql, paramValues(parameters))
+    const res = await window.api.query.run(
+      draft.connectionId,
+      draft.sql,
+      paramValues(parameters),
+      reqId
+    )
+    // Bu çalıştırma hâlâ güncel mi? (iptal/yeni çalıştırma sırasında yarış önleme)
+    if (runIdRef.current !== reqId) return
+    runIdRef.current = null
     setRunning(false)
     if (res.ok) {
       setResult(res.data)
@@ -84,6 +98,14 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
     } else {
       setError(res.error)
     }
+  }
+
+  async function cancelQuery() {
+    const id = runIdRef.current
+    if (!id) return
+    runIdRef.current = null
+    setRunning(false)
+    await window.api.query.cancel(id)
   }
 
   function pickTable(t: TableInfo) {
@@ -217,9 +239,15 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
             >
               🔗 Birleştir
             </Button>
-            <Button variant="primary" onClick={runQuery} disabled={running}>
-              {running ? 'Çalışıyor…' : '▶ Çalıştır'}
-            </Button>
+            {running ? (
+              <Button variant="danger" onClick={cancelQuery} title="Çalışan sorguyu durdur">
+                ⏹ Durdur
+              </Button>
+            ) : (
+              <Button variant="primary" onClick={runQuery}>
+                ▶ Çalıştır
+              </Button>
+            )}
           </div>
 
           <QueryLibrary
@@ -233,6 +261,7 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
               value={draft.sql}
               onChange={(sql) => setDraft({ ...draft, sql })}
               onRun={runQuery}
+              schema={draft.connectionId ? schemaCache[draft.connectionId] : undefined}
             />
           </div>
 

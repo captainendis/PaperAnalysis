@@ -24,9 +24,12 @@ const api = {
     run: (
       connectionId: string,
       sql: string,
-      params?: Record<string, unknown>
+      params?: Record<string, unknown>,
+      requestId?: string
     ): Promise<IpcResult<QueryResult>> =>
-      ipcRenderer.invoke(CH.query, { connectionId, sql, params })
+      ipcRenderer.invoke(CH.query, { connectionId, sql, params, requestId }),
+    cancel: (requestId: string): Promise<IpcResult<true>> =>
+      ipcRenderer.invoke(CH.queryCancel, { requestId })
   },
   schema: {
     introspect: (connectionId: string): Promise<IpcResult<SchemaInfo>> =>

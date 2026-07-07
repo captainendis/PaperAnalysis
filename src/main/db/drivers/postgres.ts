@@ -34,13 +34,31 @@ export function createPostgresDriver(config: ConnectionConfig): Driver {
         client.release()
       }
     },
-    async query(sql, params) {
+    async query(sql, params, signal) {
       const start = Date.now()
       const bound = bindParams(sql, params, 'postgres')
-      const res = await getPool().query(bound.sql, bound.values)
-      const columns = res.fields.map((f) => f.name)
-      const rows = res.rows as Record<string, unknown>[]
-      return buildResult(columns, rows, Date.now() - start)
+      if (signal?.aborted) throw new Error('Sorgu iptal edildi.')
+      // İptal edilebilmesi için özel bir istemci al; iptalde bağlantıyı düşür
+      // (sunucu çalışan sorguyu iptal eder).
+      const client = await getPool().connect()
+      let cancelled = false
+      const onAbort = (): void => {
+        cancelled = true
+        client.release(new Error('İptal edildi'))
+      }
+      signal?.addEventListener('abort', onAbort, { once: true })
+      try {
+        const res = await client.query(bound.sql, bound.values)
+        const columns = res.fields.map((f) => f.name)
+        const rows = res.rows as Record<string, unknown>[]
+        return buildResult(columns, rows, Date.now() - start)
+      } catch (err) {
+        if (cancelled) throw new Error('Sorgu iptal edildi.')
+        throw err
+      } finally {
+        signal?.removeEventListener('abort', onAbort)
+        if (!cancelled) client.release()
+      }
     },
     async introspect(): Promise<SchemaInfo> {
       const res = await getPool().query<{

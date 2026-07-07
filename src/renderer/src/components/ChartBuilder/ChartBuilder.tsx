@@ -3,6 +3,9 @@ import type {
   Aggregation,
   ChartConfig,
   ChartType,
+  ColumnFormat,
+  ColumnFormatKind,
+  ConditionalRule,
   QueryResult,
   TableConfig
 } from '@shared/types'
@@ -31,6 +34,16 @@ const AGGS: { value: Aggregation; label: string }[] = [
   { value: 'max', label: 'En Büyük (MAX)' },
   { value: 'none', label: 'Yok (ham değer)' }
 ]
+
+const FORMAT_KINDS: { value: ColumnFormatKind; label: string }[] = [
+  { value: 'auto', label: 'Otomatik' },
+  { value: 'number', label: 'Sayı' },
+  { value: 'currency', label: 'Para' },
+  { value: 'percent', label: 'Yüzde' },
+  { value: 'date', label: 'Tarih' }
+]
+const RULE_OPS: ConditionalRule['op'][] = ['>', '<', '>=', '<=', '=', '<>', 'contains']
+const CURRENCIES = ['TRY', 'USD', 'EUR', 'GBP']
 
 interface Props {
   chart: ChartConfig
@@ -71,6 +84,28 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
       ]
     })
     setSumDraft({ name: 'Toplam', cols: new Set() })
+  }
+
+  // ---- Sütun biçimleri (sayı/para/yüzde/tarih) ----
+  const colFormats = tc.columnFormats ?? {}
+  function setColFormat(col: string, patch: Partial<ColumnFormat>) {
+    const cur: ColumnFormat = colFormats[col] ?? { kind: 'auto' }
+    setTc({ columnFormats: { ...colFormats, [col]: { ...cur, ...patch } } })
+  }
+
+  // ---- Koşullu renklendirme ----
+  const [ruleDraft, setRuleDraft] = useState<Omit<ConditionalRule, 'id'>>({
+    column: '',
+    op: '>',
+    value: '',
+    color: '#ef4444',
+    mode: 'text'
+  })
+  function addRule() {
+    if (!ruleDraft.column) return
+    const id = `__rule${Date.now().toString(36)}`
+    setTc({ conditionalRules: [...(tc.conditionalRules ?? []), { id, ...ruleDraft }] })
+    setRuleDraft({ column: '', op: '>', value: '', color: '#ef4444', mode: 'text' })
   }
 
   const selectedMeasures = resolveMeasures(chart)
@@ -227,6 +262,142 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                   </div>
                 )}
               </Field>
+              <Field label="Sütun Biçimleri (sayı / para / yüzde / tarih)">
+                <div className="flex max-h-56 flex-col gap-1.5 overflow-auto rounded-md border border-edge bg-base p-2">
+                  {columns.map((c) => {
+                    const f: ColumnFormat = colFormats[c] ?? { kind: 'auto' }
+                    return (
+                      <div key={c} className="flex items-center gap-2 text-xs">
+                        <span className="w-28 shrink-0 truncate text-gray-200" title={c}>
+                          {c}
+                        </span>
+                        <Select
+                          className="flex-1"
+                          value={f.kind}
+                          onChange={(e) => setColFormat(c, { kind: e.target.value as ColumnFormatKind })}
+                        >
+                          {FORMAT_KINDS.map((k) => (
+                            <option key={k.value} value={k.value}>
+                              {k.label}
+                            </option>
+                          ))}
+                        </Select>
+                        {(f.kind === 'number' || f.kind === 'currency' || f.kind === 'percent') && (
+                          <input
+                            type="number"
+                            min={0}
+                            max={6}
+                            title="Ondalık basamak"
+                            className="w-14 rounded border border-edge bg-surface px-1.5 py-1 text-gray-100 outline-none focus:border-brand-500"
+                            value={f.decimals ?? (f.kind === 'currency' ? 2 : 0)}
+                            onChange={(e) => setColFormat(c, { decimals: Math.max(0, Number(e.target.value) || 0) })}
+                          />
+                        )}
+                        {f.kind === 'currency' && (
+                          <Select
+                            className="w-20"
+                            value={f.currency ?? 'TRY'}
+                            onChange={(e) => setColFormat(c, { currency: e.target.value })}
+                          >
+                            {CURRENCIES.map((cur) => (
+                              <option key={cur} value={cur}>
+                                {cur}
+                              </option>
+                            ))}
+                          </Select>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </Field>
+
+              <Field label="Koşullu Renklendirme (kurala uyan hücreyi renklendir)">
+                <div className="flex flex-col gap-2">
+                  <div className="flex flex-wrap items-center gap-1">
+                    <Select
+                      className="min-w-[7rem] flex-1"
+                      value={ruleDraft.column}
+                      onChange={(e) => setRuleDraft((d) => ({ ...d, column: e.target.value }))}
+                    >
+                      <option value="">sütun</option>
+                      {columns.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </Select>
+                    <Select
+                      value={ruleDraft.op}
+                      onChange={(e) => setRuleDraft((d) => ({ ...d, op: e.target.value as ConditionalRule['op'] }))}
+                    >
+                      {RULE_OPS.map((o) => (
+                        <option key={o} value={o}>
+                          {o === 'contains' ? 'içerir' : o}
+                        </option>
+                      ))}
+                    </Select>
+                    <TextInput
+                      className="w-20"
+                      placeholder="değer"
+                      value={ruleDraft.value}
+                      onChange={(e) => setRuleDraft((d) => ({ ...d, value: e.target.value }))}
+                    />
+                    <input
+                      type="color"
+                      title="Renk"
+                      className="h-8 w-9 cursor-pointer rounded border border-edge bg-surface"
+                      value={ruleDraft.color}
+                      onChange={(e) => setRuleDraft((d) => ({ ...d, color: e.target.value }))}
+                    />
+                    <Select
+                      value={ruleDraft.mode}
+                      onChange={(e) => setRuleDraft((d) => ({ ...d, mode: e.target.value as 'text' | 'bg' }))}
+                    >
+                      <option value="text">yazı</option>
+                      <option value="bg">zemin</option>
+                    </Select>
+                    <button
+                      className="rounded-md bg-brand-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-40"
+                      disabled={!ruleDraft.column}
+                      onClick={addRule}
+                    >
+                      Ekle
+                    </button>
+                  </div>
+                  {(tc.conditionalRules?.length ?? 0) > 0 && (
+                    <div className="flex flex-col gap-1">
+                      {tc.conditionalRules!.map((r) => (
+                        <div
+                          key={r.id}
+                          className="flex items-center justify-between gap-2 rounded bg-base px-2 py-1 text-xs text-gray-300"
+                        >
+                          <span className="flex items-center gap-2 truncate">
+                            <span
+                              className="inline-block h-3 w-3 rounded"
+                              style={{ backgroundColor: r.color }}
+                            />
+                            {r.column} {r.op === 'contains' ? 'içerir' : r.op} {r.value}
+                            <span className="text-gray-500">({r.mode === 'bg' ? 'zemin' : 'yazı'})</span>
+                          </span>
+                          <button
+                            className="text-gray-500 hover:text-red-400"
+                            title="Kaldır"
+                            onClick={() =>
+                              setTc({
+                                conditionalRules: (tc.conditionalRules ?? []).filter((x) => x.id !== r.id)
+                              })
+                            }
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </Field>
+
               <p className="text-[11px] text-gray-500">
                 Bu ayarlar grafiğe kaydedilir; panoda ve yayında bu şekilde görünür.
               </p>

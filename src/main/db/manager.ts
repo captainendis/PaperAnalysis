@@ -46,8 +46,13 @@ class ConnectionManager {
     return driver
   }
 
-  async run(config: ConnectionConfig, sql: string, params?: QueryParams): Promise<QueryResult> {
-    return this.getDriver(config).query(sql, params)
+  async run(
+    config: ConnectionConfig,
+    sql: string,
+    params?: QueryParams,
+    signal?: AbortSignal
+  ): Promise<QueryResult> {
+    return this.getDriver(config).query(sql, params, signal)
   }
 
   async introspect(config: ConnectionConfig): Promise<SchemaInfo> {

@@ -19,6 +19,7 @@ import {
   matchesFilter,
   sumValues
 } from '../../lib/tableView'
+import { cellStyle, formatValue, rulesByColumn } from '../../lib/tableFormat'
 import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 
 /** Tahmini satır yüksekliği (px) — sanallaştırma için (py-1.5 + metin + kenarlık). */
@@ -124,6 +125,8 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
       cell: (info) => {
         const v = info.getValue()
         if (v === null || v === undefined) return <span className="text-gray-600">NULL</span>
+        const fmt = config?.columnFormats?.[c.name]
+        if (fmt && fmt.kind !== 'auto') return formatValue(v, fmt)
         if (typeof v === 'object') return JSON.stringify(v)
         return String(v)
       }
@@ -139,7 +142,8 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
     })) as ColumnDef<Record<string, unknown>>[]
 
     return [...base, ...sums]
-  }, [result.columns, sumColumns])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result.columns, sumColumns, config])
 
   const table = useReactTable({
     data: result.rows,
@@ -171,6 +175,13 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
   const numericColIds = useMemo(
     () => new Set<string>([...numericNames, ...sumColumns.map((s) => s.id)]),
     [numericNames, sumColumns]
+  )
+
+  // Koşullu biçim kuralları (sütun adına göre gruplu).
+  const condRules = useMemo(
+    () => rulesByColumn(config?.conditionalRules),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [configKey]
   )
 
   const filteredRows = table.getFilteredRowModel().rows
@@ -457,11 +468,19 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
               const row = rows[vr.index]
               return (
                 <tr key={row.id} className="hover:bg-white/5" style={{ height: ROW_HEIGHT }}>
-                  {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="border-b border-edge/60 px-3 py-1.5 text-gray-200 whitespace-nowrap">
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </td>
-                  ))}
+                  {row.getVisibleCells().map((cell) => {
+                    const rules = condRules[cell.column.id]
+                    const style = rules ? cellStyle(cell.getValue(), rules) : undefined
+                    return (
+                      <td
+                        key={cell.id}
+                        style={style}
+                        className="border-b border-edge/60 px-3 py-1.5 text-gray-200 whitespace-nowrap"
+                      >
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </td>
+                    )
+                  })}
                 </tr>
               )
             })}

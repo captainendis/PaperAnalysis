@@ -3,6 +3,7 @@ import type { Dashboard, DashboardTile, QueryResult, TableConfig } from '@shared
 import { buildEChartsOption, computeKpi } from './chartSpec'
 import { chartTheme } from './chartTheme'
 import { isNumericColumn, sumValues } from './tableView'
+import { cellStyle, formatValue, rulesByColumn } from './tableFormat'
 
 // ---------- Saf yardımcılar (test edilir) ----------
 
@@ -83,12 +84,23 @@ export function configuredTableHtml(
   limit = 200
 ): string {
   const { columns, rows, totals } = applyTableConfig(result, config)
+  const condByCol = rulesByColumn(config?.conditionalRules)
   const headers = columns.map((c) => `<th>${escapeHtml(c.name)}</th>`).join('')
   const body = rows
     .slice(0, limit)
     .map(
       (r) =>
-        `<tr>${columns.map((c) => `<td>${escapeHtml(cell(r[c.name]))}</td>`).join('')}</tr>`
+        `<tr>${columns
+          .map((c) => {
+            const v = r[c.name]
+            const text = escapeHtml(formatValue(v, config?.columnFormats?.[c.name]))
+            const st = condByCol[c.name] ? cellStyle(v, condByCol[c.name]) : undefined
+            const style = st
+              ? ` style="${st.color ? `color:${st.color}` : `background:${st.backgroundColor}`}"`
+              : ''
+            return `<td${style}>${text}</td>`
+          })
+          .join('')}</tr>`
     )
     .join('')
   const foot = totals

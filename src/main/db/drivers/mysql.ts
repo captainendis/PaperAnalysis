@@ -33,21 +33,38 @@ export function createMysqlDriver(config: ConnectionConfig): Driver {
         conn.release()
       }
     },
-    async query(sql, params) {
+    async query(sql, params, signal) {
       const start = Date.now()
       const bound = bindParams(sql, params, 'mysql')
-      const [rows, fields] = await getPool().query(bound.sql, bound.values)
-      // INSERT/UPDATE gibi sorgularda rows bir ResultSetHeader olur.
-      if (Array.isArray(rows)) {
-        const columns = (fields ?? []).map((f) => f.name)
-        return buildResult(columns, rows as Record<string, unknown>[], Date.now() - start)
+      if (signal?.aborted) throw new Error('Sorgu iptal edildi.')
+      // İptal edilebilmesi için özel bir bağlantı al; iptalde soketi düşür.
+      const conn = await getPool().getConnection()
+      let cancelled = false
+      const onAbort = (): void => {
+        cancelled = true
+        conn.destroy()
       }
-      const header = rows as mysql.ResultSetHeader
-      return buildResult(
-        ['affectedRows', 'insertId'],
-        [{ affectedRows: header.affectedRows, insertId: header.insertId }],
-        Date.now() - start
-      )
+      signal?.addEventListener('abort', onAbort, { once: true })
+      try {
+        const [rows, fields] = await conn.query(bound.sql, bound.values)
+        // INSERT/UPDATE gibi sorgularda rows bir ResultSetHeader olur.
+        if (Array.isArray(rows)) {
+          const columns = (fields ?? []).map((f) => f.name)
+          return buildResult(columns, rows as Record<string, unknown>[], Date.now() - start)
+        }
+        const header = rows as mysql.ResultSetHeader
+        return buildResult(
+          ['affectedRows', 'insertId'],
+          [{ affectedRows: header.affectedRows, insertId: header.insertId }],
+          Date.now() - start
+        )
+      } catch (err) {
+        if (cancelled) throw new Error('Sorgu iptal edildi.')
+        throw err
+      } finally {
+        signal?.removeEventListener('abort', onAbort)
+        if (!cancelled) conn.release()
+      }
     },
     async introspect(): Promise<SchemaInfo> {
       const [rows] = await getPool().query(

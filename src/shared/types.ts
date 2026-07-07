@@ -88,6 +88,31 @@ export interface TableSumColumn {
   cols: string[]
 }
 
+/** Bir sütunun sayı/para/yüzde/tarih biçimi. */
+export type ColumnFormatKind = 'auto' | 'number' | 'currency' | 'percent' | 'date'
+
+export interface ColumnFormat {
+  kind: ColumnFormatKind
+  /** Ondalık basamak (number/currency/percent). */
+  decimals?: number
+  /** Binlik ayraç (number). */
+  thousands?: boolean
+  /** Para birimi kodu (currency): 'TRY' | 'USD' | 'EUR' vb. */
+  currency?: string
+}
+
+/** Koşullu biçimlendirme kuralı (eşleşen hücreye renk uygular). */
+export interface ConditionalRule {
+  id: string
+  column: string
+  op: '>' | '<' | '>=' | '<=' | '=' | '<>' | 'contains'
+  value: string
+  /** Uygulanacak renk (hex). */
+  color: string
+  /** 'text' = yazı rengi, 'bg' = arka plan. Varsayılan 'text'. */
+  mode?: 'text' | 'bg'
+}
+
 export interface TableConfig {
   /** Gizlenecek sütun adları. */
   hiddenColumns?: string[]
@@ -95,6 +120,10 @@ export interface TableConfig {
   showTotals?: boolean
   /** Satır bazında toplam veren (hesaplanan) ekstra sütunlar. */
   sumColumns?: TableSumColumn[]
+  /** Sütun adı → biçim (sayı/para/yüzde/tarih). */
+  columnFormats?: Record<string, ColumnFormat>
+  /** Koşullu renklendirme kuralları. */
+  conditionalRules?: ConditionalRule[]
 }
 
 export interface ChartConfig {

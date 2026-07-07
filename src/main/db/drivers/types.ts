@@ -10,8 +10,8 @@ export type QueryParams = Record<string, unknown> | undefined
 export interface Driver {
   /** Bağlanmayı dener; başarısızsa hata fırlatır. */
   test(): Promise<void>
-  /** SQL çalıştırır ve normalize edilmiş sonuç döndürür. */
-  query(sql: string, params?: QueryParams): Promise<QueryResult>
+  /** SQL çalıştırır ve normalize edilmiş sonuç döndürür. `signal` iptal için. */
+  query(sql: string, params?: QueryParams, signal?: AbortSignal): Promise<QueryResult>
   /** Veritabanı tablolarını ve sütunlarını döndürür. */
   introspect(): Promise<SchemaInfo>
   /** Açık kaynakları kapatır. */

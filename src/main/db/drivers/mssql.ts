@@ -35,13 +35,18 @@ export function createMssqlDriver(config: ConnectionConfig): Driver {
       const p = await getPool()
       await p.request().query('SELECT 1')
     },
-    async query(sqlText, params) {
+    async query(sqlText, params, signal) {
       const start = Date.now()
       const p = await getPool()
       const bound = bindParams(sqlText, params, 'mssql')
       const request = p.request()
       for (const [key, value] of Object.entries(bound.named)) {
         request.input(key, value)
+      }
+      // İptal: signal tetiklenince çalışan isteği durdur.
+      if (signal) {
+        if (signal.aborted) throw new Error('Sorgu iptal edildi.')
+        signal.addEventListener('abort', () => request.cancel(), { once: true })
       }
       const result = await request.query(bound.sql)
       const recordset = result.recordset ?? []
