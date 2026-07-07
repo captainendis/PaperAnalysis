@@ -124,6 +124,8 @@ export interface TableConfig {
   groupSum?: boolean
   /** Toplama açıkken bu sütunlar toplama dışı tutulur (sayısal olsa da ilk değer korunur). */
   groupSumExclude?: string[]
+  /** Gruplarken bu sütunların grup içindeki farklı değerleri ", " ile listelenir (ör. barkod → "barkod1, barkod2"). */
+  groupConcat?: string[]
   /** Gizlenecek sütun adları. */
   hiddenColumns?: string[]
   /** Sütun görüntüleme sırası (sütun kimlikleri: temel sütun adı ya da toplam sütunu id'si). Listede olmayanlar sona eklenir. */

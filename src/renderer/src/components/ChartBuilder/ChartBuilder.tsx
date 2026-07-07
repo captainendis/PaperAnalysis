@@ -298,6 +298,41 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                               </div>
                             </div>
                           )}
+                        <div className="mt-2 rounded-md border border-edge bg-base p-2">
+                          <span className="text-[12px] text-gray-400">
+                            <b>Listeleyerek birleştir</b> (ilk değer yerine <b>tüm farklı
+                            değerler</b> virgülle yazılır — ör. barkod →{' '}
+                            <i>barkod1, barkod2</i>):
+                          </span>
+                          <div className="mt-1 flex max-h-40 flex-col gap-1 overflow-auto">
+                            {columns
+                              .filter(
+                                (c) =>
+                                  c !== tc.groupBy && !(tc.groupByExtra ?? []).includes(c)
+                              )
+                              .map((c) => {
+                                const on = (tc.groupConcat ?? []).includes(c)
+                                return (
+                                  <label
+                                    key={c}
+                                    className="flex items-center gap-2 text-[14px] text-gray-200"
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={on}
+                                      onChange={(e) => {
+                                        const cur = new Set(tc.groupConcat ?? [])
+                                        if (e.target.checked) cur.add(c)
+                                        else cur.delete(c)
+                                        setTc({ groupConcat: cur.size ? [...cur] : undefined })
+                                      }}
+                                    />
+                                    {c}
+                                  </label>
+                                )
+                              })}
+                          </div>
+                        </div>
                       </>
                     )}
                   </>

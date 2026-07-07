@@ -186,6 +186,37 @@ describe('groupResult', () => {
     expect(a.yil).toBe(2020) // anahtar → toplanmaz
     expect(a.adet).toBe(15)
   })
+  it('concat sütununda farklı değerleri virgülle listeler (barkod1, barkod2)', () => {
+    const r2: QueryResult = {
+      columns: [{ name: 'kod' }, { name: 'barkod' }, { name: 'adet' }],
+      rows: [
+        { kod: 'A', barkod: 'barkod1', adet: 10 },
+        { kod: 'A', barkod: 'barkod2', adet: 5 },
+        { kod: 'A', barkod: 'barkod1', adet: 2 } // tekrar → bir kez yazılır
+      ],
+      rowCount: 3,
+      elapsedMs: 1
+    }
+    const g = groupResult(r2, 'kod', true, [], ['barkod'])
+    const a = g.rows.find((x) => x.kod === 'A')!
+    expect(a.barkod).toBe('barkod1, barkod2')
+    expect(a.adet).toBe(17) // sayısal yine toplanır
+  })
+  it('concat boş/aynı değerleri düzgün işler', () => {
+    const r2: QueryResult = {
+      columns: [{ name: 'kod' }, { name: 'barkod' }],
+      rows: [
+        { kod: 'A', barkod: 'x' },
+        { kod: 'A', barkod: null },
+        { kod: 'A', barkod: '' },
+        { kod: 'A', barkod: 'x' }
+      ],
+      rowCount: 4,
+      elapsedMs: 1
+    }
+    const g = groupResult(r2, 'kod', true, [], ['barkod'])
+    expect(g.rows[0].barkod).toBe('x') // boş/null atlanır, tekrar birleşir
+  })
   it('excludeSum içindeki sayısal sütunu toplamaz (ilk değeri korur)', () => {
     const r2: QueryResult = {
       columns: [{ name: 'malzeme' }, { name: 'adet' }, { name: 'fiyat' }],

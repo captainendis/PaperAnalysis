@@ -114,14 +114,17 @@ export function isNumericColumn(rows: Record<string, unknown>[], name: string): 
  * `sum` true ise sayısal sütunlar toplanır; false ise toplanmaz (ilk değer korunur).
  * `excludeSum` içindeki sütunlar sayısal olsa bile toplama dışı tutulur (ilk değer
  * korunur) — ör. birim fiyat, yükseklik gibi toplanması anlamsız sütunlar.
- * Diğer (metin) sütunlarda daima ilk değer korunur; kaç satırın birleştiğini gösteren
- * bir "Adet" sütunu eklenir. Hiçbir geçerli grup sütunu yoksa sonuç değişmeden döner.
+ * `concat` içindeki sütunlar için grup içindeki **farklı** değerler ", " ile
+ * listelenir (ör. barkod → "barkod1, barkod2"). Diğer (metin) sütunlarda daima ilk
+ * değer korunur; kaç satırın birleştiğini gösteren bir "Adet" sütunu eklenir.
+ * Hiçbir geçerli grup sütunu yoksa sonuç değişmeden döner.
  */
 export function groupResult(
   result: QueryResult,
   groupBy: string | string[],
   sum = true,
-  excludeSum: string[] = []
+  excludeSum: string[] = [],
+  concat: string[] = []
 ): QueryResult {
   const names = result.columns.map((c) => c.name)
   const keys = (Array.isArray(groupBy) ? groupBy : [groupBy]).filter(
@@ -131,16 +134,36 @@ export function groupResult(
 
   const keySet = new Set(keys)
   const excluded = new Set(excludeSum)
+  // Listeleme (concat) sütunları: anahtarlar hariç, sonuçta var olan sütunlar.
+  const concatSet = new Set(concat.filter((c) => !keySet.has(c) && names.includes(c)))
   const sample = result.rows.slice(0, 200)
   const numeric = sum
     ? new Set(
-        names.filter((n) => !keySet.has(n) && !excluded.has(n) && isNumericColumn(sample, n))
+        names.filter(
+          (n) =>
+            !keySet.has(n) && !excluded.has(n) && !concatSet.has(n) && isNumericColumn(sample, n)
+        )
       )
     : new Set<string>()
   const countName = names.includes('Adet') ? '__adet' : 'Adet'
 
   const groups = new Map<string, Record<string, unknown>>()
+  // Concat sütunları için grup başına, sırayı koruyan benzersiz değer kümesi.
+  const concatAcc = new Map<string, Record<string, Set<string>>>()
   const order: string[] = []
+  const addConcat = (key: string, row: Record<string, unknown>) => {
+    if (concatSet.size === 0) return
+    let acc = concatAcc.get(key)
+    if (!acc) {
+      acc = {}
+      for (const n of concatSet) acc[n] = new Set<string>()
+      concatAcc.set(key, acc)
+    }
+    for (const n of concatSet) {
+      const t = cellToText(row[n]).trim()
+      if (t !== '') acc[n].add(t)
+    }
+  }
   for (const row of result.rows) {
     // Bileşik anahtar: her anahtar sütunun metni NUL ile ayrılır (çakışmayı önler).
     const key = keys.map((k) => cellToText(row[k])).join('\u0000')
@@ -154,6 +177,16 @@ export function groupResult(
     } else {
       for (const n of numeric) g[n] = (toFiniteNumber(g[n]) ?? 0) + (toFiniteNumber(row[n]) ?? 0)
       g[countName] = (g[countName] as number) + 1
+    }
+    addConcat(key, row)
+  }
+
+  // Concat sütunlarını grup başına ", " ile listeye çevir.
+  if (concatSet.size > 0) {
+    for (const key of order) {
+      const g = groups.get(key)!
+      const acc = concatAcc.get(key)
+      if (acc) for (const n of concatSet) g[n] = [...acc[n]].join(', ')
     }
   }
 

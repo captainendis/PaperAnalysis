@@ -67,7 +67,8 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
           result,
           groupKeys,
           chart.tableConfig?.groupSum !== false,
-          chart.tableConfig?.groupSumExclude
+          chart.tableConfig?.groupSumExclude,
+          chart.tableConfig?.groupConcat
         )
       : result
     return <ResultsTable result={tableResult} title={chart.title} config={chart.tableConfig} />

@@ -283,7 +283,8 @@ export async function buildPublishHtml(
                 result,
                 groupKeys,
                 tile.chart.tableConfig?.groupSum !== false,
-                tile.chart.tableConfig?.groupSumExclude
+                tile.chart.tableConfig?.groupSumExclude,
+                tile.chart.tableConfig?.groupConcat
               )
             : result
         sections.push(
