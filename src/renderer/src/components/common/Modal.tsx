@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 
 interface Props {
   open: boolean
@@ -11,8 +12,12 @@ interface Props {
 }
 
 export function Modal({ open, title, onClose, children, wide, footer }: Props) {
-  if (!open) return null
-  return (
+  if (!open || typeof document === 'undefined') return null
+
+  // Modalı doğrudan <body>'ye taşı (portal). Böylece iç içe modallar (ör. Grafik
+  // Düzenleyici içinden açılan Birleştir sihirbazı) üst modalın DOM alt ağacına
+  // sıkışmaz; yerleşim/odak/tıklama sorunları (değer kutusuna yazamama vb.) çözülür.
+  return createPortal(
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-6"
       onMouseDown={onClose}
@@ -38,6 +43,7 @@ export function Modal({ open, title, onClose, children, wide, footer }: Props) {
           <div className="flex justify-end gap-2 border-t border-edge px-5 py-3">{footer}</div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
