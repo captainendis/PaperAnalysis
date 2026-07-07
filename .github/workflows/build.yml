@@ -46,8 +46,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           # Etiketli push'ta o etiketi, dal push'unda sabit sürümü kullan.
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.23' }}
-          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.23' }}
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.24' }}
+          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.24' }}
           # latest.yml ve .blockmap, electron-updater'ın otomatik güncelleme için
           # ihtiyaç duyduğu meta dosyalarıdır; .exe ile birlikte yüklenmelidir.
           files: |

@@ -34,6 +34,12 @@ export interface FilterCond {
   connector?: 'and' | 'or'
 }
 
+/** Parantezli koşul grubu: içindeki koşullar `op` (VE/VEYA) ile birleşir. */
+export interface FilterGroup {
+  op: 'and' | 'or'
+  conds: FilterCond[]
+}
+
 export interface JoinSpec {
   mode: 'join'
   left: TableRef
@@ -44,7 +50,12 @@ export interface JoinSpec {
   onlyUnmatched?: boolean
   /** Seçili çıktı sütunları. Boşsa a.* , b.* kullanılır. */
   columns: { table: 'a' | 'b'; column: string }[]
-  filters: FilterCond[]
+  /** Düz filtreler (geriye dönük uyum). filterGroups doluysa yok sayılır. */
+  filters?: FilterCond[]
+  /** Parantezli filtre grupları. Doluysa `filters` yerine bunlar kullanılır. */
+  filterGroups?: FilterGroup[]
+  /** Gruplar arası bağlaç (VE/VEYA). Varsayılan 'and'. */
+  groupOp?: 'and' | 'or'
   limit?: number
 }
 
@@ -106,6 +117,37 @@ export function renderFilterExpr(kind: DbKind, filters: FilterCond[]): string {
   return expr
 }
 
+/** Bir koşulun tam (uygulanabilir) olup olmadığını belirler. */
+function isCompleteFilter(f: FilterCond): boolean {
+  return (
+    !!f.column &&
+    (f.op === 'IS NULL' || f.op === 'IS NOT NULL' || (f.value ?? '').trim() !== '')
+  )
+}
+
+/** Tek bir grubu SQL'e çevirir; birden çok koşulu varsa parantezler. */
+function renderGroup(kind: DbKind, g: FilterGroup): string {
+  const valid = g.conds.filter(isCompleteFilter)
+  if (valid.length === 0) return ''
+  const joiner = g.op === 'or' ? ' OR ' : ' AND '
+  const inner = valid.map((f) => renderFilter(kind, f)).join(joiner)
+  return valid.length > 1 ? `(${inner})` : inner
+}
+
+/**
+ * Parantezli filtre gruplarını üretir. Her grup içi kendi VE/VEYA'sıyla, gruplar
+ * arası `groupOp` ile birleşir. Örn: `(a OR b) AND (c OR d)`.
+ */
+export function renderFilterGroups(
+  kind: DbKind,
+  groups: FilterGroup[],
+  groupOp: 'and' | 'or' = 'and'
+): string {
+  const parts = groups.map((g) => renderGroup(kind, g)).filter((s) => s !== '')
+  if (parts.length === 0) return ''
+  return parts.join(groupOp === 'or' ? ' OR ' : ' AND ')
+}
+
 /** İki tabloyu JOIN ile birleştiren SQL üretir. */
 export function buildJoinSql(kind: DbKind, spec: JoinSpec): string {
   const joinType: JoinType = spec.onlyUnmatched ? 'left' : spec.joinType
@@ -145,7 +187,10 @@ export function buildJoinSql(kind: DbKind, spec: JoinSpec): string {
   }
   // Kullanıcı filtreleri VE/VEYA ile birleşir; başka bir koşulla (onlyUnmatched)
   // birlikteyse parantezle grupla ki OR öncelik sorunları olmasın.
-  const filterExpr = renderFilterExpr(kind, spec.filters)
+  const filterExpr =
+    spec.filterGroups && spec.filterGroups.length > 0
+      ? renderFilterGroups(kind, spec.filterGroups, spec.groupOp ?? 'and')
+      : renderFilterExpr(kind, spec.filters ?? [])
   if (filterExpr) wheres.push(wheres.length > 0 ? `(${filterExpr})` : filterExpr)
 
   let sql = `SELECT ${top}${selectList}\nFROM ${qualified(kind, spec.left)} a\n${JOIN_KEYWORD[joinType]} ${qualified(kind, spec.right)} b ON ${on}`

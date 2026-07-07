@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest'
-import { buildJoinSql, buildUnionSql, type JoinSpec } from './joinBuilder'
+import {
+  buildJoinSql,
+  buildUnionSql,
+  renderFilterGroups,
+  type FilterGroup,
+  type JoinSpec
+} from './joinBuilder'
 
 const base: JoinSpec = {
   mode: 'join',
@@ -146,6 +152,104 @@ describe('buildJoinSql', () => {
     })
     expect(sql).toContain('a."urun_kodu" AS "urun_kodu"')
     expect(sql).toContain('b."urun_kodu" AS "urun_kodu_2"')
+  })
+})
+
+describe('renderFilterGroups', () => {
+  const groups: FilterGroup[] = [
+    {
+      op: 'or',
+      conds: [
+        { table: 'a', column: 'merkezDepo', op: 'IS NOT NULL' },
+        { table: 'a', column: 'geciciStok', op: 'IS NOT NULL' }
+      ]
+    },
+    {
+      op: 'or',
+      conds: [
+        { table: 'b', column: 'yukseklik', op: 'IS NULL' },
+        { table: 'b', column: 'yukseklik', op: '=', value: '0' }
+      ]
+    }
+  ]
+
+  it('parantezli grupları VE ile birleştirir: (a OR b) AND (c OR d)', () => {
+    const expr = renderFilterGroups('postgres', groups, 'and')
+    expect(expr).toBe(
+      '(a."merkezDepo" IS NOT NULL OR a."geciciStok" IS NOT NULL) AND (b."yukseklik" IS NULL OR b."yukseklik" = 0)'
+    )
+  })
+
+  it('gruplar arası VEYA da desteklenir', () => {
+    const expr = renderFilterGroups('postgres', groups, 'or')
+    expect(expr).toContain(') OR (')
+  })
+
+  it('tek koşullu grubu parantezlemez', () => {
+    const expr = renderFilterGroups('postgres', [
+      { op: 'and', conds: [{ table: 'a', column: 'stok', op: '>', value: '0' }] }
+    ])
+    expect(expr).toBe('a."stok" > 0')
+  })
+
+  it('yarım koşulları eler, boş grubu atlar', () => {
+    const expr = renderFilterGroups('postgres', [
+      { op: 'and', conds: [{ table: 'a', column: 'stok', op: '=', value: '' }] },
+      { op: 'and', conds: [{ table: 'a', column: 'ad', op: 'IS NOT NULL' }] }
+    ])
+    expect(expr).toBe('a."ad" IS NOT NULL')
+  })
+})
+
+describe('buildJoinSql — filterGroups', () => {
+  it('filterGroups doluysa parantezli WHERE üretir', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filterGroups: [
+        {
+          op: 'or',
+          conds: [
+            { table: 'a', column: 'merkez', op: 'IS NOT NULL' },
+            { table: 'a', column: 'gecici', op: 'IS NOT NULL' }
+          ]
+        },
+        {
+          op: 'or',
+          conds: [
+            { table: 'b', column: 'yukseklik', op: 'IS NULL' },
+            { table: 'b', column: 'yukseklik', op: '=', value: '0' }
+          ]
+        }
+      ],
+      groupOp: 'and'
+    })
+    expect(sql).toContain(
+      'WHERE (a."merkez" IS NOT NULL OR a."gecici" IS NOT NULL) AND (b."yukseklik" IS NULL OR b."yukseklik" = 0)'
+    )
+  })
+
+  it('onlyUnmatched ile grup ifadesini parantezler', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      onlyUnmatched: true,
+      filterGroups: [
+        {
+          op: 'or',
+          conds: [
+            { table: 'a', column: 'stok', op: 'IS NULL' },
+            { table: 'a', column: 'stok', op: '=', value: '0' }
+          ]
+        }
+      ]
+    })
+    expect(sql).toContain(
+      'WHERE b."urun_kodu" IS NULL AND ((a."stok" IS NULL OR a."stok" = 0))'
+    )
+  })
+
+  it('boş filterGroups → WHERE üretmez', () => {
+    const sql = buildJoinSql('postgres', { ...base, filterGroups: [] })
+    expect(sql).not.toContain('WHERE')
   })
 })
 

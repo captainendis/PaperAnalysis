@@ -18,8 +18,10 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **Görsel Birleştirme (Join) Sihirbazı:** SQL yazmadan aynı veritabanındaki iki tabloyu
   birleştirme — LEFT/INNER/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
   filtreleri (koşullar **VE/VEYA** ile birleştirilebilir — ör. “stok IS NULL **VEYA**
-  stok = 0” ile hem boş hem sıfır olanları getir); üretilen sorguyu çalıştırıp **Excel**
-  olarak dışa aktarma. **Ortak bir
+  stok = 0” ile hem boş hem sıfır olanları getir; ayrıca **parantezli filtre grupları**
+  ile ör. **(**merkez stok var **VEYA** geçici stok var**)** **VE** **(**yükseklik yok
+  **VEYA** yükseklik = 0**)** gibi karma koşullar kurulabilir); üretilen sorguyu
+  çalıştırıp **Excel** olarak dışa aktarma. **Ortak bir
   sütuna göre** (ör. `malzemekodu`) iki veri setinin farklı özelliklerini tek tabloda
   birleştirmek için idealdir. Varsayılan **LEFT** (A’nın tüm satırları korunur, B’nin
   özellikleri eşleşince eklenir); yalnızca iki tabloda da olan kayıtlar için **INNER**.
@@ -124,9 +126,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.23 && git push origin v0.2.23
+  git tag v0.2.24 && git push origin v0.2.24
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.23.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.24.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -232,6 +234,11 @@ Grafik düzenleyicide bir bağlantı seçip **🔗 Birleştir** düğmesine tık
    kutusunu işaretleyin — örneğin *stoğu olan ama ölçüsü olmayan* ürünler için
    (LEFT JOIN + `WHERE b.urun_kodu IS NULL`).
 4. İsterseniz sütunları seçin ve **değer filtreleri** ekleyin (ör. `A.stok > 0`).
+   Filtreler **gruplandırılabilir**: her grup parantez içine alınır, grup içindeki
+   koşullar tek bir **VE/VEYA** ile, gruplar da aralarındaki **VE/VEYA** ile birleşir.
+   Örn: **(**`A.merkezDepo IS NOT NULL` **VEYA** `A.geciciStok IS NOT NULL`**)** **VE**
+   **(**`B.yukseklik IS NULL` **VEYA** `B.yukseklik = 0`**)** →
+   *merkez veya geçici stoğu olan ama yüksekliği olmayan veya 0 olan* kayıtlar.
 5. Sağdaki **üretilen SQL**'i görün → **Sorguya Ekle** → **▶ Çalıştır** →
    sonuç tablosundaki **Excel** düğmesiyle dışa aktarın.
 

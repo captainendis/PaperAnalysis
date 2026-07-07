@@ -1,6 +1,6 @@
 {
   "name": "paperanalysis",
-  "version": "0.2.23",
+  "version": "0.2.24",
   "description": "PaperAnalysis - SQL sunuculardan veri çekip grafikleştiren masaüstü veri analiz aracı",
   "main": "./out/main/index.js",
   "author": "PaperAnalysis",

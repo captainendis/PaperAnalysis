@@ -8,6 +8,7 @@ import {
   buildJoinSql,
   buildUnionSql,
   type FilterCond,
+  type FilterGroup,
   type FilterOp,
   type JoinKey,
   type JoinType
@@ -52,7 +53,8 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
   const [onlyUnmatched, setOnlyUnmatched] = useState(false)
   const [allColumns, setAllColumns] = useState(true)
   const [pickedCols, setPickedCols] = useState<Set<string>>(new Set())
-  const [filters, setFilters] = useState<FilterCond[]>([])
+  const [filterGroups, setFilterGroups] = useState<FilterGroup[]>([])
+  const [groupOp, setGroupOp] = useState<'and' | 'or'>('and')
   const [unionAll, setUnionAll] = useState(true)
   const [limit, setLimit] = useState(0)
   const [fixCollation, setFixCollation] = useState(true)
@@ -73,6 +75,39 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
       else next.add(key)
       return next
     })
+  }
+
+  // Yeni bir koşul: sütunu otomatik seç ki değer yazınca hemen etkili olsun.
+  function newCond(): FilterCond {
+    return { table: 'a', column: leftCols[0] ?? '', op: '=', value: '' }
+  }
+  function addGroup() {
+    setFilterGroups((gs) => [...gs, { op: 'or', conds: [newCond()] }])
+  }
+  function removeGroup(gi: number) {
+    setFilterGroups((gs) => gs.filter((_, j) => j !== gi))
+  }
+  function setGroupInnerOp(gi: number, op: 'and' | 'or') {
+    setFilterGroups((gs) => gs.map((g, j) => (j === gi ? { ...g, op } : g)))
+  }
+  function addCond(gi: number) {
+    setFilterGroups((gs) =>
+      gs.map((g, j) => (j === gi ? { ...g, conds: [...g.conds, newCond()] } : g))
+    )
+  }
+  function removeCond(gi: number, ci: number) {
+    setFilterGroups((gs) =>
+      gs.map((g, j) => (j === gi ? { ...g, conds: g.conds.filter((_, k) => k !== ci) } : g))
+    )
+  }
+  function updateCond(gi: number, ci: number, patch: Partial<FilterCond>) {
+    setFilterGroups((gs) =>
+      gs.map((g, j) =>
+        j === gi
+          ? { ...g, conds: g.conds.map((c, k) => (k === ci ? { ...c, ...patch } : c)) }
+          : g
+      )
+    )
   }
 
   const columns = useMemo(() => {
@@ -124,11 +159,12 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
         })),
       onlyUnmatched,
       columns,
-      // Tamamlanmamış (sütun/değer boş) filtreler buildJoinSql içinde elenir.
-      filters,
+      // Tamamlanmamış (sütun/değer boş) koşullar buildJoinSql içinde elenir.
+      filterGroups,
+      groupOp,
       limit: limit || undefined
     })
-  }, [mode, leftT, rightT, kind, joinType, keys, hasValidKey, onlyUnmatched, columns, filters, unionAll, limit, fixCollation])
+  }, [mode, leftT, rightT, kind, joinType, keys, hasValidKey, onlyUnmatched, columns, filterGroups, groupOp, unionAll, limit, fixCollation])
 
   return (
     <Modal
@@ -317,103 +353,130 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
 
                 <div>
                   <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
-                    Filtreler
+                    Filtre Grupları
                   </span>
                   <p className="mt-0.5 text-[11px] text-gray-500">
-                    Koşulları <b>VE/VEYA</b> ile birleştirin. Örn: “stok <b>IS NULL</b>”
-                    <b> VEYA</b> “stok <b>=</b> 0” → hem boş hem sıfır olanları getirir.
+                    Her <b>grup</b> parantez içine alınır; grup içindeki koşullar tek bir
+                    <b> VE/VEYA</b> ile, gruplar da aralarındaki <b>VE/VEYA</b> ile
+                    birleşir. Örn: <b>(</b>merkez stok var <b>VEYA</b> geçici stok var<b>)</b>
+                    <b> VE</b> <b>(</b>yükseklik yok <b>VEYA</b> yükseklik = 0<b>)</b>.
                   </p>
-                  <div className="mt-1 flex flex-col gap-1">
-                    {filters.map((f, i) => (
-                      <div key={i} className="flex items-center gap-1">
-                        {i === 0 ? (
-                          <span className="w-24 shrink-0 text-center text-[11px] text-gray-500">
-                            Nerede
-                          </span>
-                        ) : (
-                          <Select
-                            className="w-24 shrink-0 px-2"
-                            value={f.connector ?? 'and'}
-                            onChange={(e) =>
-                              setFilters((fs) =>
-                                fs.map((x, j) =>
-                                  j === i ? { ...x, connector: e.target.value as 'and' | 'or' } : x
-                                )
-                              )
-                            }
-                          >
-                            <option value="and">VE</option>
-                            <option value="or">VEYA</option>
-                          </Select>
+                  <div className="mt-1 flex flex-col gap-2">
+                    {filterGroups.map((g, gi) => (
+                      <div key={gi}>
+                        {gi > 0 && (
+                          <div className="mb-1 flex items-center gap-2">
+                            <Select
+                              className="w-24 px-2"
+                              value={groupOp}
+                              onChange={(e) => setGroupOp(e.target.value as 'and' | 'or')}
+                            >
+                              <option value="and">VE</option>
+                              <option value="or">VEYA</option>
+                            </Select>
+                            <span className="text-[11px] text-gray-500">
+                              (önceki grupla bağlaç — tüm gruplar için ortak)
+                            </span>
+                          </div>
                         )}
-                        <Select
-                          value={f.table}
-                          onChange={(e) => {
-                            const table = e.target.value as 'a' | 'b'
-                            const firstCol = (table === 'a' ? leftCols : rightCols)[0] ?? ''
-                            setFilters((fs) =>
-                              fs.map((x, j) => (j === i ? { ...x, table, column: firstCol } : x))
-                            )
-                          }}
-                        >
-                          <option value="a">A</option>
-                          <option value="b">B</option>
-                        </Select>
-                        <Select
-                          className="flex-1"
-                          value={f.column}
-                          onChange={(e) =>
-                            setFilters((fs) => fs.map((x, j) => (j === i ? { ...x, column: e.target.value } : x)))
-                          }
-                        >
-                          <option value="">sütun</option>
-                          {(f.table === 'a' ? leftCols : rightCols).map((c) => (
-                            <option key={c} value={c}>
-                              {c}
-                            </option>
-                          ))}
-                        </Select>
-                        <Select
-                          value={f.op}
-                          onChange={(e) =>
-                            setFilters((fs) => fs.map((x, j) => (j === i ? { ...x, op: e.target.value as FilterOp } : x)))
-                          }
-                        >
-                          {OPS.map((o) => (
-                            <option key={o} value={o}>
-                              {o}
-                            </option>
-                          ))}
-                        </Select>
-                        {f.op !== 'IS NULL' && f.op !== 'IS NOT NULL' && (
-                          <TextInput
-                            className="w-24"
-                            placeholder="değer"
-                            value={f.value ?? ''}
-                            onChange={(e) =>
-                              setFilters((fs) => fs.map((x, j) => (j === i ? { ...x, value: e.target.value } : x)))
-                            }
-                          />
-                        )}
-                        <button
-                          className="px-1 text-gray-500 hover:text-red-400"
-                          onClick={() => setFilters((fs) => fs.filter((_, j) => j !== i))}
-                        >
-                          ✕
-                        </button>
+                        <div className="rounded-md border border-edge bg-surface/60 p-2">
+                          <div className="mb-1 flex items-center justify-between">
+                            <div className="flex items-center gap-1 text-[11px] text-gray-400">
+                              <span>Grup içi bağlaç:</span>
+                              <Select
+                                className="w-24 px-2"
+                                value={g.op}
+                                onChange={(e) =>
+                                  setGroupInnerOp(gi, e.target.value as 'and' | 'or')
+                                }
+                              >
+                                <option value="and">VE</option>
+                                <option value="or">VEYA</option>
+                              </Select>
+                            </div>
+                            <button
+                              className="text-[11px] text-gray-500 hover:text-red-400"
+                              onClick={() => removeGroup(gi)}
+                              title="Grubu kaldır"
+                            >
+                              ✕ grup
+                            </button>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            {g.conds.map((f, ci) => (
+                              <div key={ci} className="flex items-center gap-1">
+                                {ci > 0 && (
+                                  <span className="w-12 shrink-0 text-center text-[11px] uppercase text-gray-500">
+                                    {g.op === 'or' ? 'VEYA' : 'VE'}
+                                  </span>
+                                )}
+                                <Select
+                                  value={f.table}
+                                  onChange={(e) => {
+                                    const table = e.target.value as 'a' | 'b'
+                                    const firstCol = (table === 'a' ? leftCols : rightCols)[0] ?? ''
+                                    updateCond(gi, ci, { table, column: firstCol })
+                                  }}
+                                >
+                                  <option value="a">A</option>
+                                  <option value="b">B</option>
+                                </Select>
+                                <Select
+                                  className="flex-1"
+                                  value={f.column}
+                                  onChange={(e) => updateCond(gi, ci, { column: e.target.value })}
+                                >
+                                  <option value="">sütun</option>
+                                  {(f.table === 'a' ? leftCols : rightCols).map((c) => (
+                                    <option key={c} value={c}>
+                                      {c}
+                                    </option>
+                                  ))}
+                                </Select>
+                                <Select
+                                  value={f.op}
+                                  onChange={(e) =>
+                                    updateCond(gi, ci, { op: e.target.value as FilterOp })
+                                  }
+                                >
+                                  {OPS.map((o) => (
+                                    <option key={o} value={o}>
+                                      {o}
+                                    </option>
+                                  ))}
+                                </Select>
+                                {f.op !== 'IS NULL' && f.op !== 'IS NOT NULL' && (
+                                  <TextInput
+                                    className="w-24"
+                                    placeholder="değer"
+                                    value={f.value ?? ''}
+                                    onChange={(e) => updateCond(gi, ci, { value: e.target.value })}
+                                  />
+                                )}
+                                <button
+                                  className="px-1 text-gray-500 hover:text-red-400"
+                                  onClick={() => removeCond(gi, ci)}
+                                  title="Koşulu kaldır"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              className="self-start text-xs text-brand-500 hover:underline"
+                              onClick={() => addCond(gi)}
+                            >
+                              + koşul ekle
+                            </button>
+                          </div>
+                        </div>
                       </div>
                     ))}
                     <button
                       className="self-start text-xs text-brand-500 hover:underline"
-                      onClick={() =>
-                        setFilters((fs) => [
-                          ...fs,
-                          // Sütunu otomatik seç ki değer yazınca hemen etkili olsun.
-                          { table: 'a', column: leftCols[0] ?? '', op: '=', value: '' }
-                        ])
-                      }
+                      onClick={addGroup}
                     >
-                      + filtre ekle
+                      + grup ekle
                     </button>
                   </div>
                 </div>
