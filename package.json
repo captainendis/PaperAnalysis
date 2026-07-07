@@ -1,6 +1,6 @@
 {
   "name": "paperanalysis",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "PaperAnalysis - SQL sunuculardan veri çekip grafikleştiren masaüstü veri analiz aracı",
   "main": "./out/main/index.js",
   "author": "PaperAnalysis",
@@ -20,6 +20,7 @@
     "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.14.5",
     "better-sqlite3": "^11.8.1",
     "mssql": "^11.0.1",
     "mysql2": "^3.12.0",

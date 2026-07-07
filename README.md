@@ -20,7 +20,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   tıklayarak sıralama** ve başlıktaki **▾ menüsünden açık "A → Z" / "Z → A"**
   seçenekleri (metinde Türkçe harf sırası, sayıda sayı-duyarlı). 🔍 ile **sütun
   bazında filtreleme** (filtrelenen/toplam satır sayacı). Aynı özellikler pano
-  üzerindeki **tablo grafiğinde** de geçerlidir.
+  üzerindeki **tablo grafiğinde** de geçerlidir. **Satır sanallaştırma** sayesinde
+  on binlerce satırlık sonuçlar bile ekranı dondurmadan/karartmadan akıcı gösterilir
+  (yalnızca görünür satırlar çizilir).
 - **Grafikler (Apache ECharts):** Sütun (bar), yığılmış sütun, çizgi, alan (area),
   saçılım (scatter), pasta, **KPI kartı** ve **tablo** görselleri
   - Kategori (X) / ölçü (Y) eşleme + agregasyon (SUM/AVG/COUNT/MIN/MAX)
@@ -96,9 +98,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.6 && git push origin v0.2.6
+  git tag v0.2.7 && git push origin v0.2.7
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.6.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.7.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

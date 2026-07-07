@@ -9,8 +9,12 @@ import {
   type ColumnFiltersState,
   type SortingState
 } from '@tanstack/react-table'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import type { QueryResult } from '@shared/types'
 import { compareCells, includesFilter } from '../../lib/tableView'
+
+/** Tahmini satır yüksekliği (px) — sanallaştırma için (py-1.5 + metin + kenarlık). */
+const ROW_HEIGHT = 33
 
 export function ResultsTable({ result }: { result: QueryResult }) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -18,6 +22,7 @@ export function ResultsTable({ result }: { result: QueryResult }) {
   const [showFilters, setShowFilters] = useState(false)
   const [menuCol, setMenuCol] = useState<string | null>(null)
   const headRef = useRef<HTMLTableSectionElement>(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   // Menü açıkken dışarı tıklayınca kapat.
   useEffect(() => {
@@ -56,6 +61,22 @@ export function ResultsTable({ result }: { result: QueryResult }) {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel()
   })
+
+  const rows = table.getRowModel().rows
+
+  // Satır sanallaştırma: yalnızca görünür satırlar DOM'a basılır; böylece
+  // on binlerce satırda bile ekran donmaz/kararmaz.
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => ROW_HEIGHT,
+    overscan: 12
+  })
+  const virtualRows = rowVirtualizer.getVirtualItems()
+  const totalSize = rowVirtualizer.getTotalSize()
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0
+  const paddingBottom =
+    virtualRows.length > 0 ? totalSize - virtualRows[virtualRows.length - 1].end : 0
 
   if (result.columns.length === 0) {
     return (
@@ -97,7 +118,7 @@ export function ResultsTable({ result }: { result: QueryResult }) {
           )}
         </span>
       </div>
-      <div className="flex-1 overflow-auto">
+      <div ref={scrollRef} className="flex-1 overflow-auto">
         <table className="w-full border-collapse text-sm">
           <thead ref={headRef} className="sticky top-0 z-10 bg-surface">
             {table.getHeaderGroups().map((hg) => (
@@ -198,18 +219,31 @@ export function ResultsTable({ result }: { result: QueryResult }) {
               ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-white/5">
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    className="border-b border-edge/60 px-3 py-1.5 text-gray-200 whitespace-nowrap"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            {paddingTop > 0 && (
+              <tr>
+                <td colSpan={result.columns.length} style={{ height: paddingTop }} />
               </tr>
-            ))}
+            )}
+            {virtualRows.map((vr) => {
+              const row = rows[vr.index]
+              return (
+                <tr key={row.id} className="hover:bg-white/5" style={{ height: ROW_HEIGHT }}>
+                  {row.getVisibleCells().map((cell) => (
+                    <td
+                      key={cell.id}
+                      className="border-b border-edge/60 px-3 py-1.5 text-gray-200 whitespace-nowrap"
+                    >
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </td>
+                  ))}
+                </tr>
+              )
+            })}
+            {paddingBottom > 0 && (
+              <tr>
+                <td colSpan={result.columns.length} style={{ height: paddingBottom }} />
+              </tr>
+            )}
           </tbody>
         </table>
         {totalCount === 0 && (
