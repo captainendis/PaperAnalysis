@@ -256,7 +256,7 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
             onLoad={(sql) => setDraft({ ...draft, sql })}
           />
 
-          <div className="h-2/5 overflow-hidden rounded-md border border-edge">
+          <div className="h-[22%] min-h-[110px] shrink-0 overflow-hidden rounded-md border border-edge">
             <SqlEditor
               value={draft.sql}
               onChange={(sql) => setDraft({ ...draft, sql })}
@@ -272,12 +272,9 @@ export function TileEditor({ open, tile, onClose, onSave }: Props) {
           <div className="flex-1 overflow-hidden rounded-md border border-edge bg-surface">
             {result ? (
               <div className="flex h-full flex-col">
-                <div className="flex items-center justify-between border-b border-edge px-3 py-1.5 text-xs text-gray-400">
+                <div className="flex items-center justify-between border-b border-edge px-3 py-1 text-[11px] text-gray-500">
                   <span>
                     {result.rowCount} satır · {result.elapsedMs} ms
-                  </span>
-                  <span className="text-[11px] text-gray-500">
-                    Dışa aktarma ve sütun seçimi tablo araç çubuğunda ↓
                   </span>
                 </div>
                 <div className="flex-1 overflow-hidden">

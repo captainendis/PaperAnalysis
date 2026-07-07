@@ -26,6 +26,8 @@ export function SqlEditor({ value, onChange, onRun, schema }: Props) {
       height="100%"
       defaultLanguage="sql"
       theme="vs-dark"
+      // Monaco yüklenirken gösterilen "Loading..." yazısını gizle.
+      loading={null}
       value={value}
       onChange={(v) => onChange(v ?? '')}
       onMount={(editor, monaco) => {
