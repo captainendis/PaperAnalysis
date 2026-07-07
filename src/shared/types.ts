@@ -116,6 +116,8 @@ export interface ConditionalRule {
 export interface TableConfig {
   /** Bu sütundaki tekrarlayan değerlere sahip satırları tek satırda birleştir (grupla). */
   groupBy?: string
+  /** Ek gruplama sütunları (bileşik/koşullu gruplama): yalnızca groupBy + bu sütunların tümü aynı olan satırlar birleşir (ör. kod + birim aynı). */
+  groupByExtra?: string[]
   /** Tekrarlayan değerleri birleştirme açık mı (varsayılan true). false ise groupBy seçili olsa da birleştirilmez. */
   groupEnabled?: boolean
   /** Gruplarken sayısal sütunlar toplansın mı (varsayılan true). false ise toplanmaz. */

@@ -147,6 +147,45 @@ describe('groupResult', () => {
   it('bilinmeyen sütunda sonucu değiştirmez', () => {
     expect(groupResult(r, 'yok')).toBe(r)
   })
+  it('bileşik (koşullu) gruplama: yalnızca tüm anahtarlar aynıysa birleşir', () => {
+    const r2: QueryResult = {
+      columns: [{ name: 'kod' }, { name: 'birim' }, { name: 'adet' }],
+      rows: [
+        { kod: 'A', birim: 'kg', adet: 10 },
+        { kod: 'A', birim: 'kg', adet: 5 }, // kod+birim aynı → birleşir
+        { kod: 'A', birim: 'adet', adet: 3 }, // birim farklı → ayrı
+        { kod: 'B', birim: 'kg', adet: 7 } // kod farklı → ayrı
+      ],
+      rowCount: 4,
+      elapsedMs: 1
+    }
+    const g = groupResult(r2, ['kod', 'birim'])
+    expect(g.rowCount).toBe(3)
+    const akg = g.rows.find((x) => x.kod === 'A' && x.birim === 'kg')!
+    expect(akg.adet).toBe(15) // 10 + 5
+    expect(akg.Adet).toBe(2)
+    const aadet = g.rows.find((x) => x.kod === 'A' && x.birim === 'adet')!
+    expect(aadet.adet).toBe(3)
+    expect(aadet.Adet).toBe(1)
+  })
+  it('tek elemanlı dizi tek sütun gruplamayla aynı sonucu verir', () => {
+    expect(groupResult(r, ['malzeme']).rowCount).toBe(groupResult(r, 'malzeme').rowCount)
+  })
+  it('bileşik anahtar sütunları toplama dışıdır (metin/sayısal olsa da korunur)', () => {
+    const r2: QueryResult = {
+      columns: [{ name: 'kod' }, { name: 'yil' }, { name: 'adet' }],
+      rows: [
+        { kod: 'A', yil: 2020, adet: 10 },
+        { kod: 'A', yil: 2020, adet: 5 }
+      ],
+      rowCount: 2,
+      elapsedMs: 1
+    }
+    const g = groupResult(r2, ['kod', 'yil'])
+    const a = g.rows[0]
+    expect(a.yil).toBe(2020) // anahtar → toplanmaz
+    expect(a.adet).toBe(15)
+  })
   it('excludeSum içindeki sayısal sütunu toplamaz (ilk değeri korur)', () => {
     const r2: QueryResult = {
       columns: [{ name: 'malzeme' }, { name: 'adet' }, { name: 'fiyat' }],

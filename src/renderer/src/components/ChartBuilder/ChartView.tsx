@@ -61,10 +61,11 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   if (chart.type === 'table') {
     const gb = chart.tableConfig?.groupBy
     const grouped = gb && chart.tableConfig?.groupEnabled !== false
+    const groupKeys = gb ? [gb, ...(chart.tableConfig?.groupByExtra ?? [])] : []
     const tableResult = grouped
       ? groupResult(
           result,
-          gb!,
+          groupKeys,
           chart.tableConfig?.groupSum !== false,
           chart.tableConfig?.groupSumExclude
         )

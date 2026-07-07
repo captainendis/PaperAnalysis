@@ -47,7 +47,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   yapılandırılıp **grafiğe gömülür** — panoda, kayıtlı dosyada ve LAN yayınında aynı
   şekilde görünür. **Grupla:** bir sütundaki **tekrarlayan (aynı) değerlere** sahip
   satırları tek satırda birleştirme (sayısal sütunlar (isteğe bağlı) toplanır, birleşen satır sayısını
-  gösteren **Adet** sütunu eklenir). Birleştirme, sütun seçili kalsa bile
+  gösteren **Adet** sütunu eklenir). **Koşullu (bileşik) gruplama:** ek sütunlar
+  seçilerek yalnızca **birden çok sütunun tümü aynı** olan satırlar birleştirilebilir
+  (ör. *kodu ve birimi aynı* olan ürünler tek satırda toplanır). Birleştirme, sütun seçili kalsa bile
   **"Tekrarlayan değerleri birleştir"** onay kutusuyla **açılıp kapatılabilir**
   (kapalıyken satırlar ham haliyle listelenir). Toplama açıkken **belirli sayısal
   sütunlar toplama dışında bırakılabilir** (ör. birim fiyat, yükseklik gibi
@@ -131,9 +133,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.27 && git push origin v0.2.27
+  git tag v0.2.28 && git push origin v0.2.28
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.27.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.28.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

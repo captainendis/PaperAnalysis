@@ -108,27 +108,33 @@ export function isNumericColumn(rows: Record<string, unknown>[], name: string): 
 }
 
 /**
- * Bir sütundaki tekrarlayan (aynı) değerlere sahip satırları tek satırda birleştirir.
+ * Bir ya da birden çok sütundaki tekrarlayan (aynı) değerlere sahip satırları tek
+ * satırda birleştirir. `groupBy` bir dizi ise **bileşik (koşullu) gruplama** yapılır:
+ * yalnızca tüm anahtar sütunları aynı olan satırlar birleşir (ör. kod + birim aynı).
  * `sum` true ise sayısal sütunlar toplanır; false ise toplanmaz (ilk değer korunur).
  * `excludeSum` içindeki sütunlar sayısal olsa bile toplama dışı tutulur (ilk değer
  * korunur) — ör. birim fiyat, yükseklik gibi toplanması anlamsız sütunlar.
  * Diğer (metin) sütunlarda daima ilk değer korunur; kaç satırın birleştiğini gösteren
- * bir "Adet" sütunu eklenir. Grup sütunu bulunamazsa sonuç değişmeden döner.
+ * bir "Adet" sütunu eklenir. Hiçbir geçerli grup sütunu yoksa sonuç değişmeden döner.
  */
 export function groupResult(
   result: QueryResult,
-  groupBy: string,
+  groupBy: string | string[],
   sum = true,
   excludeSum: string[] = []
 ): QueryResult {
   const names = result.columns.map((c) => c.name)
-  if (!groupBy || !names.includes(groupBy)) return result
+  const keys = (Array.isArray(groupBy) ? groupBy : [groupBy]).filter(
+    (k) => k && names.includes(k)
+  )
+  if (keys.length === 0) return result
 
+  const keySet = new Set(keys)
   const excluded = new Set(excludeSum)
   const sample = result.rows.slice(0, 200)
   const numeric = sum
     ? new Set(
-        names.filter((n) => n !== groupBy && !excluded.has(n) && isNumericColumn(sample, n))
+        names.filter((n) => !keySet.has(n) && !excluded.has(n) && isNumericColumn(sample, n))
       )
     : new Set<string>()
   const countName = names.includes('Adet') ? '__adet' : 'Adet'
@@ -136,7 +142,8 @@ export function groupResult(
   const groups = new Map<string, Record<string, unknown>>()
   const order: string[] = []
   for (const row of result.rows) {
-    const key = cellToText(row[groupBy])
+    // Bileşik anahtar: her anahtar sütunun metni NUL ile ayrılır (çakışmayı önler).
+    const key = keys.map((k) => cellToText(row[k])).join('\u0000')
     const g = groups.get(key)
     if (!g) {
       const seed: Record<string, unknown> = {}

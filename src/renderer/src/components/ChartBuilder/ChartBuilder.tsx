@@ -213,6 +213,38 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                 </span>
                 {tc.groupBy && (
                   <>
+                    <div className="mt-2 rounded-md border border-edge bg-base p-2">
+                      <span className="text-[12px] text-gray-400">
+                        Ek gruplama sütunları (<b>koşullu/bileşik</b>): işaretlenirse
+                        yalnızca <b>{tc.groupBy}</b> <b>ve</b> seçilen sütunların
+                        <b> tümü</b> aynı olan satırlar birleşir (ör. kod + birim aynı).
+                      </span>
+                      <div className="mt-1 flex max-h-40 flex-col gap-1 overflow-auto">
+                        {columns
+                          .filter((c) => c !== tc.groupBy)
+                          .map((c) => {
+                            const on = (tc.groupByExtra ?? []).includes(c)
+                            return (
+                              <label
+                                key={c}
+                                className="flex items-center gap-2 text-[14px] text-gray-200"
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={on}
+                                  onChange={(e) => {
+                                    const cur = new Set(tc.groupByExtra ?? [])
+                                    if (e.target.checked) cur.add(c)
+                                    else cur.delete(c)
+                                    setTc({ groupByExtra: cur.size ? [...cur] : undefined })
+                                  }}
+                                />
+                                {c}
+                              </label>
+                            )
+                          })}
+                      </div>
+                    </div>
                     <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
                       <input
                         type="checkbox"

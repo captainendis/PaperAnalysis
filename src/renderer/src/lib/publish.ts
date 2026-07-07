@@ -276,11 +276,12 @@ export async function buildPublishHtml(
     try {
       if (tile.chart.type === 'table') {
         const gb = tile.chart.tableConfig?.groupBy
+        const groupKeys = gb ? [gb, ...(tile.chart.tableConfig?.groupByExtra ?? [])] : []
         const tableResult =
           gb && tile.chart.tableConfig?.groupEnabled !== false
             ? groupResult(
                 result,
-                gb,
+                groupKeys,
                 tile.chart.tableConfig?.groupSum !== false,
                 tile.chart.tableConfig?.groupSumExclude
               )
