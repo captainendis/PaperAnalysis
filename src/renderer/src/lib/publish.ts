@@ -270,7 +270,12 @@ export async function buildPublishHtml(
         const gb = tile.chart.tableConfig?.groupBy
         const tableResult =
           gb && tile.chart.tableConfig?.groupEnabled !== false
-            ? groupResult(result, gb, tile.chart.tableConfig?.groupSum !== false)
+            ? groupResult(
+                result,
+                gb,
+                tile.chart.tableConfig?.groupSum !== false,
+                tile.chart.tableConfig?.groupSumExclude
+              )
             : result
         sections.push(
           tileSectionHtml({

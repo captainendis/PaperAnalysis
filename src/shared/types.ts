@@ -120,6 +120,8 @@ export interface TableConfig {
   groupEnabled?: boolean
   /** Gruplarken sayısal sütunlar toplansın mı (varsayılan true). false ise toplanmaz. */
   groupSum?: boolean
+  /** Toplama açıkken bu sütunlar toplama dışı tutulur (sayısal olsa da ilk değer korunur). */
+  groupSumExclude?: string[]
   /** Gizlenecek sütun adları. */
   hiddenColumns?: string[]
   /** Alt toplam satırı göster (sayısal sütunların toplamı). */

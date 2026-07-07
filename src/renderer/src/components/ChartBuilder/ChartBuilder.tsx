@@ -201,14 +201,50 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                       gösterilir (sütun seçili kalır)
                     </label>
                     {tc.groupEnabled !== false && (
-                      <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
-                        <input
-                          type="checkbox"
-                          checked={tc.groupSum !== false}
-                          onChange={(e) => setTc({ groupSum: e.target.checked })}
-                        />
-                        Sayısal sütunları topla (SUM) — kapalıyken toplanmaz, ilk değer korunur
-                      </label>
+                      <>
+                        <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
+                          <input
+                            type="checkbox"
+                            checked={tc.groupSum !== false}
+                            onChange={(e) => setTc({ groupSum: e.target.checked })}
+                          />
+                          Sayısal sütunları topla (SUM) — kapalıyken toplanmaz, ilk değer korunur
+                        </label>
+                        {tc.groupSum !== false &&
+                          numericCols.filter((c) => c !== tc.groupBy).length > 0 && (
+                            <div className="mt-2 rounded-md border border-edge bg-base p-2">
+                              <span className="text-[12px] text-gray-400">
+                                Toplama <b>dışında</b> tutulacak sütunlar (işaretlenenler
+                                toplanmaz, ilk değeri korunur — ör. birim fiyat, yükseklik):
+                              </span>
+                              <div className="mt-1 flex max-h-40 flex-col gap-1 overflow-auto">
+                                {numericCols
+                                  .filter((c) => c !== tc.groupBy)
+                                  .map((c) => {
+                                    const excluded = (tc.groupSumExclude ?? []).includes(c)
+                                    return (
+                                      <label
+                                        key={c}
+                                        className="flex items-center gap-2 text-[14px] text-gray-200"
+                                      >
+                                        <input
+                                          type="checkbox"
+                                          checked={excluded}
+                                          onChange={(e) => {
+                                            const cur = new Set(tc.groupSumExclude ?? [])
+                                            if (e.target.checked) cur.add(c)
+                                            else cur.delete(c)
+                                            setTc({ groupSumExclude: [...cur] })
+                                          }}
+                                        />
+                                        {c}
+                                      </label>
+                                    )
+                                  })}
+                              </div>
+                            </div>
+                          )}
+                      </>
                     )}
                   </>
                 )}

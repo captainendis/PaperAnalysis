@@ -110,16 +110,26 @@ export function isNumericColumn(rows: Record<string, unknown>[], name: string): 
 /**
  * Bir sütundaki tekrarlayan (aynı) değerlere sahip satırları tek satırda birleştirir.
  * `sum` true ise sayısal sütunlar toplanır; false ise toplanmaz (ilk değer korunur).
+ * `excludeSum` içindeki sütunlar sayısal olsa bile toplama dışı tutulur (ilk değer
+ * korunur) — ör. birim fiyat, yükseklik gibi toplanması anlamsız sütunlar.
  * Diğer (metin) sütunlarda daima ilk değer korunur; kaç satırın birleştiğini gösteren
  * bir "Adet" sütunu eklenir. Grup sütunu bulunamazsa sonuç değişmeden döner.
  */
-export function groupResult(result: QueryResult, groupBy: string, sum = true): QueryResult {
+export function groupResult(
+  result: QueryResult,
+  groupBy: string,
+  sum = true,
+  excludeSum: string[] = []
+): QueryResult {
   const names = result.columns.map((c) => c.name)
   if (!groupBy || !names.includes(groupBy)) return result
 
+  const excluded = new Set(excludeSum)
   const sample = result.rows.slice(0, 200)
   const numeric = sum
-    ? new Set(names.filter((n) => n !== groupBy && isNumericColumn(sample, n)))
+    ? new Set(
+        names.filter((n) => n !== groupBy && !excluded.has(n) && isNumericColumn(sample, n))
+      )
     : new Set<string>()
   const countName = names.includes('Adet') ? '__adet' : 'Adet'
 

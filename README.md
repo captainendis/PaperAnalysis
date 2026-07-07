@@ -48,7 +48,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   satırları tek satırda birleştirme (sayısal sütunlar (isteğe bağlı) toplanır, birleşen satır sayısını
   gösteren **Adet** sütunu eklenir). Birleştirme, sütun seçili kalsa bile
   **"Tekrarlayan değerleri birleştir"** onay kutusuyla **açılıp kapatılabilir**
-  (kapalıyken satırlar ham haliyle listelenir). Ayrıca **sütun biçimlendirme** (sayı, **para** ₺/$/€, **yüzde**,
+  (kapalıyken satırlar ham haliyle listelenir). Toplama açıkken **belirli sayısal
+  sütunlar toplama dışında bırakılabilir** (ör. birim fiyat, yükseklik gibi
+  toplanması anlamsız sütunlar — ilk değeri korunur). Ayrıca **sütun biçimlendirme** (sayı, **para** ₺/$/€, **yüzde**,
   **tarih**; ondalık/binlik) ve **koşullu renklendirme** (kurala uyan hücreye yazı/zemin
   rengi — ör. `stok < 10` ise kırmızı) desteklenir. **Satır sanallaştırma** sayesinde
   on binlerce satırlık sonuçlar bile ekranı dondurmadan/karartmadan akıcı gösterilir.
@@ -128,9 +130,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.25 && git push origin v0.2.25
+  git tag v0.2.26 && git push origin v0.2.26
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.25.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.26.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

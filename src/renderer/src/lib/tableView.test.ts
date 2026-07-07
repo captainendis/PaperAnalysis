@@ -147,6 +147,21 @@ describe('groupResult', () => {
   it('bilinmeyen sütunda sonucu değiştirmez', () => {
     expect(groupResult(r, 'yok')).toBe(r)
   })
+  it('excludeSum içindeki sayısal sütunu toplamaz (ilk değeri korur)', () => {
+    const r2: QueryResult = {
+      columns: [{ name: 'malzeme' }, { name: 'adet' }, { name: 'fiyat' }],
+      rows: [
+        { malzeme: 'M1', adet: 10, fiyat: 5 },
+        { malzeme: 'M1', adet: 5, fiyat: 7 }
+      ],
+      rowCount: 2,
+      elapsedMs: 1
+    }
+    const g = groupResult(r2, 'malzeme', true, ['fiyat'])
+    const m1 = g.rows.find((x) => x.malzeme === 'M1')!
+    expect(m1.adet).toBe(15) // toplandı
+    expect(m1.fiyat).toBe(5) // toplama dışı → ilk değer
+  })
 })
 
 describe('buildViewResult', () => {
