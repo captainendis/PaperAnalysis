@@ -114,6 +114,22 @@ describe('applyTableConfig', () => {
     expect(html).toContain('<tfoot>')
     expect(html).toContain('class="tot"')
   })
+  it('columnOrder ile sütunları yeniden sıralar', () => {
+    const { columns } = applyTableConfig(r, { columnOrder: ['depo2', 'urun', 'depo1'] })
+    expect(columns.map((c) => c.name)).toEqual(['depo2', 'urun', 'depo1'])
+  })
+  it('columnOrder eksik kimlikleri özgün sırayla sona ekler', () => {
+    const { columns } = applyTableConfig(r, { columnOrder: ['depo2'] })
+    expect(columns.map((c) => c.name)).toEqual(['depo2', 'urun', 'depo1'])
+  })
+  it('columnOrder toplam sütununu id ile konumlandırır', () => {
+    const { columns } = applyTableConfig(r, {
+      sumColumns: [{ id: 's1', name: 'ToplamStok', cols: ['depo1', 'depo2'] }],
+      columnOrder: ['s1', 'urun']
+    })
+    // s1 (ToplamStok) başa gelir, sonra urun, kalanlar özgün sırayla.
+    expect(columns.map((c) => c.name)).toEqual(['ToplamStok', 'urun', 'depo1', 'depo2'])
+  })
 })
 
 describe('assembleDashboardHtml', () => {

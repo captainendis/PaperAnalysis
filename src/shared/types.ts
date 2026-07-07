@@ -124,6 +124,8 @@ export interface TableConfig {
   groupSumExclude?: string[]
   /** Gizlenecek sütun adları. */
   hiddenColumns?: string[]
+  /** Sütun görüntüleme sırası (sütun kimlikleri: temel sütun adı ya da toplam sütunu id'si). Listede olmayanlar sona eklenir. */
+  columnOrder?: string[]
   /** Alt toplam satırı göster (sayısal sütunların toplamı). */
   showTotals?: boolean
   /** Satır bazında toplam veren (hesaplanan) ekstra sütunlar. */

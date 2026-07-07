@@ -7,6 +7,7 @@ import {
   useReactTable,
   type ColumnDef,
   type ColumnFiltersState,
+  type ColumnOrderState,
   type SortingState,
   type VisibilityState
 } from '@tanstack/react-table'
@@ -43,6 +44,22 @@ function visFromConfig(config?: TableConfig): VisibilityState {
   return v
 }
 
+/**
+ * İstenen sırayı geçerli sütun kimlikleriyle uzlaştırır: önce `order` içindeki
+ * mevcut kimlikler (o sırada), sonra listede olmayanlar özgün sıralarında eklenir.
+ */
+function mergeOrder(order: string[] | undefined, all: string[]): string[] {
+  const allSet = new Set(all)
+  const kept = (order ?? []).filter((id) => allSet.has(id))
+  const keptSet = new Set(kept)
+  return [...kept, ...all.filter((id) => !keptSet.has(id))]
+}
+
+/** İki dizinin aynı öğeleri aynı sırada içerip içermediği. */
+function sameOrder(a: string[], b: string[]): boolean {
+  return a.length === b.length && a.every((x, i) => x === b[i])
+}
+
 interface Props {
   result: QueryResult
   /** Dışa aktarım dosya adı için başlık. */
@@ -57,6 +74,7 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(() =>
     visFromConfig(config)
   )
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => config?.columnOrder ?? [])
   const [showFilters, setShowFilters] = useState(false)
   const [showCols, setShowCols] = useState(false)
   const [showTotals, setShowTotals] = useState(config?.showTotals ?? false)
@@ -80,6 +98,11 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
     setShowTotals(config?.showTotals ?? false)
     setSumColumns(config?.sumColumns ?? [])
     setSumDraft({ name: 'Toplam', cols: new Set() })
+    const ids = [
+      ...result.columns.map((c) => c.name),
+      ...(config?.sumColumns ?? []).map((s) => s.id)
+    ]
+    setColumnOrder(mergeOrder(config?.columnOrder, ids))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [configKey, result.columns])
 
@@ -145,13 +168,39 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result.columns, sumColumns, config])
 
+  // Tüm sütun kimlikleri (temel + toplam). Sütunlar (ör. etkileşimli toplam sütunu
+  // ekleme/kaldırma) değişince sıra listesini eksiksiz tut.
+  const allColIds = useMemo(
+    () => [...result.columns.map((c) => c.name), ...sumColumns.map((s) => s.id)],
+    [result.columns, sumColumns]
+  )
+  useEffect(() => {
+    setColumnOrder((prev) => {
+      const merged = mergeOrder(prev, allColIds)
+      return sameOrder(prev, merged) ? prev : merged
+    })
+  }, [allColIds])
+
+  function moveColumn(id: string, dir: -1 | 1) {
+    setColumnOrder((prev) => {
+      const order = mergeOrder(prev, allColIds)
+      const i = order.indexOf(id)
+      const j = i + dir
+      if (i < 0 || j < 0 || j >= order.length) return prev
+      const next = [...order]
+      ;[next[i], next[j]] = [next[j], next[i]]
+      return next
+    })
+  }
+
   const table = useReactTable({
     data: result.rows,
     columns,
-    state: { sorting, columnFilters, columnVisibility },
+    state: { sorting, columnFilters, columnVisibility, columnOrder },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnOrderChange: setColumnOrder,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel()
@@ -242,6 +291,10 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
   const totalCount = result.rows.length
   const isFiltered = columnFilters.some((f) => String(f.value ?? '').trim() !== '')
   const allCols = table.getAllLeafColumns()
+  // Menüde geçerli sıraya göre sütunlar (görünür + gizli). Sırayı ▲▼ ile değiştirmek için.
+  const orderedMenuCols = mergeOrder(columnOrder, allColIds)
+    .map((id) => table.getColumn(id))
+    .filter((c): c is NonNullable<typeof c> => !!c)
   const hiddenCount = allCols.filter((c) => !c.getIsVisible()).length
   const numericBaseNames = result.columns.map((c) => c.name).filter((n) => numericNames.has(n))
   const visibleLeaf = table.getVisibleLeafColumns()
@@ -278,11 +331,32 @@ export const ResultsTable = memo(function ResultsTable({ result, title, config }
                     Hiçbiri
                   </button>
                 </div>
-                {allCols.map((col) => (
-                  <label key={col.id} className="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-xs text-gray-200 hover:bg-white/5">
-                    <input type="checkbox" checked={col.getIsVisible()} onChange={col.getToggleVisibilityHandler()} />
-                    <span className="truncate">{String(col.columnDef.header)}</span>
-                  </label>
+                <div className="px-1 pb-1 text-[10px] text-gray-500">
+                  Sıralamak için ▲▼ ile taşıyın:
+                </div>
+                {orderedMenuCols.map((col, i) => (
+                  <div key={col.id} className="flex items-center gap-1 rounded px-1 py-0.5 text-xs text-gray-200 hover:bg-white/5">
+                    <label className="flex flex-1 cursor-pointer items-center gap-2 truncate">
+                      <input type="checkbox" checked={col.getIsVisible()} onChange={col.getToggleVisibilityHandler()} />
+                      <span className="truncate">{String(col.columnDef.header)}</span>
+                    </label>
+                    <button
+                      className="rounded px-1 text-gray-500 hover:bg-white/10 hover:text-brand-500 disabled:opacity-25"
+                      title="Yukarı taşı (sola)"
+                      disabled={i === 0}
+                      onClick={() => moveColumn(col.id, -1)}
+                    >
+                      ▲
+                    </button>
+                    <button
+                      className="rounded px-1 text-gray-500 hover:bg-white/10 hover:text-brand-500 disabled:opacity-25"
+                      title="Aşağı taşı (sağa)"
+                      disabled={i === orderedMenuCols.length - 1}
+                      onClick={() => moveColumn(col.id, 1)}
+                    >
+                      ▼
+                    </button>
+                  </div>
                 ))}
               </div>
             )}

@@ -86,6 +86,28 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
     setSumDraft({ name: 'Toplam', cols: new Set() })
   }
 
+  // ---- Sütun sırası ----
+  // Sıralanabilir öğeler: temel sütunlar (id=ad) + toplam sütunları (id=sum.id, ad=sum.name).
+  const orderItems = [
+    ...columns.map((c) => ({ id: c, label: c })),
+    ...(tc.sumColumns ?? []).map((s) => ({ id: s.id, label: s.name }))
+  ]
+  const orderIds = orderItems.map((i) => i.id)
+  // İstenen sırayı geçerli kimliklerle uzlaştır (olmayanlar sona).
+  const keptOrder = (tc.columnOrder ?? []).filter((id) => orderIds.includes(id))
+  const effectiveOrder = [...keptOrder, ...orderIds.filter((id) => !keptOrder.includes(id))]
+  const orderedItems = effectiveOrder
+    .map((id) => orderItems.find((i) => i.id === id))
+    .filter((i): i is { id: string; label: string } => !!i)
+  function moveOrder(id: string, dir: -1 | 1) {
+    const i = effectiveOrder.indexOf(id)
+    const j = i + dir
+    if (i < 0 || j < 0 || j >= effectiveOrder.length) return
+    const next = [...effectiveOrder]
+    ;[next[i], next[j]] = [next[j], next[i]]
+    setTc({ columnOrder: next })
+  }
+
   // ---- Sütun biçimleri (sayı/para/yüzde/tarih) ----
   const colFormats = tc.columnFormats ?? {}
   function setColFormat(col: string, patch: Partial<ColumnFormat>) {
@@ -263,6 +285,53 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                     </label>
                   ))}
                 </div>
+              </Field>
+
+              <Field label="Sütun Sırası">
+                <span className="mb-1 text-[11px] text-gray-500">
+                  Sütunların soldan sağa görüntüleme sırası. ▲ ile sola, ▼ ile sağa taşıyın.
+                </span>
+                <div className="flex max-h-48 flex-col gap-1 overflow-auto rounded-md border border-edge bg-base p-2">
+                  {orderedItems.length === 0 ? (
+                    <span className="text-[13px] text-gray-500">Sütun yok.</span>
+                  ) : (
+                    orderedItems.map((it, i) => (
+                      <div
+                        key={it.id}
+                        className="flex items-center gap-2 text-[15px] text-gray-200"
+                      >
+                        <span className="w-5 shrink-0 text-right text-[11px] text-gray-500">
+                          {i + 1}
+                        </span>
+                        <span className="flex-1 truncate">{it.label}</span>
+                        <button
+                          className="rounded px-1 text-gray-500 hover:bg-white/10 hover:text-brand-500 disabled:opacity-25"
+                          title="Sola taşı"
+                          disabled={i === 0}
+                          onClick={() => moveOrder(it.id, -1)}
+                        >
+                          ▲
+                        </button>
+                        <button
+                          className="rounded px-1 text-gray-500 hover:bg-white/10 hover:text-brand-500 disabled:opacity-25"
+                          title="Sağa taşı"
+                          disabled={i === orderedItems.length - 1}
+                          onClick={() => moveOrder(it.id, 1)}
+                        >
+                          ▼
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {tc.columnOrder && tc.columnOrder.length > 0 && (
+                  <button
+                    className="mt-1 self-start text-[11px] text-gray-400 hover:text-brand-500 hover:underline"
+                    onClick={() => setTc({ columnOrder: undefined })}
+                  >
+                    Sırayı sıfırla (özgün sıra)
+                  </button>
+                )}
               </Field>
 
               <label className="flex items-center gap-2 text-[15px] text-gray-200">

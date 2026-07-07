@@ -53,10 +53,18 @@ export function applyTableConfig(
   const hidden = new Set(config?.hiddenColumns ?? [])
   const baseCols = result.columns.filter((c) => !hidden.has(c.name))
   const sumCols = config?.sumColumns ?? []
-  const columns = [
-    ...baseCols.map((c) => ({ name: c.name })),
-    ...sumCols.map((s) => ({ name: s.name }))
+  // Sütun kimliği→görünen ad eşlemesi (temel: id=ad; toplam: id=sum.id, ad=sum.name).
+  const entries = [
+    ...baseCols.map((c) => ({ id: c.name, name: c.name })),
+    ...sumCols.map((s) => ({ id: s.id, name: s.name }))
   ]
+  const order = config?.columnOrder
+  if (order && order.length > 0) {
+    const rank = new Map(order.map((id, i) => [id, i]))
+    // Sırada olanlar önce (verilen sırayla), olmayanlar özgün sıralarında sonda.
+    entries.sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity))
+  }
+  const columns = entries.map((e) => ({ name: e.name }))
   const rows = result.rows.map((r) => {
     const o: Record<string, unknown> = {}
     for (const c of baseCols) o[c.name] = r[c.name]
