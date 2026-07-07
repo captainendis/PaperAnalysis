@@ -26,11 +26,15 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **Sonuç tablosu:** Sorgu sonuçlarını anında tablolaştırma; **sütun başlığına
   tıklayarak sıralama** ve başlıktaki **▾ menüsünden açık "A → Z" / "Z → A"**
   seçenekleri (metinde Türkçe harf sırası, sayıda sayı-duyarlı). 🔍 ile **sütun
-  bazında filtreleme**, **🗂 Sütunlar** ile **sütun göster/gizle** ve tablo araç
-  çubuğundan **görünümü CSV/Excel** olarak dışa aktarma (gizli sütunlar hariç,
-  filtreli/sıralı hâliyle). Aynı özellikler pano üzerindeki **tablo grafiğinde** de
-  geçerlidir. **Satır sanallaştırma** sayesinde on binlerce satırlık sonuçlar bile
-  ekranı dondurmadan/karartmadan akıcı gösterilir (yalnızca görünür satırlar çizilir).
+  bazında filtreleme** (metinde “içeren”; sayısal sütunlarda **operatörle**: `>0`,
+  `<100`, `>=10`, `=0`, `<>0` — ör. stokta olmayanları gizlemek için `>0`),
+  **🗂 Sütunlar** ile **sütun göster/gizle**, **Σ Alt toplam** ile sayısal sütunların
+  (görünen/filtrelenen satırlar üzerinden) toplamını altta gösterme, **➕ Toplam
+  sütunu** ile seçili sütunları her satırda toplayan yeni bir sütun ekleme, ve tablo
+  araç çubuğundan **görünümü CSV/Excel** olarak dışa aktarma (gizli sütunlar hariç,
+  filtreli/sıralı, eklenen toplam sütunları dâhil). Aynı özellikler pano üzerindeki
+  **tablo grafiğinde** de geçerlidir. **Satır sanallaştırma** sayesinde on binlerce
+  satırlık sonuçlar bile ekranı dondurmadan/karartmadan akıcı gösterilir.
 - **Grafikler (Apache ECharts):** Sütun (bar), yığılmış sütun, çizgi, alan (area),
   saçılım (scatter), pasta, **KPI kartı** ve **tablo** görselleri
   - Kategori (X) / ölçü (Y) eşleme + agregasyon (SUM/AVG/COUNT/MIN/MAX)
@@ -106,9 +110,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.11 && git push origin v0.2.11
+  git tag v0.2.12 && git push origin v0.2.12
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.11.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.12.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

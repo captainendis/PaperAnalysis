@@ -26,11 +26,11 @@ export function cellToText(v: unknown): string {
   return String(v)
 }
 
-/** Değeri sonlu bir sayıya çözer; olmuyorsa null. */
-function toFiniteNumber(v: unknown): number | null {
+/** Değeri sonlu bir sayıya çözer; olmuyorsa null. Ondalıkta virgül de kabul eder. */
+export function toFiniteNumber(v: unknown): number | null {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null
   if (typeof v === 'string' && v.trim() !== '') {
-    const n = Number(v)
+    const n = Number(v.trim().replace(',', '.'))
     return Number.isFinite(n) ? n : null
   }
   return null
@@ -43,6 +43,68 @@ export function includesFilter(v: unknown, query: string): boolean {
   const q = query.trim().toLowerCase()
   if (q === '') return true
   return cellToText(v).toLowerCase().includes(q)
+}
+
+/** Sayısal filtre operatörü ifadesini ayrıştırır (ör. ">100", "<=0", "=5"). */
+const NUMERIC_FILTER = /^(>=|<=|<>|!=|=|>|<)\s*(-?\d+(?:[.,]\d+)?)$/
+
+/**
+ * Hücre filtresi: sorgu bir operatör ifadesiyse (>, <, >=, <=, =, <>) sayısal
+ * karşılaştırma yapar; aksi halde büyük/küçük harf duyarsız "içeren" eşleşmesi.
+ * Sayısal karşılaştırmada hücre sayıya çözülemezse satır elenir.
+ * Örn: "stok" sütununda ">0" → stokta olanlar; "=0" → stokta olmayanlar.
+ */
+export function matchesFilter(v: unknown, query: string): boolean {
+  const q = query.trim()
+  if (q === '') return true
+
+  const m = NUMERIC_FILTER.exec(q)
+  if (!m) return includesFilter(v, q)
+
+  const cell = toFiniteNumber(v)
+  if (cell === null) return false
+  const target = Number(m[2].replace(',', '.'))
+  switch (m[1]) {
+    case '>':
+      return cell > target
+    case '<':
+      return cell < target
+    case '>=':
+      return cell >= target
+    case '<=':
+      return cell <= target
+    case '<>':
+    case '!=':
+      return cell !== target
+    case '=':
+    default:
+      return cell === target
+  }
+}
+
+/** Sonlu sayısal değerlerin toplamı (sayı olmayanlar yok sayılır). */
+export function sumValues(values: unknown[]): number {
+  let total = 0
+  for (const v of values) {
+    const n = toFiniteNumber(v)
+    if (n !== null) total += n
+  }
+  return total
+}
+
+/**
+ * Bir sütunun sayısal olup olmadığını belirler: en az bir sayısal değer içerir ve
+ * boş olmayan tüm değerleri sayıya çözülür.
+ */
+export function isNumericColumn(rows: Record<string, unknown>[], name: string): boolean {
+  let sawNumber = false
+  for (const row of rows) {
+    const v = row[name]
+    if (v === null || v === undefined || v === '') continue
+    if (toFiniteNumber(v) === null) return false
+    sawNumber = true
+  }
+  return sawNumber
 }
 
 /**

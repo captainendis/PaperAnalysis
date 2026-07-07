@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { cellToText, includesFilter, compareCells, buildViewResult } from './tableView'
+import {
+  cellToText,
+  includesFilter,
+  compareCells,
+  buildViewResult,
+  matchesFilter,
+  sumValues,
+  isNumericColumn
+} from './tableView'
 
 describe('cellToText', () => {
   it('null/undefined boş dize verir', () => {
@@ -51,6 +59,56 @@ describe('compareCells', () => {
     expect(compareCells(null, 5)).toBeGreaterThan(0)
     expect(compareCells(5, null)).toBeLessThan(0)
     expect(compareCells(null, null)).toBe(0)
+  })
+})
+
+describe('matchesFilter', () => {
+  it('operatörsüz sorguda içeren eşleşmesi yapar', () => {
+    expect(matchesFilter('Merkez', 'merk')).toBe(true)
+    expect(matchesFilter('Merkez', 'depo')).toBe(false)
+  })
+  it('> ve < operatörleri', () => {
+    expect(matchesFilter(150, '>100')).toBe(true)
+    expect(matchesFilter(50, '>100')).toBe(false)
+    expect(matchesFilter(50, '<100')).toBe(true)
+  })
+  it('>=, <=, =, <> operatörleri', () => {
+    expect(matchesFilter(100, '>=100')).toBe(true)
+    expect(matchesFilter(100, '<=100')).toBe(true)
+    expect(matchesFilter(0, '=0')).toBe(true)
+    expect(matchesFilter(5, '<>0')).toBe(true)
+    expect(matchesFilter(0, '!=0')).toBe(false)
+  })
+  it('stokta olmayanları gizleme: ">0" yalnızca pozitifleri geçirir', () => {
+    expect(matchesFilter(0, '>0')).toBe(false)
+    expect(matchesFilter(3, '>0')).toBe(true)
+  })
+  it('sayısal operatörde sayı olmayan hücreyi eler', () => {
+    expect(matchesFilter('abc', '>0')).toBe(false)
+    expect(matchesFilter(null, '<10')).toBe(false)
+  })
+  it('metin sayısal (string) değeri de karşılaştırır', () => {
+    expect(matchesFilter('120', '>100')).toBe(true)
+  })
+})
+
+describe('sumValues', () => {
+  it('sonlu sayıları toplar, sayı olmayanları yok sayar', () => {
+    expect(sumValues([1, 2, 3])).toBe(6)
+    expect(sumValues([1, 'x', null, '4', 5])).toBe(10)
+    expect(sumValues([])).toBe(0)
+  })
+})
+
+describe('isNumericColumn', () => {
+  it('tüm boş olmayan değerler sayıysa true', () => {
+    expect(isNumericColumn([{ a: 1 }, { a: '2' }, { a: null }], 'a')).toBe(true)
+  })
+  it('metin içeren sütunda false', () => {
+    expect(isNumericColumn([{ a: 1 }, { a: 'elma' }], 'a')).toBe(false)
+  })
+  it('tamamen boş sütunda false', () => {
+    expect(isNumericColumn([{ a: null }, { a: '' }], 'a')).toBe(false)
   })
 })
 
