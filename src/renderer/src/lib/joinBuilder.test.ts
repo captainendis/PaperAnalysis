@@ -69,6 +69,26 @@ describe('buildJoinSql', () => {
     expect(sql).toContain('WHERE b."urun_kodu" IS NULL AND (a."stok" IS NULL OR a."stok" = 0)')
   })
 
+  it('değeri boş (yarım) filtreyi yok sayar — yanlış "= \'\'" üretmez', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filters: [
+        { table: 'a', column: 'stok', op: '=', value: '' }, // yarım → elenmeli
+        { table: 'a', column: '', op: '=', value: '5' } // sütunsuz → elenmeli
+      ]
+    })
+    expect(sql).not.toContain('WHERE')
+    expect(sql).not.toContain("= ''")
+  })
+
+  it('IS NULL değersiz de olsa uygulanır', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filters: [{ table: 'a', column: 'olcu', op: 'IS NULL' }]
+    })
+    expect(sql).toContain('WHERE a."olcu" IS NULL')
+  })
+
   it('VE (AND) varsayılan bağlayıcıdır', () => {
     const sql = buildJoinSql('postgres', {
       ...base,

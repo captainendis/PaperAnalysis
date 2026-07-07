@@ -124,7 +124,8 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
         })),
       onlyUnmatched,
       columns,
-      filters: filters.filter((f) => f.column),
+      // Tamamlanmamış (sütun/değer boş) filtreler buildJoinSql içinde elenir.
+      filters,
       limit: limit || undefined
     })
   }, [mode, leftT, rightT, kind, joinType, keys, hasValidKey, onlyUnmatched, columns, filters, unionAll, limit, fixCollation])
@@ -347,9 +348,13 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
                         )}
                         <Select
                           value={f.table}
-                          onChange={(e) =>
-                            setFilters((fs) => fs.map((x, j) => (j === i ? { ...x, table: e.target.value as 'a' | 'b' } : x)))
-                          }
+                          onChange={(e) => {
+                            const table = e.target.value as 'a' | 'b'
+                            const firstCol = (table === 'a' ? leftCols : rightCols)[0] ?? ''
+                            setFilters((fs) =>
+                              fs.map((x, j) => (j === i ? { ...x, table, column: firstCol } : x))
+                            )
+                          }}
                         >
                           <option value="a">A</option>
                           <option value="b">B</option>
@@ -401,7 +406,11 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
                     <button
                       className="self-start text-xs text-brand-500 hover:underline"
                       onClick={() =>
-                        setFilters((fs) => [...fs, { table: 'a', column: '', op: '=', value: '' }])
+                        setFilters((fs) => [
+                          ...fs,
+                          // Sütunu otomatik seç ki değer yazınca hemen etkili olsun.
+                          { table: 'a', column: leftCols[0] ?? '', op: '=', value: '' }
+                        ])
                       }
                     >
                       + filtre ekle

@@ -90,7 +90,13 @@ function renderFilter(kind: DbKind, f: FilterCond): string {
  * (SQL öncelik kuralı: AND, OR'dan önce bağlar.)
  */
 export function renderFilterExpr(kind: DbKind, filters: FilterCond[]): string {
-  const valid = filters.filter((f) => f.column)
+  // Tamamlanmış filtreler: sütun seçili ve (değer girilmiş ya da IS NULL/IS NOT NULL).
+  // Böylece yarım (değeri boş) filtreler yanlışlıkla `sütun = ''` üretmez.
+  const valid = filters.filter(
+    (f) =>
+      f.column &&
+      (f.op === 'IS NULL' || f.op === 'IS NOT NULL' || (f.value ?? '').trim() !== '')
+  )
   if (valid.length === 0) return ''
   let expr = renderFilter(kind, valid[0])
   for (let i = 1; i < valid.length; i++) {
