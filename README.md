@@ -17,7 +17,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   göstergesiyle belirtilir
 - **Görsel Birleştirme (Join) Sihirbazı:** SQL yazmadan aynı veritabanındaki iki tabloyu
   birleştirme — LEFT/INNER/RIGHT/FULL JOIN, "yalnızca eşleşmeyenler", UNION ve değer
-  filtreleri; üretilen sorguyu çalıştırıp **Excel** olarak dışa aktarma. **Ortak bir
+  filtreleri (koşullar **VE/VEYA** ile birleştirilebilir — ör. “stok IS NULL **VEYA**
+  stok = 0” ile hem boş hem sıfır olanları getir); üretilen sorguyu çalıştırıp **Excel**
+  olarak dışa aktarma. **Ortak bir
   sütuna göre** (ör. `malzemekodu`) iki veri setinin farklı özelliklerini tek tabloda
   birleştirmek için idealdir. Varsayılan **LEFT** (A’nın tüm satırları korunur, B’nin
   özellikleri eşleşince eklenir); yalnızca iki tabloda da olan kayıtlar için **INNER**.
@@ -114,9 +116,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.14 && git push origin v0.2.14
+  git tag v0.2.15 && git push origin v0.2.15
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.14.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.15.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

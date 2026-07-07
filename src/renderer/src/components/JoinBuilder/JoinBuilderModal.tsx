@@ -318,9 +318,33 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
                   <span className="text-xs font-medium uppercase tracking-wide text-gray-400">
                     Filtreler
                   </span>
+                  <p className="mt-0.5 text-[11px] text-gray-500">
+                    Koşulları <b>VE/VEYA</b> ile birleştirin. Örn: “stok <b>IS NULL</b>”
+                    <b> VEYA</b> “stok <b>=</b> 0” → hem boş hem sıfır olanları getirir.
+                  </p>
                   <div className="mt-1 flex flex-col gap-1">
                     {filters.map((f, i) => (
                       <div key={i} className="flex items-center gap-1">
+                        {i === 0 ? (
+                          <span className="w-16 shrink-0 text-center text-[11px] text-gray-500">
+                            Nerede
+                          </span>
+                        ) : (
+                          <Select
+                            className="w-16 shrink-0"
+                            value={f.connector ?? 'and'}
+                            onChange={(e) =>
+                              setFilters((fs) =>
+                                fs.map((x, j) =>
+                                  j === i ? { ...x, connector: e.target.value as 'and' | 'or' } : x
+                                )
+                              )
+                            }
+                          >
+                            <option value="and">VE</option>
+                            <option value="or">VEYA</option>
+                          </Select>
+                        )}
                         <Select
                           value={f.table}
                           onChange={(e) =>

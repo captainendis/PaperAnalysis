@@ -30,6 +30,8 @@ export interface FilterCond {
   column: string
   op: FilterOp
   value?: string
+  /** Bir önceki koşula nasıl bağlanır: 'and' (varsayılan) veya 'or'. İlk koşulda yok sayılır. */
+  connector?: 'and' | 'or'
 }
 
 export interface JoinSpec {
@@ -82,6 +84,22 @@ function renderFilter(kind: DbKind, f: FilterCond): string {
   return `${col} ${f.op} ${renderValue(f.value ?? '')}`
 }
 
+/**
+ * Filtre koşullarını, her koşulun `connector` alanına göre VE/VEYA ile soldan sağa
+ * birleştirir. Örn: [stok IS NULL, (or) stok = 0] → `a.stok IS NULL OR a.stok = 0`.
+ * (SQL öncelik kuralı: AND, OR'dan önce bağlar.)
+ */
+export function renderFilterExpr(kind: DbKind, filters: FilterCond[]): string {
+  const valid = filters.filter((f) => f.column)
+  if (valid.length === 0) return ''
+  let expr = renderFilter(kind, valid[0])
+  for (let i = 1; i < valid.length; i++) {
+    const conn = valid[i].connector === 'or' ? 'OR' : 'AND'
+    expr += ` ${conn} ${renderFilter(kind, valid[i])}`
+  }
+  return expr
+}
+
 /** İki tabloyu JOIN ile birleştiren SQL üretir. */
 export function buildJoinSql(kind: DbKind, spec: JoinSpec): string {
   const joinType: JoinType = spec.onlyUnmatched ? 'left' : spec.joinType
@@ -119,7 +137,10 @@ export function buildJoinSql(kind: DbKind, spec: JoinSpec): string {
   if (spec.onlyUnmatched && spec.keys.length > 0) {
     wheres.push(`b.${quoteIdent(kind, spec.keys[0].right)} IS NULL`)
   }
-  for (const f of spec.filters) wheres.push(renderFilter(kind, f))
+  // Kullanıcı filtreleri VE/VEYA ile birleşir; başka bir koşulla (onlyUnmatched)
+  // birlikteyse parantezle grupla ki OR öncelik sorunları olmasın.
+  const filterExpr = renderFilterExpr(kind, spec.filters)
+  if (filterExpr) wheres.push(wheres.length > 0 ? `(${filterExpr})` : filterExpr)
 
   let sql = `SELECT ${top}${selectList}\nFROM ${qualified(kind, spec.left)} a\n${JOIN_KEYWORD[joinType]} ${qualified(kind, spec.right)} b ON ${on}`
   if (wheres.length > 0) sql += `\nWHERE ${wheres.join(' AND ')}`

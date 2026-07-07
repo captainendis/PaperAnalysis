@@ -46,6 +46,40 @@ describe('buildJoinSql', () => {
     expect(sql).toContain('b."olcu" IS NULL')
   })
 
+  it('filtreleri VEYA (OR) ile birleştirir — null veya 0', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filters: [
+        { table: 'a', column: 'stok', op: 'IS NULL' },
+        { table: 'a', column: 'stok', op: '=', value: '0', connector: 'or' }
+      ]
+    })
+    expect(sql).toContain('WHERE a."stok" IS NULL OR a."stok" = 0')
+  })
+
+  it('onlyUnmatched ile OR filtresini parantezle gruplar', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      onlyUnmatched: true,
+      filters: [
+        { table: 'a', column: 'stok', op: 'IS NULL' },
+        { table: 'a', column: 'stok', op: '=', value: '0', connector: 'or' }
+      ]
+    })
+    expect(sql).toContain('WHERE b."urun_kodu" IS NULL AND (a."stok" IS NULL OR a."stok" = 0)')
+  })
+
+  it('VE (AND) varsayılan bağlayıcıdır', () => {
+    const sql = buildJoinSql('postgres', {
+      ...base,
+      filters: [
+        { table: 'a', column: 'stok', op: '>', value: '0' },
+        { table: 'a', column: 'ad', op: 'IS NOT NULL' }
+      ]
+    })
+    expect(sql).toContain('WHERE a."stok" > 0 AND a."ad" IS NOT NULL')
+  })
+
   it("metindeki tek tırnağı kaçırır", () => {
     const sql = buildJoinSql('postgres', {
       ...base,
