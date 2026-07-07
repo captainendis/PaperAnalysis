@@ -190,14 +190,27 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
                   satırın birleştiğini gösteren bir <b>Adet</b> sütunu eklenir.
                 </span>
                 {tc.groupBy && (
-                  <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
-                    <input
-                      type="checkbox"
-                      checked={tc.groupSum !== false}
-                      onChange={(e) => setTc({ groupSum: e.target.checked })}
-                    />
-                    Sayısal sütunları topla (SUM) — kapalıyken toplanmaz, ilk değer korunur
-                  </label>
+                  <>
+                    <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
+                      <input
+                        type="checkbox"
+                        checked={tc.groupEnabled !== false}
+                        onChange={(e) => setTc({ groupEnabled: e.target.checked })}
+                      />
+                      Tekrarlayan değerleri birleştir — kapalıyken satırlar ham haliyle
+                      gösterilir (sütun seçili kalır)
+                    </label>
+                    {tc.groupEnabled !== false && (
+                      <label className="mt-2 flex items-center gap-2 text-[15px] text-gray-200">
+                        <input
+                          type="checkbox"
+                          checked={tc.groupSum !== false}
+                          onChange={(e) => setTc({ groupSum: e.target.checked })}
+                        />
+                        Sayısal sütunları topla (SUM) — kapalıyken toplanmaz, ilk değer korunur
+                      </label>
+                    )}
+                  </>
                 )}
               </Field>
 
