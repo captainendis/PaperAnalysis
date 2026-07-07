@@ -327,12 +327,12 @@ export function JoinBuilderModal({ open, connectionId, kind, onClose, onGenerate
                     {filters.map((f, i) => (
                       <div key={i} className="flex items-center gap-1">
                         {i === 0 ? (
-                          <span className="w-16 shrink-0 text-center text-[11px] text-gray-500">
+                          <span className="w-24 shrink-0 text-center text-[11px] text-gray-500">
                             Nerede
                           </span>
                         ) : (
                           <Select
-                            className="w-16 shrink-0"
+                            className="w-24 shrink-0 px-2"
                             value={f.connector ?? 'and'}
                             onChange={(e) =>
                               setFilters((fs) =>
