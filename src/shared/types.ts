@@ -158,6 +158,10 @@ export interface ChartConfig {
   drillLevels?: string[]
   /** Tablo türü için gömülü ayarlar (sütun gizleme, alt toplam, toplam sütunları). */
   tableConfig?: TableConfig
+  /** Bu grafiğe özel tema (aydınlık/koyu). Tanımsızsa pano/genel tema kullanılır. */
+  theme?: 'dark' | 'light'
+  /** Bu grafiğe özel renk paleti. Tanımsızsa pano/genel palet kullanılır. */
+  palette?: string
 }
 
 export interface DashboardTile {

@@ -14,6 +14,7 @@ import { resolveMeasures } from '../../lib/chartSpec'
 import { suggestChart } from '../../lib/chartSuggest'
 import { isNumericColumn } from '../../lib/tableView'
 import { useDashboard } from '../../store/dashboard'
+import { PALETTES } from '../../lib/palettes'
 
 const CHART_TYPES: { value: ChartType; label: string }[] = [
   { value: 'bar', label: 'Sütun (Bar)' },
@@ -181,6 +182,38 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
             </option>
           ))}
         </Select>
+      </Field>
+
+      <Field label="Görünüm (bu karta özel tema & renk)">
+        <div className="grid grid-cols-2 gap-2">
+          <Select
+            value={chart.theme ?? ''}
+            onChange={(e) =>
+              set({ theme: (e.target.value || undefined) as 'dark' | 'light' | undefined })
+            }
+            title="Bu grafiğin teması"
+          >
+            <option value="">Panoyu izle (tema)</option>
+            <option value="light">☀️ Aydınlık</option>
+            <option value="dark">🌙 Koyu</option>
+          </Select>
+          <Select
+            value={chart.palette ?? ''}
+            onChange={(e) => set({ palette: e.target.value || undefined })}
+            title="Bu grafiğin renk paleti"
+          >
+            <option value="">Panoyu izle (renk)</option>
+            {PALETTES.map((p) => (
+              <option key={p.name} value={p.name}>
+                🎨 {p.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <span className="mt-1 text-[11px] text-gray-500">
+          Boş bırakılırsa panonun (yoksa uygulamanın) tema/rengi kullanılır. Her kartı
+          ayrı ayrı kişiselleştirebilirsiniz.
+        </span>
       </Field>
 
       {isTable && (

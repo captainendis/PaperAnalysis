@@ -76,7 +76,10 @@ Electron + React + TypeScript ile geliştirilmiştir.
   (aydınlık/koyu) ve **kendi grafik paletini** taşıyabilir — araç çubuğundaki ☀️/🌙
   ve 🎨 seçiciler aktif panoyu değiştirir. Seçimler **pano ile birlikte kaydedilir**
   (`.pbdash`) ve **LAN yayınına** da yansır; farklı panolar farklı görünebilir.
-  Paletler erişilebilir (CVD-güvenli) seçeneklerdir
+  Ayrıca **her grafik kartına özel tema & renk**: bir kartın *Düzenle* panelindeki
+  **Görünüm** bölümünden o karta özel tema (aydınlık/koyu) ve palet seçilebilir;
+  boş bırakılırsa pano (yoksa uygulama) ayarı kullanılır. Böylece aynı panoda kartlar
+  ayrı ayrı kişiselleştirilebilir. Paletler erişilebilir (CVD-güvenli) seçeneklerdir
 - **Sorgu geçmişi & kayıtlı sorgular:** Çalıştırılan sorguların geçmişi + adlandırılmış
   kayıtlı sorgular (yerel olarak saklanır, yeniden yükleme)
 - **Zamanlanmış rapor:** Panoyu belirli aralıklarla (15 dk – 24 s) otomatik olarak
@@ -138,9 +141,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.30 && git push origin v0.2.30
+  git tag v0.2.31 && git push origin v0.2.31
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.30.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.31.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

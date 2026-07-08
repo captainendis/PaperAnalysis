@@ -242,7 +242,9 @@ function renderChartPng(result: QueryResult, tile: DashboardTile, paletteName: s
   const div = document.createElement('div')
   const inst = echarts.init(div, undefined, { renderer: 'canvas', width: w, height: h })
   try {
-    inst.setOption(buildEChartsOption(result, tile.chart, chartTheme('light', paletteName)))
+    // Grafiğe özel palet varsa onu kullan (yayın okunabilirliği için tema hep açık).
+    const pal = tile.chart.palette ?? paletteName
+    inst.setOption(buildEChartsOption(result, tile.chart, chartTheme('light', pal)))
     return inst.getDataURL({ type: 'png', pixelRatio: 2, backgroundColor: '#ffffff' })
   } finally {
     inst.dispose()

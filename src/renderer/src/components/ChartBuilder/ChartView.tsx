@@ -39,9 +39,9 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   const globalPalette = useSettings((s) => s.palette)
   const dashTheme = useDashboard((s) => s.dashboard.theme)
   const dashPalette = useDashboard((s) => s.dashboard.palette)
-  // Panoya özel tema/palet varsa onları, yoksa genel ayarları kullan.
-  const themeMode = dashTheme ?? globalTheme
-  const paletteName = dashPalette ?? globalPalette
+  // Öncelik: grafiğe özel > panoya özel > genel ayar.
+  const themeMode = chart.theme ?? dashTheme ?? globalTheme
+  const paletteName = chart.palette ?? dashPalette ?? globalPalette
 
   const option = useMemo(() => {
     if (!result || chart.type === 'kpi' || chart.type === 'table') return null
@@ -50,13 +50,27 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
 
   if (!result) return empty('Önce sorgu çalıştırın.')
 
-  // KPI kartı.
+  // Grafiğe özel tema seçiliyse kartın arka planını da o temaya uydur (aksi halde
+  // kartın kendi/pano arka planı kullanılır).
+  const cardBg = chart.theme
+    ? chart.theme === 'light'
+      ? '#ffffff'
+      : '#14140f'
+    : undefined
+
+  // KPI kartı. Metin renkleri geçerli temaya (grafik > pano > genel) göre.
   if (chart.type === 'kpi') {
     const value = computeKpi(result, chart)
+    const dark = themeMode === 'dark'
     return (
-      <div className="flex h-full flex-col items-center justify-center">
-        <span className="text-4xl font-bold text-gray-100">{formatNumber(value)}</span>
-        <span className="mt-1 text-sm text-gray-400">
+      <div
+        className="flex h-full flex-col items-center justify-center"
+        style={cardBg ? { background: cardBg } : undefined}
+      >
+        <span className="text-4xl font-bold" style={{ color: dark ? '#f3f3f0' : '#1c1c1a' }}>
+          {formatNumber(value)}
+        </span>
+        <span className="mt-1 text-sm" style={{ color: dark ? '#9ca3af' : '#6b7280' }}>
           {chart.title || resolveMeasures(chart)[0] || 'Sayım'}
         </span>
       </div>
@@ -94,14 +108,16 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
       : undefined
 
   return (
-    <ReactECharts
-      ref={ref}
-      option={option!}
-      style={{ height: '100%', width: '100%' }}
-      notMerge
-      lazyUpdate
-      opts={{ renderer: 'canvas' }}
-      onEvents={onEvents}
-    />
+    <div className="h-full w-full" style={cardBg ? { background: cardBg } : undefined}>
+      <ReactECharts
+        ref={ref}
+        option={option!}
+        style={{ height: '100%', width: '100%' }}
+        notMerge
+        lazyUpdate
+        opts={{ renderer: 'canvas' }}
+        onEvents={onEvents}
+      />
+    </div>
   )
 })
