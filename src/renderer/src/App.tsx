@@ -5,9 +5,13 @@ import { ConnectionPanel } from './components/ConnectionManager/ConnectionPanel'
 import { DashboardCanvas } from './components/Dashboard/DashboardCanvas'
 import { FilterBar } from './components/FilterBar/FilterBar'
 import { useSettings } from './store/settings'
+import { useDashboard } from './store/dashboard'
 
 export default function App() {
-  const theme = useSettings((s) => s.theme)
+  const globalTheme = useSettings((s) => s.theme)
+  const dashTheme = useDashboard((s) => s.dashboard.theme)
+  // Panoya özel tema varsa onu, yoksa uygulama genel temasını uygula.
+  const theme = dashTheme ?? globalTheme
 
   // Tema değerini kök elemana yaz (CSS değişkenleri buna göre değişir).
   useEffect(() => {

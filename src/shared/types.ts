@@ -188,6 +188,10 @@ export interface Dashboard {
   parameters?: DashboardParameter[]
   /** Otomatik yenileme aralığı (saniye); 0 / tanımsız = kapalı. */
   refreshIntervalSec?: number
+  /** Panoya özel tema (aydınlık/koyu). Tanımsızsa uygulama genel teması kullanılır. */
+  theme?: 'dark' | 'light'
+  /** Panoya özel grafik renk paleti. Tanımsızsa genel palet kullanılır. */
+  palette?: string
 }
 
 /** LAN yayın durumu. */

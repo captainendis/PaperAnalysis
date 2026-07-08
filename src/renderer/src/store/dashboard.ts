@@ -16,6 +16,10 @@ interface DashboardState {
   setParamValue: (name: string, value: string) => void
   clearParamValues: () => void
   setRefreshInterval: (sec: number) => void
+  /** Panoya özel tema (undefined = genel tema). */
+  setTheme: (theme: 'dark' | 'light' | undefined) => void
+  /** Panoya özel palet (undefined = genel palet). */
+  setPalette: (palette: string | undefined) => void
   loadDashboard: (dashboard: Dashboard, path: string | null) => void
   /** Bir pano sekmesini (dirty durumuyla birlikte) aktif eder. */
   restoreDoc: (dashboard: Dashboard, path: string | null, dirty: boolean) => void
@@ -89,6 +93,12 @@ export const useDashboard = create<DashboardState>((set) => ({
 
   setRefreshInterval: (sec) =>
     set((s) => ({ dashboard: { ...s.dashboard, refreshIntervalSec: sec }, dirty: true })),
+
+  setTheme: (theme) =>
+    set((s) => ({ dashboard: { ...s.dashboard, theme }, dirty: true })),
+
+  setPalette: (palette) =>
+    set((s) => ({ dashboard: { ...s.dashboard, palette }, dirty: true })),
 
   loadDashboard: (dashboard, path) => set({ dashboard, filePath: path, dirty: false }),
 

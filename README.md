@@ -72,8 +72,11 @@ Electron + React + TypeScript ile geliştirilmiştir.
   (aynı değere tekrar tıklamak filtreyi temizler)
 - **Grafik içi drill-down:** Sıralı boyut seviyeleri (ör. kategori → ürün); grafiğe
   tıklayarak alt kırılıma inme ve breadcrumb ile geri dönme (istemci tarafı, yeni sorgu yok)
-- **Tema & grafik paleti:** Açık/koyu tema geçişi ve erişilebilir (CVD-güvenli)
-  seçilebilir grafik renk paletleri
+- **Panoya özel tema & grafik paleti:** Her pano (sekme) **kendi temasını**
+  (aydınlık/koyu) ve **kendi grafik paletini** taşıyabilir — araç çubuğundaki ☀️/🌙
+  ve 🎨 seçiciler aktif panoyu değiştirir. Seçimler **pano ile birlikte kaydedilir**
+  (`.pbdash`) ve **LAN yayınına** da yansır; farklı panolar farklı görünebilir.
+  Paletler erişilebilir (CVD-güvenli) seçeneklerdir
 - **Sorgu geçmişi & kayıtlı sorgular:** Çalıştırılan sorguların geçmişi + adlandırılmış
   kayıtlı sorgular (yerel olarak saklanır, yeniden yükleme)
 - **Zamanlanmış rapor:** Panoyu belirli aralıklarla (15 dk – 24 s) otomatik olarak
@@ -135,9 +138,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.29 && git push origin v0.2.29
+  git tag v0.2.30 && git push origin v0.2.30
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.29.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.30.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

@@ -18,7 +18,9 @@ interface Props {
 export function PublishModal({ open, onClose }: Props) {
   const dashboard = useDashboard((s) => s.dashboard)
   const parameters = useDashboard((s) => s.dashboard.parameters)
-  const palette = useSettings((s) => s.palette)
+  const globalPalette = useSettings((s) => s.palette)
+  // Panoya özel palet varsa yayında da onu kullan.
+  const palette = dashboard.palette ?? globalPalette
   const [port, setPort] = useState(8080)
   const [refreshSec, setRefreshSec] = useState(0)
   const [status, setStatus] = useState<PublishStatus | null>(null)

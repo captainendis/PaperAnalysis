@@ -5,6 +5,7 @@ import { buildEChartsOption, computeKpi, resolveMeasures } from '../../lib/chart
 import { chartTheme } from '../../lib/chartTheme'
 import { groupResult } from '../../lib/tableView'
 import { useSettings } from '../../store/settings'
+import { useDashboard } from '../../store/dashboard'
 import { ResultsTable } from '../QueryEditor/ResultsTable'
 
 interface Props {
@@ -34,8 +35,13 @@ export const ChartView = forwardRef<ReactECharts, Props>(function ChartView(
   { result, chart, onCategoryClick },
   ref
 ) {
-  const themeMode = useSettings((s) => s.theme)
-  const paletteName = useSettings((s) => s.palette)
+  const globalTheme = useSettings((s) => s.theme)
+  const globalPalette = useSettings((s) => s.palette)
+  const dashTheme = useDashboard((s) => s.dashboard.theme)
+  const dashPalette = useDashboard((s) => s.dashboard.palette)
+  // Panoya özel tema/palet varsa onları, yoksa genel ayarları kullan.
+  const themeMode = dashTheme ?? globalTheme
+  const paletteName = dashPalette ?? globalPalette
 
   const option = useMemo(() => {
     if (!result || chart.type === 'kpi' || chart.type === 'table') return null

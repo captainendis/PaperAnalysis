@@ -9,10 +9,22 @@ import { ScheduledReportModal } from './ScheduledReport/ScheduledReportModal'
 import { PublishModal } from './Publish/PublishModal'
 
 export function Toolbar() {
-  const { dashboard, filePath, dirty, setName, markSaved, setRefreshInterval } = useDashboard()
+  const {
+    dashboard,
+    filePath,
+    dirty,
+    setName,
+    markSaved,
+    setRefreshInterval,
+    setTheme: setDashTheme,
+    setPalette: setDashPalette
+  } = useDashboard()
   const refreshIntervalSec = dashboard.refreshIntervalSec ?? 0
   const { newTab, newTabWith } = useWorkspace()
-  const { theme, toggleTheme, palette, setPalette } = useSettings()
+  const { theme: globalTheme, palette: globalPalette } = useSettings()
+  // Panoya özel tema/palet varsa onları, yoksa uygulama genel ayarlarını göster.
+  const theme = dashboard.theme ?? globalTheme
+  const palette = dashboard.palette ?? globalPalette
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [filtersOpen, setFiltersOpen] = useState(false)
@@ -108,16 +120,16 @@ export function Toolbar() {
         {toast && <span className="text-xs text-gray-400">{toast}</span>}
         <button
           className="rounded-md border border-edge px-2 py-1.5 text-sm text-gray-200 hover:bg-white/10"
-          onClick={toggleTheme}
-          title={theme === 'dark' ? 'Açık temaya geç' : 'Koyu temaya geç'}
+          onClick={() => setDashTheme(theme === 'dark' ? 'light' : 'dark')}
+          title={`Bu panonun teması: ${theme === 'dark' ? 'koyu' : 'aydınlık'} — değiştirmek için tıklayın`}
         >
           {theme === 'dark' ? '☀️' : '🌙'}
         </button>
         <select
           className="rounded-md border border-edge bg-surface px-2 py-1.5 text-sm text-gray-200 outline-none hover:bg-white/5"
           value={palette}
-          onChange={(e) => setPalette(e.target.value)}
-          title="Grafik paleti"
+          onChange={(e) => setDashPalette(e.target.value)}
+          title="Bu panonun grafik paleti"
         >
           {PALETTES.map((p) => (
             <option key={p.name} value={p.name}>
