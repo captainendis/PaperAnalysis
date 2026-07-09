@@ -126,6 +126,24 @@ export function computeKpi(result: QueryResult, chart: ChartConfig): number {
   return aggregate(values, chart.aggregation === 'none' ? 'sum' : chart.aggregation)
 }
 
+/**
+ * Lejant yapılandırması. `pos` verilmezse otomatik: yalnızca çoklu seride (ya da
+ * pastada) gösterilir. 'hidden' her zaman gizler.
+ */
+function buildLegend(
+  pos: ChartConfig['legendPosition'],
+  autoShow: boolean,
+  hasTitle: boolean,
+  theme: ChartTheme
+): EChartsOption['legend'] {
+  if (pos === 'hidden') return undefined
+  const show = pos ? true : autoShow
+  if (!show) return undefined
+  const textStyle = { color: theme.text }
+  if (pos === 'bottom') return { bottom: 0, textStyle, type: 'scroll' }
+  return { top: hasTitle ? 26 : 4, textStyle, type: 'scroll' }
+}
+
 function axisCommon(
   title: string | undefined,
   multi: boolean,
@@ -161,7 +179,8 @@ export function buildEChartsOption(
         ? { text: title, left: 'center', textStyle: { color: theme.text, fontSize: 14 } }
         : undefined,
       tooltip: { trigger: 'item' },
-      legend: { bottom: 0, textStyle, type: 'scroll' },
+      // Pastada lejant varsayılan olarak altta; konum/gizleme seçilebilir.
+      legend: buildLegend(chart.legendPosition ?? 'bottom', true, !!title, theme),
       color: theme.palette,
       textStyle,
       series: [
@@ -170,7 +189,10 @@ export function buildEChartsOption(
           radius: ['35%', '65%'],
           center: ['50%', '46%'],
           data: points.map((p) => ({ name: p.category, value: p.value })),
-          label: { color: theme.text }
+          label: {
+            color: theme.text,
+            formatter: chart.showValues ? '{b}: {c} ({d}%)' : '{b}'
+          }
         }
       ]
     }
@@ -190,6 +212,7 @@ export function buildEChartsOption(
     }
     return {
       ...axisCommon(title, false, theme),
+      legend: buildLegend(chart.legendPosition, false, !!title, theme),
       tooltip: { trigger: 'item' },
       xAxis: {
         type: 'value',
@@ -199,11 +222,21 @@ export function buildEChartsOption(
       },
       yAxis: {
         type: 'value',
-        name: yKey ?? '',
+        name: chart.yAxisTitle?.trim() || yKey || '',
+        nameTextStyle: { color: theme.text },
         axisLabel: { color: theme.axis },
         splitLine: { lineStyle: { color: theme.grid } }
       },
-      series: [{ type: 'scatter', data, symbolSize: 10 }]
+      series: [
+        {
+          type: 'scatter',
+          data,
+          symbolSize: 10,
+          label: chart.showValues
+            ? { show: true, position: 'top', color: theme.text, formatter: '{@[1]}' }
+            : undefined
+        }
+      ]
     }
   }
 
@@ -216,6 +249,7 @@ export function buildEChartsOption(
 
   return {
     ...axisCommon(title, multi, theme),
+    legend: buildLegend(chart.legendPosition, multi, !!title, theme),
     xAxis: {
       type: 'category',
       data: categories,
@@ -224,6 +258,8 @@ export function buildEChartsOption(
     },
     yAxis: {
       type: 'value',
+      name: chart.yAxisTitle?.trim() || undefined,
+      nameTextStyle: { color: theme.text },
       axisLabel: { color: theme.axis },
       splitLine: { lineStyle: { color: theme.grid } }
     },
@@ -235,7 +271,11 @@ export function buildEChartsOption(
       smooth: isLineLike,
       areaStyle: chart.type === 'area' ? { opacity: 0.15 } : undefined,
       itemStyle: { borderRadius: echartsType === 'bar' && !isStacked ? [4, 4, 0, 0] : 0 },
-      barMaxWidth: 48
+      barMaxWidth: 48,
+      // Veri etiketleri: yığılmış grafikte içeride, diğerlerinde üstte.
+      label: chart.showValues
+        ? { show: true, position: isStacked ? 'inside' : 'top', color: theme.text }
+        : undefined
     }))
   }
 }

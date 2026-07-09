@@ -65,6 +65,9 @@ Electron + React + TypeScript ile geliştirilmiştir.
   - **Çoklu seri** desteği (birden fazla ölçü)
   - **✨ Otomatik grafik:** Sorgu çalışınca sütun tipleri (metin/tarih/sayı) algılanıp
     makul bir grafik (X, Y, tür) otomatik önerilir ve anında önizlenir
+  - **Grafik seçenekleri:** **veri etiketleri** (değerleri göster; pastada yüzde),
+    **lejant konumu** (otomatik/üst/alt/gizli) ve **Y ekseni başlığı** — *Düzenle*
+    panelinden ayarlanır
 - **Filtreler & etkileşim:** Pano genelinde parametreler (`:ad` yer tutucuları ile,
   güvenli parametre bağlama), filtre çubuğu ve **otomatik yenileme**
 - **Çapraz filtreleme (cross-filter):** Bir grafikte bir kategoriye/dilime tıklayınca
@@ -141,9 +144,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.31 && git push origin v0.2.31
+  git tag v0.2.32 && git push origin v0.2.32
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.31.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.32.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

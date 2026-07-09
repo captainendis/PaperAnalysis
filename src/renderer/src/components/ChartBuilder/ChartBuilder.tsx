@@ -216,6 +216,46 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
         </span>
       </Field>
 
+      {!isTable && !isKpi && (
+        <Field label="Grafik Seçenekleri">
+          <label className="flex items-center gap-2 text-[15px] text-gray-200">
+            <input
+              type="checkbox"
+              checked={!!chart.showValues}
+              onChange={(e) => set({ showValues: e.target.checked })}
+            />
+            Değerleri göster (veri etiketleri)
+          </label>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <Select
+              value={chart.legendPosition ?? ''}
+              onChange={(e) =>
+                set({
+                  legendPosition: (e.target.value || undefined) as
+                    | 'top'
+                    | 'bottom'
+                    | 'hidden'
+                    | undefined
+                })
+              }
+              title="Lejant (seri açıklaması) konumu"
+            >
+              <option value="">Lejant: Otomatik</option>
+              <option value="top">Lejant: Üstte</option>
+              <option value="bottom">Lejant: Altta</option>
+              <option value="hidden">Lejant: Gizli</option>
+            </Select>
+            {!isPie && (
+              <TextInput
+                placeholder="Y ekseni başlığı"
+                value={chart.yAxisTitle ?? ''}
+                onChange={(e) => set({ yAxisTitle: e.target.value || undefined })}
+              />
+            )}
+          </div>
+        </Field>
+      )}
+
       {isTable && (
         <>
           {columns.length === 0 ? (

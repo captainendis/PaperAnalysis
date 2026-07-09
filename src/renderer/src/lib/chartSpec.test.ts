@@ -120,6 +120,73 @@ describe('buildEChartsOption', () => {
     expect(option.xAxis.type).toBe('value')
     expect(option.series[0].data.length).toBe(4)
   })
+
+  it('showValues → series label görünür', () => {
+    const option = buildEChartsOption(result, {
+      type: 'bar',
+      dimension: 'kategori',
+      measure: 'tutar',
+      aggregation: 'sum',
+      showValues: true
+    }) as { series: { label?: { show?: boolean; position?: string } }[] }
+    expect(option.series[0].label?.show).toBe(true)
+    expect(option.series[0].label?.position).toBe('top')
+  })
+
+  it('showValues kapalıyken label yok', () => {
+    const option = buildEChartsOption(result, {
+      type: 'bar',
+      dimension: 'kategori',
+      measure: 'tutar',
+      aggregation: 'sum'
+    }) as { series: { label?: unknown }[] }
+    expect(option.series[0].label).toBeUndefined()
+  })
+
+  it('legendPosition=hidden → lejant gizlenir (çoklu seride bile)', () => {
+    const option = buildEChartsOption(result, {
+      type: 'bar',
+      dimension: 'kategori',
+      measures: ['tutar', 'tutar'],
+      measure: null,
+      aggregation: 'sum',
+      legendPosition: 'hidden'
+    }) as { legend?: unknown }
+    expect(option.legend).toBeUndefined()
+  })
+
+  it('legendPosition=bottom → lejant altta konumlanır', () => {
+    const option = buildEChartsOption(result, {
+      type: 'bar',
+      dimension: 'kategori',
+      measure: 'tutar',
+      aggregation: 'sum',
+      legendPosition: 'bottom'
+    }) as { legend?: { bottom?: number } }
+    expect(option.legend?.bottom).toBe(0)
+  })
+
+  it('yAxisTitle → y ekseni adı ayarlanır', () => {
+    const option = buildEChartsOption(result, {
+      type: 'line',
+      dimension: 'kategori',
+      measure: 'tutar',
+      aggregation: 'sum',
+      yAxisTitle: 'Tutar (₺)'
+    }) as { yAxis: { name?: string } }
+    expect(option.yAxis.name).toBe('Tutar (₺)')
+  })
+
+  it('pasta showValues → etiket yüzde biçimlendirir', () => {
+    const option = buildEChartsOption(result, {
+      type: 'pie',
+      dimension: 'kategori',
+      measure: 'tutar',
+      aggregation: 'sum',
+      showValues: true
+    }) as { series: { label?: { formatter?: string } }[] }
+    expect(option.series[0].label?.formatter).toContain('%')
+  })
 })
 
 describe('aggregateMulti', () => {

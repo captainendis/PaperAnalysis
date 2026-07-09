@@ -162,6 +162,12 @@ export interface ChartConfig {
   theme?: 'dark' | 'light'
   /** Bu grafiğe özel renk paleti. Tanımsızsa pano/genel palet kullanılır. */
   palette?: string
+  /** Grafik üzerinde veri etiketlerini (değerleri) göster. */
+  showValues?: boolean
+  /** Lejant (seri açıklaması) konumu. 'hidden' gizler; tanımsız = otomatik (çoklu seride üstte, pastada altta). */
+  legendPosition?: 'top' | 'bottom' | 'hidden'
+  /** Y ekseni başlığı (bar/çizgi/alan/saçılım). */
+  yAxisTitle?: string
 }
 
 export interface DashboardTile {
