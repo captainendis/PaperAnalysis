@@ -7,6 +7,7 @@ import { paramValues } from '../../lib/params'
 import { toCsv, toXlsxBase64 } from '../../lib/exporters'
 import { toggleCrossFilter } from '../../lib/crossFilter'
 import { applyDrill } from '../../lib/drilldown'
+import { cardStyleProps } from '../../lib/cardStyle'
 
 interface Props {
   tile: DashboardTile
@@ -105,7 +106,11 @@ export function DashboardTileCard({ tile, onEdit, onRemove }: Props) {
       : undefined
 
   return (
-    <div className="flex h-full flex-col overflow-hidden rounded-lg border border-edge bg-surface">
+    <div
+      className="flex h-full flex-col overflow-hidden rounded-lg border border-edge bg-surface"
+      style={cardStyleProps(tile.chart.cardStyle)}
+    >
+
       <div className="drag-handle flex cursor-move items-center justify-between border-b border-edge px-3 py-1.5">
         <span className="flex items-center gap-2 truncate text-sm font-medium text-gray-200">
           {tile.title || 'İsimsiz Grafik'}

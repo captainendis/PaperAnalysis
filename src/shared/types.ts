@@ -168,6 +168,30 @@ export interface ChartConfig {
   legendPosition?: 'top' | 'bottom' | 'hidden'
   /** Y ekseni başlığı (bar/çizgi/alan/saçılım). */
   yAxisTitle?: string
+  /** Kart görünümü (köşe, arka plan, kenarlık, gölge). Tanımsız alanlar varsayılanı kullanır. */
+  cardStyle?: CardStyle
+}
+
+/** Grafik kartının görsel stili — köşe yumuşaklığı, arka plan (düz/gradient), kenarlık, gölge. */
+export interface CardStyle {
+  /** Köşe yuvarlaklığı (px). 0 = sert köşe. */
+  radius?: number
+  /** Arka plan türü. */
+  bg?: 'default' | 'solid' | 'gradient'
+  /** Düz arka plan rengi ya da gradient başlangıç rengi. */
+  bgColor?: string
+  /** Gradient bitiş rengi. */
+  bgColor2?: string
+  /** Gradient açısı (derece). Varsayılan 135. */
+  bgAngle?: number
+  /** Kenarlık stili. */
+  border?: 'default' | 'none' | 'solid' | 'dashed'
+  /** Kenarlık rengi. */
+  borderColor?: string
+  /** Kenarlık kalınlığı (px). Varsayılan 1. */
+  borderWidth?: number
+  /** Gölge yoğunluğu. */
+  shadow?: 'none' | 'sm' | 'md' | 'lg'
 }
 
 export interface DashboardTile {

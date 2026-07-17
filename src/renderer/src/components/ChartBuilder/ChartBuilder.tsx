@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type {
   Aggregation,
+  CardStyle,
   ChartConfig,
   ChartType,
   ColumnFormat,
@@ -60,6 +61,11 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
   // ---- Tablo ayarları (gömülü) ----
   const tc: TableConfig = chart.tableConfig ?? {}
   const setTc = (patch: Partial<TableConfig>) => set({ tableConfig: { ...tc, ...patch } })
+
+  // ---- Kart stili (köşe / arka plan / kenarlık / gölge) ----
+  const cardStyle: CardStyle = chart.cardStyle ?? {}
+  const setCardStyle = (patch: Partial<CardStyle>) =>
+    set({ cardStyle: { ...cardStyle, ...patch } })
   const hidden = new Set(tc.hiddenColumns ?? [])
   const numericCols = result
     ? columns.filter((c) => isNumericColumn(result.rows.slice(0, 200), c))
@@ -214,6 +220,146 @@ export function ChartBuilder({ chart, result, onChange }: Props) {
           Boş bırakılırsa panonun (yoksa uygulamanın) tema/rengi kullanılır. Her kartı
           ayrı ayrı kişiselleştirebilirsiniz.
         </span>
+      </Field>
+
+      <Field label="Kart Stili (köşe / arka plan / kenarlık / gölge)">
+        <div className="grid grid-cols-2 gap-2">
+          <label className="flex flex-col gap-1 text-[11px] text-gray-400">
+            Köşe yumuşaklığı
+            <Select
+              value={cardStyle.radius ?? ''}
+              onChange={(e) =>
+                setCardStyle({ radius: e.target.value === '' ? undefined : Number(e.target.value) })
+              }
+            >
+              <option value="">Varsayılan</option>
+              <option value="0">Sert (0)</option>
+              <option value="4">Az (4)</option>
+              <option value="10">Orta (10)</option>
+              <option value="16">Çok (16)</option>
+              <option value="24">Yuvarlak (24)</option>
+            </Select>
+          </label>
+          <label className="flex flex-col gap-1 text-[11px] text-gray-400">
+            Gölge
+            <Select
+              value={cardStyle.shadow ?? ''}
+              onChange={(e) =>
+                setCardStyle({
+                  shadow: (e.target.value || undefined) as CardStyle['shadow']
+                })
+              }
+            >
+              <option value="">Varsayılan</option>
+              <option value="none">Yok</option>
+              <option value="sm">Hafif</option>
+              <option value="md">Orta</option>
+              <option value="lg">Güçlü</option>
+            </Select>
+          </label>
+        </div>
+
+        <div className="mt-2 flex flex-col gap-1">
+          <span className="text-[11px] text-gray-400">Arka plan</span>
+          <div className="flex items-center gap-2">
+            <Select
+              className="flex-1"
+              value={cardStyle.bg ?? 'default'}
+              onChange={(e) =>
+                setCardStyle({ bg: e.target.value as CardStyle['bg'] })
+              }
+            >
+              <option value="default">Varsayılan (tema)</option>
+              <option value="solid">Düz renk</option>
+              <option value="gradient">Gradient (geçiş)</option>
+            </Select>
+            {cardStyle.bg === 'solid' && (
+              <input
+                type="color"
+                title="Arka plan rengi"
+                className="h-8 w-9 cursor-pointer rounded border border-edge bg-surface"
+                value={cardStyle.bgColor ?? '#252731'}
+                onChange={(e) => setCardStyle({ bgColor: e.target.value })}
+              />
+            )}
+            {cardStyle.bg === 'gradient' && (
+              <>
+                <input
+                  type="color"
+                  title="Gradient başlangıç"
+                  className="h-8 w-9 cursor-pointer rounded border border-edge bg-surface"
+                  value={cardStyle.bgColor ?? '#252731'}
+                  onChange={(e) => setCardStyle({ bgColor: e.target.value })}
+                />
+                <input
+                  type="color"
+                  title="Gradient bitiş"
+                  className="h-8 w-9 cursor-pointer rounded border border-edge bg-surface"
+                  value={cardStyle.bgColor2 ?? '#3a2f5b'}
+                  onChange={(e) => setCardStyle({ bgColor2: e.target.value })}
+                />
+                <input
+                  type="number"
+                  title="Açı (derece)"
+                  min={0}
+                  max={360}
+                  className="w-16 rounded border border-edge bg-surface px-1.5 py-1 text-gray-100 outline-none focus:border-brand-500"
+                  value={cardStyle.bgAngle ?? 135}
+                  onChange={(e) => setCardStyle({ bgAngle: Number(e.target.value) || 0 })}
+                />
+              </>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-col gap-1">
+          <span className="text-[11px] text-gray-400">Kenarlık</span>
+          <div className="flex items-center gap-2">
+            <Select
+              className="flex-1"
+              value={cardStyle.border ?? 'default'}
+              onChange={(e) =>
+                setCardStyle({ border: e.target.value as CardStyle['border'] })
+              }
+            >
+              <option value="default">Varsayılan</option>
+              <option value="none">Yok</option>
+              <option value="solid">Düz</option>
+              <option value="dashed">Kesikli</option>
+            </Select>
+            {(cardStyle.border === 'solid' || cardStyle.border === 'dashed') && (
+              <>
+                <input
+                  type="color"
+                  title="Kenarlık rengi"
+                  className="h-8 w-9 cursor-pointer rounded border border-edge bg-surface"
+                  value={cardStyle.borderColor ?? '#6366f1'}
+                  onChange={(e) => setCardStyle({ borderColor: e.target.value })}
+                />
+                <input
+                  type="number"
+                  title="Kalınlık (px)"
+                  min={1}
+                  max={8}
+                  className="w-16 rounded border border-edge bg-surface px-1.5 py-1 text-gray-100 outline-none focus:border-brand-500"
+                  value={cardStyle.borderWidth ?? 1}
+                  onChange={(e) =>
+                    setCardStyle({ borderWidth: Math.max(1, Number(e.target.value) || 1) })
+                  }
+                />
+              </>
+            )}
+          </div>
+        </div>
+
+        {chart.cardStyle && (
+          <button
+            className="mt-2 self-start text-[11px] text-gray-400 hover:text-brand-500 hover:underline"
+            onClick={() => set({ cardStyle: undefined })}
+          >
+            Kart stilini sıfırla
+          </button>
+        )}
       </Field>
 
       {!isTable && !isKpi && (

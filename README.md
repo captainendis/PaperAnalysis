@@ -82,7 +82,11 @@ Electron + React + TypeScript ile geliştirilmiştir.
   Ayrıca **her grafik kartına özel tema & renk**: bir kartın *Düzenle* panelindeki
   **Görünüm** bölümünden o karta özel tema (aydınlık/koyu) ve palet seçilebilir;
   boş bırakılırsa pano (yoksa uygulama) ayarı kullanılır. Böylece aynı panoda kartlar
-  ayrı ayrı kişiselleştirilebilir. Paletler erişilebilir (CVD-güvenli) seçeneklerdir
+  ayrı ayrı kişiselleştirilebilir. Paletler erişilebilir (CVD-güvenli) seçeneklerdir.
+  Ayrıca **kart stili**: her kartın **köşe yumuşaklığı** (sert↔yuvarlak), **arka planı**
+  (düz renk ya da açılı **gradient**), **kenarlığı** (yok/düz/kesikli + renk/kalınlık)
+  ve **gölgesi** (yok/hafif/orta/güçlü) *Görünüm → Kart Stili*'nden düzenlenebilir;
+  panoda ve LAN yayınında birebir yansır
 - **Sorgu geçmişi & kayıtlı sorgular:** Çalıştırılan sorguların geçmişi + adlandırılmış
   kayıtlı sorgular (yerel olarak saklanır, yeniden yükleme)
 - **Zamanlanmış rapor:** Panoyu belirli aralıklarla (15 dk – 24 s) otomatik olarak
@@ -148,9 +152,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.35 && git push origin v0.2.35
+  git tag v0.2.36 && git push origin v0.2.36
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.35.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.36.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

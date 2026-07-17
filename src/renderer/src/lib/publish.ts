@@ -4,6 +4,7 @@ import { buildEChartsOption, computeKpi } from './chartSpec'
 import { chartTheme } from './chartTheme'
 import { groupResult, isNumericColumn, sumValues } from './tableView'
 import { cellStyle, formatValue, rulesByColumn } from './tableFormat'
+import { cardStyleCssString } from './cardStyle'
 
 // ---------- Saf yardımcılar (test edilir) ----------
 
@@ -142,6 +143,8 @@ export interface TileSection {
   error?: string
   /** Pano ızgarasındaki konum/boyut — yayında panonun görünümünü birebir yansıtır. */
   layout?: TileLayout
+  /** Karta özel görsel stil (köşe/arka plan/kenarlık/gölge) — satır içi CSS. */
+  cardCss?: string
 }
 
 /** Tile'ın 12 sütunlu ızgaradaki yerleşim CSS'ini üretir (react-grid-layout ile aynı). */
@@ -169,7 +172,8 @@ export function tileSectionHtml(s: TileSection): string {
       `</div>`
   else if (s.imgDataUrl) body = `<img src="${s.imgDataUrl}" alt="${escapeHtml(s.title)}" />`
   else body = '<div class="note">—</div>'
-  return `<section class="card" style="${layoutStyle(s.layout)}"><h2>${escapeHtml(s.title || 'İsimsiz')}</h2><div class="body">${body}</div></section>`
+  const style = s.cardCss ? `${layoutStyle(s.layout)} ${s.cardCss}` : layoutStyle(s.layout)
+  return `<section class="card" style="${style}"><h2>${escapeHtml(s.title || 'İsimsiz')}</h2><div class="body">${body}</div></section>`
 }
 
 /**
@@ -349,13 +353,16 @@ export async function buildPublishHtml(
   for (const tile of dashboard.tiles) {
     const title = tile.title || 'İsimsiz'
     const layout = tile.layout
+    const cardCss = cardStyleCssString(tile.chart.cardStyle)
     if (!tile.connectionId || !tile.sql.trim()) {
-      sections.push(tileSectionHtml({ title, layout, error: 'Bağlantı veya sorgu tanımlı değil.' }))
+      sections.push(
+        tileSectionHtml({ title, layout, cardCss, error: 'Bağlantı veya sorgu tanımlı değil.' })
+      )
       continue
     }
     const res = await window.api.query.run(tile.connectionId, tile.sql, params)
     if (!res.ok) {
-      sections.push(tileSectionHtml({ title, layout, error: res.error }))
+      sections.push(tileSectionHtml({ title, layout, cardCss, error: res.error }))
       continue
     }
     const result = res.data
@@ -377,6 +384,7 @@ export async function buildPublishHtml(
           tileSectionHtml({
             title,
             layout,
+            cardCss,
             // Yayında satır limiti yok: tüm satırlar gömülür ki etkileşimli
             // arama/sıralama veri setinin tamamında çalışsın (snapshot; sunucuya
             // sorgu atılmaz).
@@ -385,15 +393,25 @@ export async function buildPublishHtml(
         )
       } else if (tile.chart.type === 'kpi') {
         sections.push(
-          tileSectionHtml({ title, layout, kpiText: formatNumber(computeKpi(result, tile.chart)) })
+          tileSectionHtml({
+            title,
+            layout,
+            cardCss,
+            kpiText: formatNumber(computeKpi(result, tile.chart))
+          })
         )
       } else {
         sections.push(
-          tileSectionHtml({ title, layout, imgDataUrl: renderChartPng(result, tile, paletteName) })
+          tileSectionHtml({
+            title,
+            layout,
+            cardCss,
+            imgDataUrl: renderChartPng(result, tile, paletteName)
+          })
         )
       }
     } catch (err) {
-      sections.push(tileSectionHtml({ title, layout, error: (err as Error).message }))
+      sections.push(tileSectionHtml({ title, layout, cardCss, error: (err as Error).message }))
     }
   }
 
