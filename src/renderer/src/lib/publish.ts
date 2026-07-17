@@ -159,11 +159,86 @@ export function tileSectionHtml(s: TileSection): string {
   let body: string
   if (s.error) body = `<div class="err">${escapeHtml(s.error)}</div>`
   else if (s.kpiText !== undefined) body = `<div class="kpi">${escapeHtml(s.kpiText)}</div>`
-  else if (s.tableHtml !== undefined) body = `<div class="tablewrap">${s.tableHtml}</div>`
+  else if (s.tableHtml !== undefined)
+    // Etkileşimli tablo: arama kutusu + satır sayacı; başlığa tıklayınca sıralama (JS).
+    body =
+      `<div class="tablebox">` +
+      `<div class="tbar"><input class="tbl-search" type="search" placeholder="Tabloda ara…" aria-label="Tabloda ara" />` +
+      `<span class="tbl-count"></span></div>` +
+      `<div class="tablewrap">${s.tableHtml}</div>` +
+      `</div>`
   else if (s.imgDataUrl) body = `<img src="${s.imgDataUrl}" alt="${escapeHtml(s.title)}" />`
   else body = '<div class="note">—</div>'
   return `<section class="card" style="${layoutStyle(s.layout)}"><h2>${escapeHtml(s.title || 'İsimsiz')}</h2><div class="body">${body}</div></section>`
 }
+
+/**
+ * Yayınlanan sayfaya gömülen etkileşim betiği: her tabloda canlı arama (satırları
+ * süzer) ve başlığa tıklayarak sıralama (sayı-duyarlı, tr yerelleştirmeli). Dış
+ * kaynak kullanmaz; snapshot verisi zaten HTML'de olduğundan sunucuya istek atmaz.
+ */
+const TABLE_SCRIPT = `<script>
+(function(){
+  function norm(s){ return (s||'').toLocaleLowerCase('tr'); }
+  function toNum(s){
+    var t = (s||'').trim().replace(/\\./g,'').replace(',', '.');
+    if(t==='' ) return null;
+    var n = parseFloat(t);
+    return isNaN(n) ? null : n;
+  }
+  // Canlı arama
+  document.querySelectorAll('.tablebox').forEach(function(box){
+    var inp = box.querySelector('.tbl-search');
+    var table = box.querySelector('table');
+    var countEl = box.querySelector('.tbl-count');
+    if(!inp || !table || !table.tBodies[0]) return;
+    var tbody = table.tBodies[0];
+    function apply(){
+      var q = norm(inp.value.trim());
+      var shown = 0, total = 0;
+      Array.prototype.forEach.call(tbody.rows, function(tr){
+        total++;
+        var match = q === '' || norm(tr.textContent).indexOf(q) !== -1;
+        tr.style.display = match ? '' : 'none';
+        if(match) shown++;
+      });
+      if(countEl) countEl.textContent = q ? (shown + ' / ' + total + ' satır') : (total + ' satır');
+    }
+    inp.addEventListener('input', apply);
+    apply();
+  });
+  // Başlığa tıklayınca sıralama
+  document.querySelectorAll('.tablebox table').forEach(function(table){
+    var tbody = table.tBodies[0];
+    if(!tbody) return;
+    var ths = table.tHead ? table.tHead.rows[0].cells : [];
+    Array.prototype.forEach.call(ths, function(th){
+      var ind = document.createElement('span');
+      ind.className = 'sort-ind';
+      ind.textContent = '\\u2195';
+      th.appendChild(ind);
+      var dir = 0;
+      th.addEventListener('click', function(){
+        var col = th.cellIndex;
+        dir = dir === 1 ? -1 : 1;
+        Array.prototype.forEach.call(ths, function(o){
+          var i = o.querySelector('.sort-ind'); if(i) i.textContent = '\\u2195';
+        });
+        ind.textContent = dir === 1 ? '\\u25B2' : '\\u25BC';
+        var rows = Array.prototype.slice.call(tbody.rows);
+        rows.sort(function(a,b){
+          var x = a.cells[col] ? a.cells[col].textContent : '';
+          var y = b.cells[col] ? b.cells[col].textContent : '';
+          var nx = toNum(x), ny = toNum(y);
+          if(nx !== null && ny !== null) return (nx - ny) * dir;
+          return x.trim().localeCompare(y.trim(), 'tr', { numeric: true }) * dir;
+        });
+        rows.forEach(function(r){ tbody.appendChild(r); });
+      });
+    });
+  });
+})();
+</script>`
 
 /** Bölümlerden tam, kendi kendine yeten HTML belgesi oluşturur (dış kaynak yok). */
 export function assembleDashboardHtml(
@@ -197,10 +272,18 @@ export function assembleDashboardHtml(
   .card .body { flex: 1 1 auto; min-height: 0; display: flex; }
   .card img { width: 100%; height: 100%; object-fit: contain; display: block; margin: auto; }
   .kpi { font-size: 40px; font-weight: 700; text-align: center; margin: auto; }
+  /* Etkileşimli tablo: arama çubuğu üstte, tablo altta kaydırılabilir. */
+  .tablebox { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
+  .tbar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
+  .tbl-search { flex: 0 1 240px; padding: 4px 8px; border: 1px solid #d1d5db;
+    border-radius: 6px; font-size: 13px; outline: none; }
+  .tbl-search:focus { border-color: #6366f1; }
+  .tbl-count { color: #9ca3af; font-size: 12px; }
   .tablewrap { flex: 1 1 auto; overflow: auto; width: 100%; }
   table { border-collapse: collapse; width: 100%; font-size: 13px; }
   th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; white-space: nowrap; }
-  th { background: #fafafa; position: sticky; top: 0; }
+  th { background: #fafafa; position: sticky; top: 0; cursor: pointer; user-select: none; }
+  th .sort-ind { color: #c4c4c4; font-size: 10px; margin-left: 4px; }
   tfoot .tot { font-weight: 700; border-top: 2px solid #e5e7eb; background: #fafafa;
     position: sticky; bottom: 0; }
   .err { color: #b91c1c; font-size: 13px; margin: auto 0; }
@@ -222,7 +305,8 @@ export function assembleDashboardHtml(
 <main>
 ${sections.join('\n')}
 </main>
-<footer>Anlık görüntü — yayınlandığı andaki veriyi gösterir.</footer>
+<footer>Anlık görüntü — yayınlandığı andaki veriyi gösterir. Tablolarda arama yapıp başlığa tıklayarak sıralayabilirsiniz.</footer>
+${TABLE_SCRIPT}
 </body>
 </html>`
 }
@@ -293,7 +377,9 @@ export async function buildPublishHtml(
           tileSectionHtml({
             title,
             layout,
-            tableHtml: configuredTableHtml(tableResult, tile.chart.tableConfig)
+            // Etkileşimli arama/sıralama anlamlı olsun diye yayında daha çok satır
+            // gömülür (snapshot; sunucuya sorgu atılmaz).
+            tableHtml: configuredTableHtml(tableResult, tile.chart.tableConfig, 5000)
           })
         )
       } else if (tile.chart.type === 'kpi') {

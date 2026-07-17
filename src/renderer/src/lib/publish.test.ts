@@ -132,7 +132,22 @@ describe('applyTableConfig', () => {
   })
 })
 
+describe('tileSectionHtml — etkileşimli tablo', () => {
+  it('tablo dalında arama kutusu ve sayaç ekler', () => {
+    const html = tileSectionHtml({ title: 'T', tableHtml: '<table><tbody></tbody></table>' })
+    expect(html).toContain('class="tablebox"')
+    expect(html).toContain('class="tbl-search"')
+    expect(html).toContain('class="tbl-count"')
+  })
+})
+
 describe('assembleDashboardHtml', () => {
+  it('etkileşim betiğini (arama + sıralama) gömer', () => {
+    const doc = assembleDashboardHtml('P', ['<section>A</section>'], 'x')
+    expect(doc).toContain('<script>')
+    expect(doc).toContain('.tbl-search')
+    expect(doc).toContain('addEventListener')
+  })
   it('tam belge ve bölümleri içerir', () => {
     const doc = assembleDashboardHtml('Panom', ['<section>A</section>'], 'Oluşturuldu')
     expect(doc.startsWith('<!doctype html>')).toBe(true)
