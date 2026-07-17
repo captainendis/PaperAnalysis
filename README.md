@@ -148,9 +148,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.34 && git push origin v0.2.34
+  git tag v0.2.35 && git push origin v0.2.35
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.34.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.35.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
@@ -161,17 +161,23 @@ altından da indirilebilir.
 
 ### Otomatik güncelleme (auto-update)
 
-Uygulama açılışta ve saatlik olarak GitHub Releases'i denetler (`electron-updater`).
-Yeni bir sürüm yayımlandığında **arka planda indirilir** ve “Güncelleme hazır”
-uyarısında **Şimdi yeniden başlat** dediğinizde **yerinde kurulur** — eskiyi silip
-yeniden kurmanıza gerek yoktur. “Sonra” derseniz güncelleme, uygulamayı bir sonraki
-kapatışınızda otomatik uygulanır.
+Uygulama, açılışta ve saatlik olarak **PaperAxis indirme servisini** denetler:
 
-- Çalışması için Release'e `.exe` ile birlikte `latest.yml` ve `.blockmap` dosyaları
-  da eklenir (CI bunu otomatik yapar); güncelleme kaynağı `electron-builder.yml`
-  içindeki `publish` (GitHub) ayarıyla belirlenir.
+- Sürüm bilgisi: `GET https://download.paperaxis.com/api/version/paperanalysis`
+  → `{ version, fileName, … }`
+- Kurulum indirme: `GET https://download.paperaxis.com/download/paperanalysis`
+  → `.exe` (yönlendirmeler izlenir)
+
+Uzak sürüm yüklü sürümden **yeni** ise (sayısal semver karşılaştırması), kullanıcıya
+sorulur; onaylanırsa kurulum indirilir ve **kurulum sihirbazı başlatılır** — eskiyi
+elle silmeye gerek yoktur.
+
+- API anahtarları **derlemeye gömülüdür** (`src/main/update/paxUpdate.ts`); her sürüm
+  otomatik olarak anahtarları içerir. Anahtar hem `Authorization: Bearer` hem de
+  `x-api-key` başlığıyla gönderilir.
+- Sürüm karşılaştırma mantığı `src/main/update/semver.ts` içinde (birim test edilir).
 - Otomatik güncelleme yalnızca **paketlenmiş** uygulamada çalışır (geliştirmede değil).
-- Bu sürümü (veya sonrasını) bir kez kurduktan sonra, gelecek sürümler kendiliğinden
+- Bu sürümü (veya sonrasını) bir kez kurduktan sonra, gelecek sürümler bu servisten
   gelir.
 
 ### Uygulama ikonu
