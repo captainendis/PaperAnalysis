@@ -114,6 +114,17 @@ describe('applyTableConfig', () => {
     expect(html).toContain('<tfoot>')
     expect(html).toContain('class="tot"')
   })
+  it('limit=Infinity ile tüm satırları verir, kısaltma notu olmaz', () => {
+    const big: QueryResult = {
+      columns: [{ name: 'x' }],
+      rows: Array.from({ length: 1000 }, (_, i) => ({ x: i })),
+      rowCount: 1000,
+      elapsedMs: 1
+    }
+    const html = configuredTableHtml(big, undefined, Infinity)
+    expect(html).not.toContain('kısaltıldı')
+    expect((html.match(/<tr>/g) || []).length).toBe(1001) // 1000 satır + 1 başlık
+  })
   it('columnOrder ile sütunları yeniden sıralar', () => {
     const { columns } = applyTableConfig(r, { columnOrder: ['depo2', 'urun', 'depo1'] })
     expect(columns.map((c) => c.name)).toEqual(['depo2', 'urun', 'depo1'])

@@ -98,7 +98,8 @@ Electron + React + TypeScript ile geliştirilmiştir.
   (kartların 12 sütunlu ızgaradaki konum/boyutları) birebir yansıtır. Yayınlanan
   **tablolar etkileşimlidir**: her tabloda **canlı arama** (satırları anında süzer,
   sonuç sayacı gösterir) ve **başlığa tıklayarak sıralama** (sayı-duyarlı, Türkçe)
-  vardır — tümü tarayıcıda, sunucuya sorgu atmadan çalışır.
+  vardır — tümü tarayıcıda, sunucuya sorgu atmadan çalışır. Tablonun **tüm satırları**
+  sayfaya gömülür (satır sınırı yoktur), böylece arama tüm veri setinde çalışır.
 - **Kaydetme / paylaşma:** Panoyu `.pbdash` (JSON) dosyası olarak kaydetme/açma
 - **Güvenli kimlik bilgisi:** Parolalar Electron `safeStorage` (OS keychain) ile şifrelenir;
   paylaşılan pano dosyalarına parola **yazılmaz**.
@@ -147,9 +148,9 @@ derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.33 && git push origin v0.2.33
+  git tag v0.2.34 && git push origin v0.2.34
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.33.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.2.34.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
 Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**

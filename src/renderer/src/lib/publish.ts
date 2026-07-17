@@ -377,9 +377,10 @@ export async function buildPublishHtml(
           tileSectionHtml({
             title,
             layout,
-            // Etkileşimli arama/sıralama anlamlı olsun diye yayında daha çok satır
-            // gömülür (snapshot; sunucuya sorgu atılmaz).
-            tableHtml: configuredTableHtml(tableResult, tile.chart.tableConfig, 5000)
+            // Yayında satır limiti yok: tüm satırlar gömülür ki etkileşimli
+            // arama/sıralama veri setinin tamamında çalışsın (snapshot; sunucuya
+            // sorgu atılmaz).
+            tableHtml: configuredTableHtml(tableResult, tile.chart.tableConfig, Infinity)
           })
         )
       } else if (tile.chart.type === 'kpi') {
