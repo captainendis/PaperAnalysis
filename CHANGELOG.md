@@ -26,6 +26,9 @@ sürüm numaralandırması [Semantic Versioning](https://semver.org/lang/tr/) ku
 - **Alt bilgi çubuğu:** `© 2026 PaperAxis · PaperAnalysis v<sürüm>`.
 - **PaperAxis grafik paleti** varsayılan palet olarak eklendi; önceki palet
   "Klasik" adıyla korunuyor.
+- **Otomatik yayınlama:** her derlemede kurulum dosyası ve sürüm, PaperAxis
+  indirme servisine yükleniyor (`npm run publish:pax`; anahtar CI gizlisi
+  `PAX_UPLOAD_TOKEN`).
 
 ### Değiştirildi
 

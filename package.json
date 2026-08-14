@@ -21,6 +21,7 @@
     "package:win": "electron-vite build && electron-builder --win --publish never",
     "package:portable": "electron-vite build && electron-builder --win portable --publish never",
     "make-icon": "node scripts/make-icon.mjs",
+    "publish:pax": "node scripts/publish-release.mjs",
     "rebuild": "electron-rebuild -f -w better-sqlite3"
   },
   "dependencies": {

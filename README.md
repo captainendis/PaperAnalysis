@@ -211,6 +211,35 @@ derler). İki şekilde tetiklenir:
 Her iki durumda dosyalar, çalıştırma sayfasındaki **Artifacts → windows-installer**
 ve **windows-portable** altından da indirilebilir.
 
+### Kurulumu indirme servisine yükleme
+
+Her derlemede kurulum dosyası ve sürüm numarası PaperAxis indirme servisine
+gönderilir; uygulamanın otomatik güncelleme akışı bu kaydı okur.
+
+```
+PUT https://download.paperaxis.com/api/v1/files/paperanalysis
+Authorization: Bearer <PAX_UPLOAD_TOKEN>
+multipart/form-data: version=<package.json sürümü>, file=<PaperAnalysis-Setup-*.exe>
+```
+
+Yükleme `scripts/publish-release.mjs` tarafından yapılır; CI'da `npm run publish:pax`
+adımı çalışır. Elle çalıştırmak için:
+
+```bash
+PAX_UPLOAD_TOKEN=<anahtar> npm run publish:pax   # release/ klasörü hazır olmalı
+```
+
+| Değişken | Açıklama | Varsayılan |
+|---|---|---|
+| `PAX_UPLOAD_TOKEN` | Yükleme anahtarı (zorunlu). CI'da **Settings → Secrets and variables → Actions** altına aynı adla eklenir | — |
+| `PAX_UPLOAD_URL` | Hedef adres (test/staging için) | `https://download.paperaxis.com/api/v1/files/paperanalysis` |
+
+Sürüm `package.json`'dan okunur, dosya `release/` içinden seçilir (taşınabilir sürüm
+ve meta dosyaları yüklenmez). Ağ hatası ve 5xx yanıtlarda üstel bekleyişle 4 kez
+denenir; 4xx (yetki/doğrulama) yanıtında hemen durur ve iş akışı kırmızıya döner.
+Anahtar tanımlı değilse adım hata verir — böylece yüklenmediği fark edilmeden
+geçmez.
+
 ### Otomatik güncelleme (auto-update)
 
 Kurulu sürüm, açılışta ve saatlik olarak **PaperAxis indirme servisini** denetler:
