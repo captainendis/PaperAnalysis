@@ -149,6 +149,7 @@ npm run dev            # geliştirme modunda uygulamayı başlat
 | Değişken | Açıklama | Varsayılan |
 |---|---|---|
 | `PORTABLE_EXECUTABLE_DIR` | electron-builder'ın taşınabilir derlemede otomatik verdiği exe dizini; veri klasörü buraya açılır | (kurulu sürümde tanımsız) |
+| `PAX_API_TOKEN` | **Derleme zamanı**: PaperAxis API tokeni; pakete gömülür ve güncelleme indirmesinde kullanılır | (boş — kurulum uygulama içinden indirilemez) |
 | `ELECTRON_RENDERER_URL` | Geliştirmede arayüzün yükleneceği adres (electron-vite tarafından ayarlanır) | (üretimde tanımsız) |
 
 Veritabanı bağlantıları uygulama içinden tanımlanır; parolalar OS keychain ile
@@ -218,7 +219,7 @@ gönderilir; uygulamanın otomatik güncelleme akışı bu kaydı okur.
 
 ```
 PUT https://download.paperaxis.com/api/v1/files/paperanalysis
-Authorization: Bearer <PAX_UPLOAD_TOKEN>
+Authorization: Bearer <PAX_API_TOKEN>
 multipart/form-data: version=<package.json sürümü>, file=<PaperAnalysis-Setup-*.exe>
 ```
 
@@ -226,13 +227,30 @@ Yükleme `scripts/publish-release.mjs` tarafından yapılır; CI'da `npm run pub
 adımı çalışır. Elle çalıştırmak için:
 
 ```bash
-PAX_UPLOAD_TOKEN=<anahtar> npm run publish:pax   # release/ klasörü hazır olmalı
+PAX_API_TOKEN=<token> npm run publish:pax   # release/ klasörü hazır olmalı
 ```
 
 | Değişken | Açıklama | Varsayılan |
 |---|---|---|
-| `PAX_UPLOAD_TOKEN` | Yükleme anahtarı (zorunlu). CI'da **Settings → Secrets and variables → Actions** altına aynı adla eklenir | — |
+| `PAX_API_TOKEN` | PaperAxis API tokeni (zorunlu) | — |
 | `PAX_UPLOAD_URL` | Hedef adres (test/staging için) | `https://download.paperaxis.com/api/v1/files/paperanalysis` |
+
+### Gizli anahtarlar (GitHub secrets)
+
+Hiçbir anahtar depoda tutulmaz. CI'nın ihtiyaç duyduğu üç değer, depo ayarlarında
+**Settings → Secrets and variables → Actions** altında aynı adlarla tanımlanır:
+
+Sürüm kontrolü, güncelleme indirmesi ve yükleme **aynı tokeni** kullanır; tek bir
+secret yeterlidir:
+
+| Secret | Nerede kullanılır |
+|---|---|
+| `PAX_API_TOKEN` | Derlemeye gömülür (güncelleme indirmesi) ve kurulumu servise yükleyen CI adımı |
+
+> Not: Token pakete gömüldüğü için dağıtılan `.exe` içinden okunabilir. Aynı token
+> yükleme (yazma) yetkisi de taşıdığından, servis salt-okunur bir token
+> üretebiliyorsa istemciye onu gömmek, yazma yetkisini yalnızca CI'da tutmak
+> daha güvenlidir.
 
 Sürüm `package.json`'dan okunur, dosya `release/` içinden seçilir (taşınabilir sürüm
 ve meta dosyaları yüklenmez). Ağ hatası ve 5xx yanıtlarda üstel bekleyişle 4 kez
@@ -245,9 +263,12 @@ geçmez.
 Kurulu sürüm, açılışta ve saatlik olarak **PaperAxis indirme servisini** denetler:
 
 - Sürüm bilgisi: `GET https://download.paperaxis.com/api/version/paperanalysis`
-  → `{ version, fileName, … }`
+  → `{ version, fileName, size, downloadUrl, pageUrl, … }` (açık uç)
 - Kurulum indirme: `GET https://download.paperaxis.com/download/paperanalysis`
-  → `.exe` (yönlendirmeler izlenir)
+  → `.exe` (token ister; yönlendirmeler izlenir)
+
+İndirme adresi yanıttaki `downloadUrl` alanından alınır (yoksa sabit adrese
+düşülür); indirilecek boyut kullanıcıya gösterilir.
 
 Uzak sürüm yüklü sürümden **yeni** ise (sayısal semver karşılaştırması), kullanıcıya
 sorulur; onaylanırsa kurulum indirilir ve **kurulum sihirbazı başlatılır** — eskiyi
@@ -255,9 +276,15 @@ elle silmeye gerek yoktur.
 
 - **Taşınabilir sürüm kendini güncellemez:** yeni sürüm bulunduğunda yalnızca
   bilgilendirir; kullanıcı exe'yi değiştirir, veri klasörü yerinde kalır.
-- API anahtarları **derlemeye gömülüdür** (`src/main/update/paxUpdate.ts`); her sürüm
-  otomatik olarak anahtarları içerir. Anahtar hem `Authorization: Bearer` hem de
-  `x-api-key` başlığıyla gönderilir.
+- Token **depoda tutulmaz**: derleme sırasında `PAX_API_TOKEN` ortam değişkeninden
+  gömülür (`electron.vite.config.ts` → `define`), CI'da aynı adlı secret'tan gelir.
+  Token hem `Authorization: Bearer` hem de `x-api-key` başlığıyla gönderilir.
+- Tokensiz alınan bir derlemede sürüm yine denetlenir; kurulum uygulama içinden
+  indirilemeyeceği için kullanıcı **indirme sayfasına** yönlendirilir.
+- Yerelde tokenli paket almak için:
+  ```bash
+  PAX_API_TOKEN=<token> npm run package:win
+  ```
 - Sürüm karşılaştırma mantığı `src/main/update/semver.ts` içinde (birim test edilir).
 - Otomatik güncelleme yalnızca **paketlenmiş** uygulamada çalışır (geliştirmede değil).
 

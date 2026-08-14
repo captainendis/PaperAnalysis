@@ -37,8 +37,12 @@ jobs:
         shell: bash
         run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
 
+      # Güncelleme indirmesi token ister; token depoda değil, secret'ta durur ve
+      # derleme sırasında pakete gömülür.
       - name: Uygulamayı derle
         run: npm run build
+        env:
+          PAX_API_TOKEN: ${{ secrets.PAX_API_TOKEN }}
 
       # Yapılandırmadaki iki hedef birlikte üretilir: NSIS kurulumu ve tek dosya
       # taşınabilir (portable) sürüm.
@@ -63,11 +67,11 @@ jobs:
 
       # Her derlemede kurulum dosyası ve sürüm PaperAxis indirme servisine
       # yüklenir; uygulamanın otomatik güncelleme akışı bu kaydı okur.
-      # Anahtar: depo ayarlarında Secrets and variables → Actions → PAX_UPLOAD_TOKEN.
+      # Anahtar: depo ayarlarında Secrets and variables → Actions → PAX_API_TOKEN.
       - name: Kurulumu PaperAxis indirme servisine yükle
         run: npm run publish:pax
         env:
-          PAX_UPLOAD_TOKEN: ${{ secrets.PAX_UPLOAD_TOKEN }}
+          PAX_API_TOKEN: ${{ secrets.PAX_API_TOKEN }}
 
       - name: Release oluştur/güncelle (.exe + otomatik güncelleme meta dosyaları)
         uses: softprops/action-gh-release@v2

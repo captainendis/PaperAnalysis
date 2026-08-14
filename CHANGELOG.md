@@ -27,8 +27,8 @@ sürüm numaralandırması [Semantic Versioning](https://semver.org/lang/tr/) ku
 - **PaperAxis grafik paleti** varsayılan palet olarak eklendi; önceki palet
   "Klasik" adıyla korunuyor.
 - **Otomatik yayınlama:** her derlemede kurulum dosyası ve sürüm, PaperAxis
-  indirme servisine yükleniyor (`npm run publish:pax`; anahtar CI gizlisi
-  `PAX_UPLOAD_TOKEN`).
+  indirme servisine yükleniyor (`npm run publish:pax`; CI gizlisi
+  `PAX_API_TOKEN`).
 
 ### Değiştirildi
 
@@ -41,6 +41,14 @@ sürüm numaralandırması [Semantic Versioning](https://semver.org/lang/tr/) ku
   uygulama ikonu da aynı palete göre güncellendi.
 - Otomatik güncelleme, taşınabilir kopyada kurulum başlatmak yerine yalnızca
   bilgilendirme yapıyor.
+- **API tokeni artık depoda tutulmuyor:** derleme sırasında `PAX_API_TOKEN`
+  ortam değişkeninden gömülüyor, CI'da aynı adlı GitHub secret'ından geliyor.
+  Sürüm kontrolü, güncelleme indirmesi ve yükleme aynı tokeni kullanıyor.
+  Tokensiz bir derlemede sürüm yine denetleniyor, kullanıcı indirme sayfasına
+  yönlendiriliyor.
+- Güncelleme indirmesi, sürüm servisinin bildirdiği `downloadUrl` adresini
+  kullanıyor; indirilecek dosya boyutu kullanıcıya gösteriliyor. Taşınabilir
+  kopyadaki bildirim, indirme sayfasını açan bir düğme taşıyor.
 
 ## [0.2.30] - [0.2.36] - 2026-07-08 → 2026-07-17
 

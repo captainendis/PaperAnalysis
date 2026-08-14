@@ -6,7 +6,7 @@
 // Derlenen Windows kurulumunu PaperAxis indirme servisine yükler.
 //
 //   PUT https://download.paperaxis.com/api/v1/files/paperanalysis
-//   Authorization: Bearer <PAX_UPLOAD_TOKEN>
+//   Authorization: Bearer <PAX_API_TOKEN>
 //   multipart/form-data: version=<sürüm>, file=<kurulum .exe>
 //
 // Sürüm package.json'dan okunur (tek kaynak), dosya release/ klasöründen seçilir.
@@ -61,12 +61,12 @@ async function upload({ url, token, version, filePath, fileName }) {
 }
 
 export async function main() {
-  const token = process.env.PAX_UPLOAD_TOKEN?.trim()
+  const token = process.env.PAX_API_TOKEN?.trim()
   if (!token) {
     console.error(
-      'PAX_UPLOAD_TOKEN tanımlı değil. Yükleme anahtarını ortam değişkeni olarak\n' +
+      'PAX_API_TOKEN tanımlı değil. PaperAxis API tokenini ortam değişkeni olarak\n' +
         'verin; CI için depo ayarlarından Settings → Secrets and variables → Actions\n' +
-        'altına PAX_UPLOAD_TOKEN adıyla ekleyin.'
+        'altına PAX_API_TOKEN adıyla ekleyin.'
     )
     process.exit(1)
   }
