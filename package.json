@@ -1,10 +1,13 @@
 {
-  "name": "paperanalysis",
-  "version": "0.2.36",
+  "name": "@paperaxis/paperanalysis-desktop",
+  "productName": "PaperAnalysis",
+  "version": "0.3.0",
   "description": "PaperAnalysis - SQL sunuculardan veri çekip grafikleştiren masaüstü veri analiz aracı",
   "main": "./out/main/index.js",
-  "author": "PaperAnalysis",
-  "license": "MIT",
+  "private": true,
+  "author": "PaperAxis (https://paperaxis.com)",
+  "homepage": "https://paperaxis.com",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -16,6 +19,7 @@
     "test": "vitest run",
     "package": "electron-vite build && electron-builder",
     "package:win": "electron-vite build && electron-builder --win --publish never",
+    "package:portable": "electron-vite build && electron-builder --win portable --publish never",
     "make-icon": "node scripts/make-icon.mjs",
     "rebuild": "electron-rebuild -f -w better-sqlite3"
   },

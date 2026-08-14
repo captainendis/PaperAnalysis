@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { useEffect, useMemo, useState } from 'react'
 import type { DbKind, TableInfo } from '@shared/types'
 import { Modal } from '../common/Modal'

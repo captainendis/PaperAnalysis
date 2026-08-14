@@ -1,3 +1,12 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
+
+/* PaperAxis kurumsal renk tokenları — arayüzdeki her renk buradan türer. */
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -15,7 +24,7 @@
   transition-property: transform, width, height;
 }
 .react-grid-item.react-grid-placeholder {
-  background: #2563eb;
+  background: var(--pa-navy-400);
   opacity: 0.2;
   border-radius: 0.5rem;
   transition-duration: 100ms;
@@ -41,24 +50,25 @@
   border-bottom: 2px solid rgba(255, 255, 255, 0.4);
 }
 
-/* Tema değişkenleri — koyu (varsayılan) ve açık. data-theme kök elemana yazılır. */
+/* Tema değişkenleri — koyu (varsayılan) ve açık. data-theme kök elemana yazılır.
+   Değerler PaperAxis tokenlarından gelir; burada yalnızca rol eşlemesi yapılır. */
 :root {
-  --base: #15161b;
-  --panel: #1e1f26;
-  --surface: #252731;
-  --edge: #34363f;
-  --fg: #e5e7eb;
-  --muted: #94a3b8;
+  --base: var(--pa-navy-950);
+  --panel: var(--pa-navy-900);
+  --surface: var(--pa-navy-800);
+  --edge: var(--pa-navy-700);
+  --fg: #ffffff;
+  --muted: var(--pa-navy-200);
   color-scheme: dark;
 }
 
 :root[data-theme='light'] {
-  --base: #f4f5f7;
+  --base: var(--pa-paper-100);
   --panel: #ffffff;
   --surface: #ffffff;
-  --edge: #dfe1e6;
-  --fg: #1f2430;
-  --muted: #5b6472;
+  --edge: var(--pa-paper-200);
+  --fg: var(--pa-ink-900);
+  --muted: var(--pa-ink-600);
   color-scheme: light;
 }
 
@@ -70,9 +80,24 @@ body,
 }
 
 body {
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: var(--pa-font-sans);
   background-color: var(--base);
   color: var(--fg);
+}
+
+/* Marka işareti tek renk kullanılır: koyu zeminde paper-50, açık zeminde navy-900. */
+.brand-mark {
+  color: var(--pa-paper-50);
+}
+:root[data-theme='light'] .brand-mark {
+  color: var(--pa-navy-900);
+}
+
+/* Odak halkası markaya göre: açık temada navy-400, koyuda coral-500.
+   (Odak göstergesi asla kaldırılmaz.) */
+:focus-visible {
+  outline: 2px solid var(--pa-focus);
+  outline-offset: 1px;
 }
 
 /* Açık temada Tailwind gri metin yardımcılarını okunur renklere eşle

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 // Tablo görünümü (ResultsTable) için saf sıralama/filtreleme yardımcıları.
 // UI'dan bağımsız oldukları için birim test edilebilirler.
 

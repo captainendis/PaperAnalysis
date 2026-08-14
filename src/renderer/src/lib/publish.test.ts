@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { describe, it, expect } from 'vitest'
 import {
   resultToHtmlTable,
@@ -166,6 +171,11 @@ describe('assembleDashboardHtml', () => {
     expect(doc).toContain('<section>A</section>')
     expect(doc).toContain('PaperAnalysis')
     expect(doc).not.toContain('http-equiv="refresh"')
+  })
+
+  it('alt bilgide PaperAxis künyesini ve sürümü gösterir', () => {
+    const doc = assembleDashboardHtml('P', [], 'x', 0, '0.3.0')
+    expect(doc).toContain('© 2026 PaperAxis · PaperAnalysis v0.3.0')
   })
 
   it('refreshSec verilince otomatik yenileme meta etiketi ekler', () => {

@@ -1,9 +1,13 @@
+# Copyright (c) 2026 PaperAxis. All rights reserved.
+# This file is part of PaperAnalysis. Unauthorized copying, modification
+# or distribution of this file is strictly prohibited.
 name: Windows Kurulumu Oluştur
 
 on:
   push:
     branches:
       - 'claude/power-bi-data-tool-jd5d1j'
+      - 'claude/paperaxis-standard-portable-exe-4a2ifj'
     tags:
       - 'v*'
   workflow_dispatch:
@@ -27,10 +31,18 @@ jobs:
       - name: Bağımlılıkları kur
         run: npm ci
 
+      # Sürüm tek kaynaktan gelir: package.json. Etiket adı da buradan türetilir.
+      - name: Sürümü package.json'dan oku
+        id: pkg
+        shell: bash
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Uygulamayı derle
         run: npm run build
 
-      - name: Windows kurulumunu paketle (NSIS)
+      # Yapılandırmadaki iki hedef birlikte üretilir: NSIS kurulumu ve tek dosya
+      # taşınabilir (portable) sürüm.
+      - name: Windows paketlerini üret (NSIS + portable)
         run: npx electron-builder --win --publish never
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -39,15 +51,22 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: release/*.exe
+          path: release/*-Setup-*.exe
+          if-no-files-found: error
+
+      - name: Taşınabilir sürümü artefakt olarak yükle
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable
+          path: release/*-Portable-*.exe
           if-no-files-found: error
 
       - name: Release oluştur/güncelle (.exe + otomatik güncelleme meta dosyaları)
         uses: softprops/action-gh-release@v2
         with:
-          # Etiketli push'ta o etiketi, dal push'unda sabit sürümü kullan.
-          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.36' }}
-          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.2.36' }}
+          # Etiketli push'ta o etiketi, dal push'unda package.json sürümünü kullan.
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', steps.pkg.outputs.version) }}
+          name: PaperAnalysis ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('v{0}', steps.pkg.outputs.version) }}
           # latest.yml ve .blockmap, electron-updater'ın otomatik güncelleme için
           # ihtiyaç duyduğu meta dosyalarıdır; .exe ile birlikte yüklenmelidir.
           files: |

@@ -1,5 +1,11 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import * as echarts from 'echarts'
 import type { Dashboard, DashboardTile, QueryResult, TableConfig } from '@shared/types'
+import { footerLine } from '@shared/brand'
 import { buildEChartsOption, computeKpi } from './chartSpec'
 import { chartTheme } from './chartTheme'
 import { groupResult, isNumericColumn, sumValues } from './tableView'
@@ -249,7 +255,8 @@ export function assembleDashboardHtml(
   name: string,
   sections: string[],
   generatedAtText: string,
-  refreshSec = 0
+  refreshSec = 0,
+  appVersion = ''
 ): string {
   const refreshMeta =
     refreshSec > 0 ? `\n<meta http-equiv="refresh" content="${Math.round(refreshSec)}" />` : ''
@@ -262,37 +269,38 @@ export function assembleDashboardHtml(
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: #f4f5f7; color: #1f2430; }
-  header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #e1e0d9;
+    background: #F2EFE8; color: #14181D; }
+  header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #E6E1D7;
     display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
   header h1 { margin: 0; font-size: 18px; }
-  header .meta { color: #6b7280; font-size: 12px; }
+  header .meta { color: #4A5462; font-size: 12px; }
   /* Pano ile aynı 12 sütunlu ızgara; kartlar kayıtlı konum/boyutlarında yerleşir. */
   main { display: grid; grid-template-columns: repeat(12, 1fr); grid-auto-rows: 36px;
     gap: 12px; padding: 16px 24px; align-items: stretch; }
-  .card { display: flex; flex-direction: column; background: #fff; border: 1px solid #e5e7eb;
+  .card { display: flex; flex-direction: column; background: #fff; border: 1px solid #E6E1D7;
     border-radius: 10px; padding: 12px; overflow: hidden; min-height: 0; min-width: 0; }
-  .card h2 { margin: 0 0 8px; font-size: 14px; color: #374151; flex: 0 0 auto; }
+  .card h2 { margin: 0 0 8px; font-size: 14px; color: #232932; flex: 0 0 auto; }
   .card .body { flex: 1 1 auto; min-height: 0; display: flex; }
   .card img { width: 100%; height: 100%; object-fit: contain; display: block; margin: auto; }
   .kpi { font-size: 40px; font-weight: 700; text-align: center; margin: auto; }
   /* Etkileşimli tablo: arama çubuğu üstte, tablo altta kaydırılabilir. */
   .tablebox { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; width: 100%; }
   .tbar { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex: 0 0 auto; }
-  .tbl-search { flex: 0 1 240px; padding: 4px 8px; border: 1px solid #d1d5db;
+  .tbl-search { flex: 0 1 240px; padding: 4px 8px; border: 1px solid #D5CEC1;
     border-radius: 6px; font-size: 13px; outline: none; }
-  .tbl-search:focus { border-color: #6366f1; }
-  .tbl-count { color: #9ca3af; font-size: 12px; }
+  .tbl-search:focus { border-color: #245488; }
+  .tbl-count { color: #667181; font-size: 12px; }
   .tablewrap { flex: 1 1 auto; overflow: auto; width: 100%; }
   table { border-collapse: collapse; width: 100%; font-size: 13px; }
-  th, td { border-bottom: 1px solid #eee; padding: 6px 8px; text-align: left; white-space: nowrap; }
-  th { background: #fafafa; position: sticky; top: 0; cursor: pointer; user-select: none; }
-  th .sort-ind { color: #c4c4c4; font-size: 10px; margin-left: 4px; }
-  tfoot .tot { font-weight: 700; border-top: 2px solid #e5e7eb; background: #fafafa;
+  th, td { border-bottom: 1px solid #F2EFE8; padding: 6px 8px; text-align: left; white-space: nowrap; }
+  th { background: #FAF8F4; position: sticky; top: 0; cursor: pointer; user-select: none; }
+  th .sort-ind { color: #B4BCC7; font-size: 10px; margin-left: 4px; }
+  tfoot .tot { font-weight: 700; border-top: 2px solid #E6E1D7; background: #FAF8F4;
     position: sticky; bottom: 0; }
-  .err { color: #b91c1c; font-size: 13px; margin: auto 0; }
-  .note { color: #9ca3af; font-size: 12px; margin: auto 0; }
-  footer { padding: 12px 24px; color: #9ca3af; font-size: 12px; }
+  .err { color: #C0392F; font-size: 13px; margin: auto 0; }
+  .note { color: #667181; font-size: 12px; margin: auto 0; }
+  footer { padding: 12px 24px; color: #667181; font-size: 12px;
+    display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
   /* Dar ekranlarda ızgarayı tek sütuna indir (okunabilirlik). */
   @media (max-width: 820px) {
     main { display: block; padding: 16px; }
@@ -309,7 +317,10 @@ export function assembleDashboardHtml(
 <main>
 ${sections.join('\n')}
 </main>
-<footer>Anlık görüntü — yayınlandığı andaki veriyi gösterir. Tablolarda arama yapıp başlığa tıklayarak sıralayabilirsiniz.</footer>
+<footer>
+  <span>Anlık görüntü — yayınlandığı andaki veriyi gösterir. Tablolarda arama yapıp başlığa tıklayarak sıralayabilirsiniz.</span>
+  <span>${escapeHtml(footerLine(appVersion))}</span>
+</footer>
 ${TABLE_SCRIPT}
 </body>
 </html>`
@@ -421,5 +432,8 @@ export async function buildPublishHtml(
 
   const note =
     refreshSec > 0 ? `Her ${refreshSec} sn'de yenilenir` : 'Anlık görüntü'
-  return assembleDashboardHtml(dashboard.name, sections, note, refreshSec)
+  // Alt bilgideki sürüm koddan okunur; okunamazsa künye sürümsüz basılır.
+  const info = await window.api.app.info()
+  const version = info.ok ? info.data.version : ''
+  return assembleDashboardHtml(dashboard.name, sections, note, refreshSec, version)
 }

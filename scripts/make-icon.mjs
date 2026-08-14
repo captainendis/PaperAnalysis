@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 // Bağımlılıksız uygulama ikonu üreteci: 1024x1024 RGBA tampon çizer ve PNG
 // olarak kodlar (yalnızca Node + zlib). Tarayıcı/ağ gerektirmez, deterministiktir.
-// Marka mavisi yuvarlatılmış kare zemin + beyaz sütun-grafik glifi.
+// PaperAxis Eksen Laciverdi yuvarlatılmış kare zemin + kağıt tonunda sütun-grafik
+// glifi (PaperAnalysis ürün işareti).
 
 import { deflateSync } from 'node:zlib'
 import { writeFileSync, mkdirSync } from 'node:fs'
@@ -45,9 +51,9 @@ function fillRoundedRect(x0, y0, w, h, radius, colorAt) {
   }
 }
 
-// Zemin: köşeden köşeye dikey mavi gradyan (#1d4ed8 → #2563eb → #3b82f6).
-const top = [29, 78, 216]
-const bottom = [59, 130, 246]
+// Zemin: dikey lacivert gradyan (navy-800 #0F2540 → navy-500 #245488).
+const top = [15, 37, 64]
+const bottom = [36, 84, 136]
 fillRoundedRect(0, 0, SIZE, SIZE, 200, (_x, y) => {
   const t = y / SIZE
   return [
@@ -58,8 +64,8 @@ fillRoundedRect(0, 0, SIZE, SIZE, 200, (_x, y) => {
   ]
 })
 
-// Beyaz sütun-grafik glifi: artan yükseklikte 4 çubuk.
-const white = () => [255, 255, 255, 255]
+// Kağıt tonunda (paper-50 #FAF8F4) sütun-grafik glifi: artan yükseklikte 4 çubuk.
+const white = () => [250, 248, 244, 255]
 const baseY = 720
 const barW = 120
 const gap = 56
@@ -70,7 +76,7 @@ heights.forEach((hgt, i) => {
   fillRoundedRect(x, baseY - hgt, barW, hgt, 24, white)
 })
 // Zemin çizgisi (taban).
-fillRoundedRect(200, baseY + 8, SIZE - 400, 20, 10, () => [255, 255, 255, 200])
+fillRoundedRect(200, baseY + 8, SIZE - 400, 20, 10, () => [250, 248, 244, 200])
 
 // ---- PNG kodlama ----
 function crc32(bytes) {

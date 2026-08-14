@@ -1,14 +1,20 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { useState } from 'react'
 import { useDashboard } from '../store/dashboard'
 import { useWorkspace } from '../store/workspace'
 import { useSettings } from '../store/settings'
 import { PALETTES } from '../lib/palettes'
 import { Button } from './common/Button'
+import { PaperAxisMark } from './common/PaperAxisMark'
 import { ParameterManager } from './FilterBar/ParameterManager'
 import { ScheduledReportModal } from './ScheduledReport/ScheduledReportModal'
 import { PublishModal } from './Publish/PublishModal'
 
-export function Toolbar() {
+export function Toolbar({ onAbout }: { onAbout: () => void }) {
   const {
     dashboard,
     filePath,
@@ -78,11 +84,15 @@ export function Toolbar() {
 
   return (
     <header className="flex items-center gap-3 border-b border-edge bg-panel px-4 py-2">
-      <div className="flex items-center gap-2">
-        <span className="text-brand-500 text-lg font-bold">▦</span>
+      <button
+        className="flex items-center gap-2 rounded-md px-1 py-0.5 hover:bg-white/5"
+        onClick={onAbout}
+        title="PaperAnalysis Hakkında"
+      >
+        <PaperAxisMark size={24} className="brand-mark" />
         <span className="text-sm font-semibold text-gray-200">PaperAnalysis</span>
         <span className="text-[11px] text-gray-500">— Veri Analiz Panosu</span>
-      </div>
+      </button>
 
       <div className="mx-2 h-5 w-px bg-edge" />
 
@@ -147,7 +157,8 @@ export function Toolbar() {
         <Button variant="ghost" onClick={() => setReportOpen(true)} disabled={busy}>
           Zamanla
         </Button>
-        <Button variant="ghost" onClick={() => setPublishOpen(true)} disabled={busy}>
+        {/* Ekrandaki tek mercan aksiyon (PaperAxis kuralı). */}
+        <Button variant="accent" onClick={() => setPublishOpen(true)} disabled={busy}>
           🌐 Yayınla
         </Button>
         <div className="mx-1 h-5 w-px bg-edge" />

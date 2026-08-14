@@ -1,5 +1,9 @@
-appId: com.paperanalysis.app
+# Copyright (c) 2026 PaperAxis. All rights reserved.
+# This file is part of PaperAnalysis. Unauthorized copying, modification
+# or distribution of this file is strictly prohibited.
+appId: com.paperaxis.paperanalysis
 productName: PaperAnalysis
+copyright: © 2026 PaperAxis. Tüm hakları saklıdır.
 # Otomatik güncelleme: uygulama GitHub Releases'i kontrol eder, yeni sürümü
 # indirip yerinde kurar (silip yeniden kurmaya gerek yok). Bu yapılandırma,
 # pakete gömülen app-update.yml'i üretir (electron-updater bunu okur) ve
@@ -14,15 +18,23 @@ directories:
 files:
   - out/**/*
   - package.json
+  - LICENSE
 asarUnpack:
   - '**/*.node'
 # Native modüller (better-sqlite3 vb.) Electron ABI'sine yeniden derlenir.
 npmRebuild: true
 win:
+  # İki dağıtım biçimi: kurulum sihirbazı (NSIS) ve tek dosya taşınabilir (portable).
   target:
-    - nsis
+    - target: nsis
+      arch:
+        - x64
+    - target: portable
+      arch:
+        - x64
   icon: build/icon.png
-  artifactName: ${productName}-Setup-${version}.${ext}
+  # Windows dosya özellikleri (PaperAxis standardı).
+  legalTrademarks: PaperAxis
 nsis:
   oneClick: false
   perMachine: false
@@ -30,6 +42,13 @@ nsis:
   createDesktopShortcut: true
   createStartMenuShortcut: true
   shortcutName: PaperAnalysis
+  artifactName: ${productName}-Setup-${version}.${ext}
+portable:
+  # Kurulum gerektirmeyen tek dosya. Çalıştırıldığında kendini geçici bir dizine
+  # açar; uygulama verisi (bağlantılar, ayarlar) exe'nin yanındaki
+  # PaperAnalysis-Data klasöründe tutulur (bkz. src/main/portable.ts).
+  artifactName: ${productName}-Portable-${version}.${ext}
+  requestExecutionLevel: user
 mac:
   target: dmg
   category: public.app-category.business

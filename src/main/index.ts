@@ -1,6 +1,14 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { app, BrowserWindow, shell } from 'electron'
 import { join } from 'path'
+import { setupPortablePaths } from './portable'
+import { buildAppMenu } from './menu'
 import { setupAutoUpdate } from './update/paxUpdate'
+import { registerAppIpc } from './ipc/app'
 import { registerConnectionIpc } from './ipc/connections'
 import { registerQueryIpc } from './ipc/query'
 import { registerSchemaIpc } from './ipc/schema'
@@ -12,6 +20,10 @@ import { connectionManager } from './db/manager'
 // Otomatik güncelleme, PaperAxis indirme servisi üzerinden yürütülür
 // (bkz. ./update/paxUpdate). API anahtarları derlemeye gömülüdür.
 
+// Taşınabilir kopyada veri yolları exe'nin yanına alınır; bu, herhangi bir yol
+// okunmadan önce yapılmalıdır.
+setupPortablePaths()
+
 function createWindow(): void {
   const win = new BrowserWindow({
     width: 1400,
@@ -19,7 +31,8 @@ function createWindow(): void {
     minWidth: 1000,
     minHeight: 640,
     show: false,
-    backgroundColor: '#1e1f26',
+    // PaperAxis koyu tema zemini (navy-900) — ilk boyama beyaz parlamasın.
+    backgroundColor: '#0A1B30',
     title: 'PaperAnalysis',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -45,6 +58,8 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  buildAppMenu()
+  registerAppIpc()
   registerConnectionIpc()
   registerQueryIpc()
   registerSchemaIpc()

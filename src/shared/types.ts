@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 // Main ve renderer süreçleri arasında paylaşılan tip tanımları.
 
 export type DbKind = 'mssql' | 'postgres' | 'mysql' | 'sqlite'
@@ -243,6 +248,18 @@ export interface ReportStatus {
   baseName: string
   lastAt: number | null
   lastFile: string | null
+}
+
+/** Hakkında ekranının gösterdiği ürün künyesi (koddan okunur, elle yazılmaz). */
+export interface AppInfo {
+  /** Ürün adı — package.json productName. */
+  name: string
+  /** Sürüm — package.json version. */
+  version: string
+  /** Taşınabilir (portable) kopya olarak mı çalışıyor? */
+  portable: boolean
+  /** Taşınabilir kopyada verinin tutulduğu klasör; kurulu sürümde userData yolu. */
+  dataDir: string
 }
 
 export const DEFAULT_PORTS: Record<DbKind, number | undefined> = {

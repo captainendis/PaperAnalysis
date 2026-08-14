@@ -1,0 +1,100 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * PaperAxis kurumsal renk ve tipografi tokenları — tek kaynak.
+ */
+:root {
+  /* Eksen Laciverdi — ana kimlik, zemin, birincil aksiyon */
+  --pa-navy-950: #05101F;
+  --pa-navy-900: #0A1B30;
+  --pa-navy-800: #0F2540;
+  --pa-navy-700: #163356;
+  --pa-navy-600: #1D4270;
+  --pa-navy-500: #245488;
+  --pa-navy-400: #4478AE;
+  --pa-navy-300: #7FA3CB;
+  --pa-navy-200: #B4CAE2;
+  --pa-navy-100: #DAE6F2;
+  --pa-navy-50:  #EFF4FA;
+
+  /* Kıvılcım Mercanı — vurgu */
+  --pa-coral-700: #B33C1B;
+  --pa-coral-600: #D24C22;
+  --pa-coral-500: #F2653A;
+  --pa-coral-400: #F7855F;
+  --pa-coral-300: #FAA588;
+  --pa-coral-200: #FCC7B3;
+  --pa-coral-100: #FDE5DA;
+
+  /* Kağıt — açık tema zeminleri */
+  --pa-paper-50:  #FAF8F4;
+  --pa-paper-100: #F2EFE8;
+  --pa-paper-200: #E6E1D7;
+  --pa-paper-300: #D5CEC1;
+
+  /* Mürekkep — metin ve nötr arayüz */
+  --pa-ink-900: #14181D;
+  --pa-ink-800: #232932;
+  --pa-ink-700: #333B46;
+  --pa-ink-600: #4A5462;
+  --pa-ink-500: #667181;
+  --pa-ink-400: #8A94A2;
+  --pa-ink-300: #B4BCC7;
+
+  /* Grafik seti — panel serileri, sırayla kullanılır */
+  --pa-chart-1: #E0552A;
+  --pa-chart-2: #3C7DBB;
+  --pa-chart-3: #1E9578;
+  --pa-chart-4: #B87D12;
+  --pa-chart-5: #7E63C9;
+  --pa-chart-6: #2E9BB3;
+
+  /* Tipografi ve biçim */
+  --pa-font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --pa-font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --pa-radius: 10px;
+  --pa-radius-sm: 6px;
+}
+
+/* Açık tema — varsayılan */
+:root {
+  --pa-bg:            var(--pa-paper-50);
+  --pa-surface:       #FFFFFF;
+  --pa-border:        var(--pa-paper-200);
+  --pa-text:          var(--pa-ink-900);
+  --pa-text-muted:    var(--pa-ink-600);
+  --pa-text-subtle:   var(--pa-ink-500);
+  --pa-primary:       var(--pa-navy-500);
+  --pa-primary-text:  #FFFFFF;
+  --pa-accent:        var(--pa-coral-500);
+  --pa-accent-text:   var(--pa-ink-900);   /* mercan üstüne beyaz yazı GELMEZ */
+  --pa-link:          var(--pa-navy-500);
+  --pa-focus:         var(--pa-navy-400);
+  --pa-success:       #1A7A50;
+  --pa-success-bg:    #E6F4EC;
+  --pa-warning:       #A66200;
+  --pa-warning-bg:    #FBF0DC;
+  --pa-danger:        #C0392F;
+  --pa-danger-bg:     #FBE9E7;
+}
+
+/* Koyu tema */
+[data-theme="dark"], .pa-dark {
+  --pa-bg:            var(--pa-navy-900);
+  --pa-surface:       var(--pa-navy-800);
+  --pa-border:        var(--pa-navy-700);
+  --pa-text:          #FFFFFF;
+  --pa-text-muted:    var(--pa-navy-200);
+  --pa-text-subtle:   var(--pa-navy-300);
+  --pa-primary:       var(--pa-navy-400);
+  --pa-primary-text:  var(--pa-navy-950);
+  --pa-accent:        var(--pa-coral-500);
+  --pa-accent-text:   var(--pa-ink-900);
+  --pa-link:          var(--pa-coral-400);
+  --pa-focus:         var(--pa-coral-500);
+  --pa-success:       #4FC392;
+  --pa-success-bg:    rgba(79, 195, 146, .16);
+  --pa-warning:       #E8B44A;
+  --pa-warning-bg:    rgba(232, 180, 74, .16);
+  --pa-danger:        #F0736B;
+  --pa-danger-bg:     rgba(240, 115, 107, .16);
+}

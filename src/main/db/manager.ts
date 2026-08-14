@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import type { ConnectionConfig, QueryResult, SchemaInfo } from '@shared/types'
 import type { Driver, QueryParams } from './drivers/types'
 import { createSqliteDriver } from './drivers/sqlite'

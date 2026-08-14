@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { create } from 'zustand'
 import type { ThemeMode } from '../lib/chartTheme'
 
@@ -10,7 +15,7 @@ interface Persisted {
   previewLimit: number
 }
 
-const DEFAULTS: Persisted = { theme: 'dark', palette: 'default', previewLimit: 0 }
+const DEFAULTS: Persisted = { theme: 'dark', palette: 'paperaxis', previewLimit: 0 }
 
 function load(): Persisted {
   try {

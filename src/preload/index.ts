@@ -1,6 +1,12 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { contextBridge, ipcRenderer } from 'electron'
 import { CH } from '@shared/channels'
 import type {
+  AppInfo,
   ConnectionConfig,
   Dashboard,
   IpcResult,
@@ -12,6 +18,16 @@ import type {
 } from '@shared/types'
 
 const api = {
+  app: {
+    /** Ürün künyesi (ad, sürüm, taşınabilirlik) — Hakkında ekranı buradan okur. */
+    info: (): Promise<IpcResult<AppInfo>> => ipcRenderer.invoke(CH.appInfo),
+    /** Menüdeki "Hakkında" tıklandığında tetiklenir; aboneliği kaldıran işlev döner. */
+    onShowAbout: (handler: () => void): (() => void) => {
+      const listener = (): void => handler()
+      ipcRenderer.on(CH.appShowAbout, listener)
+      return () => ipcRenderer.removeListener(CH.appShowAbout, listener)
+    }
+  },
   connection: {
     test: (config: ConnectionConfig): Promise<IpcResult<true>> =>
       ipcRenderer.invoke(CH.connTest, config),

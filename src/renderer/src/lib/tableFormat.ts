@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 // Tablo hücreleri için saf biçimlendirme ve koşullu renklendirme yardımcıları.
 import type { ColumnFormat, ConditionalRule } from '@shared/types'
 import { cellToText, toFiniteNumber } from './tableView'

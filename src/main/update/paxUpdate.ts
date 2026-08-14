@@ -1,9 +1,15 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { app, dialog, shell } from 'electron'
 import https from 'https'
 import { createWriteStream } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import { isNewerVersion } from './semver'
+import { isPortable } from '../portable'
 
 /**
  * PaperAxis indirme servisi üzerinden otomatik güncelleme.
@@ -116,6 +122,22 @@ export async function checkForUpdates(silent = true): Promise<void> {
           detail: 'En son sürümü kullanıyorsunuz.'
         })
       }
+      return
+    }
+
+    // Taşınabilir kopyada kurulum sihirbazı çalıştırılmaz — kullanıcı exe'yi
+    // kendisi değiştirir. Sadece haber verilir.
+    if (isPortable()) {
+      await dialog.showMessageBox({
+        type: 'info',
+        buttons: ['Tamam'],
+        title: 'Güncelleme var',
+        message: `PaperAnalysis ${remote} yayınlandı (bu kopya: ${current}).`,
+        detail:
+          'Taşınabilir sürüm kendini güncellemez. Yeni sürümü indirip bu dosyanın ' +
+          'yerine koymanız yeterli; verileriniz exe’nin yanındaki PaperAnalysis-Data ' +
+          'klasöründe kalır.'
+      })
       return
     }
 

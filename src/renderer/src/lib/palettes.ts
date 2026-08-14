@@ -1,6 +1,12 @@
-// Erişilebilir kategorik grafik paletleri. Renkler dataviz becerisinin
-// doğrulanmış referans paletinden alınmış ve uygulamanın koyu (#252731) ve
-// açık yüzeylerine karşı validate edilmiştir (CVD/kontrast).
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
+// Erişilebilir kategorik grafik paletleri. Varsayılan palet PaperAxis kurumsal
+// grafik setidir (bkz. styles/tokens.css → --pa-chart-*). Diğer paletler dataviz
+// becerisinin doğrulanmış referans paletinden gelir ve uygulamanın koyu/açık
+// yüzeylerine karşı validate edilmiştir (CVD/kontrast).
 
 export interface Palette {
   name: string
@@ -11,10 +17,21 @@ export interface Palette {
   light: string[]
 }
 
+/** Kurumsal grafik seti — lacivert/mercan ailesiyle uyumlu altı seri rengi. */
+const PA_CHART = ['#E0552A', '#3C7DBB', '#1E9578', '#B87D12', '#7E63C9', '#2E9BB3']
+
 export const PALETTES: Palette[] = [
   {
+    name: 'paperaxis',
+    label: 'PaperAxis',
+    // Kurumsal set hem navy-800 hem paper-50 zeminde 3:1 üzerinde okunur;
+    // bu yüzden iki temada da aynı diziyle kullanılır.
+    dark: PA_CHART,
+    light: PA_CHART
+  },
+  {
     name: 'default',
-    label: 'Varsayılan',
+    label: 'Klasik',
     dark: ['#3987e5', '#199e70', '#c98500', '#008300', '#9085e9', '#e66767', '#d55181', '#d95926'],
     light: ['#2a78d6', '#1baf7a', '#eda100', '#008300', '#4a3aa7', '#e34948', '#e87ba4', '#eb6834']
   },
@@ -32,7 +49,7 @@ export const PALETTES: Palette[] = [
   }
 ]
 
-/** Ada göre palet döndürür; bilinmeyen ada varsayılan paleti verir. */
+/** Ada göre palet döndürür; bilinmeyen ada kurumsal paleti verir. */
 export function getPalette(name: string): Palette {
   return PALETTES.find((p) => p.name === name) ?? PALETTES[0]
 }

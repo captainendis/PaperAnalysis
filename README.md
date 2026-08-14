@@ -1,9 +1,9 @@
 # PaperAnalysis
 
 SQL sunucularından veri çekip grafikleştiren, sürükle-bırak panolar oluşturmanıza
-olanak tanıyan **masaüstü** veri analiz aracı.
+olanak tanıyan masaüstü veri analiz aracı.
 
-Electron + React + TypeScript ile geliştirilmiştir.
+Bir **PaperAxis** ürünüdür. · [paperaxis.com](https://paperaxis.com)
 
 ## Özellikler
 
@@ -79,14 +79,15 @@ Electron + React + TypeScript ile geliştirilmiştir.
   (aydınlık/koyu) ve **kendi grafik paletini** taşıyabilir — araç çubuğundaki ☀️/🌙
   ve 🎨 seçiciler aktif panoyu değiştirir. Seçimler **pano ile birlikte kaydedilir**
   (`.pbdash`) ve **LAN yayınına** da yansır; farklı panolar farklı görünebilir.
-  Ayrıca **her grafik kartına özel tema & renk**: bir kartın *Düzenle* panelindeki
-  **Görünüm** bölümünden o karta özel tema (aydınlık/koyu) ve palet seçilebilir;
-  boş bırakılırsa pano (yoksa uygulama) ayarı kullanılır. Böylece aynı panoda kartlar
-  ayrı ayrı kişiselleştirilebilir. Paletler erişilebilir (CVD-güvenli) seçeneklerdir.
-  Ayrıca **kart stili**: her kartın **köşe yumuşaklığı** (sert↔yuvarlak), **arka planı**
-  (düz renk ya da açılı **gradient**), **kenarlığı** (yok/düz/kesikli + renk/kalınlık)
-  ve **gölgesi** (yok/hafif/orta/güçlü) *Görünüm → Kart Stili*'nden düzenlenebilir;
-  panoda ve LAN yayınında birebir yansır
+  Varsayılan palet **PaperAxis** kurumsal grafik setidir; önceki palet "Klasik"
+  adıyla korunur. Ayrıca **her grafik kartına özel tema & renk**: bir kartın
+  *Düzenle* panelindeki **Görünüm** bölümünden o karta özel tema (aydınlık/koyu) ve
+  palet seçilebilir; boş bırakılırsa pano (yoksa uygulama) ayarı kullanılır. Böylece
+  aynı panoda kartlar ayrı ayrı kişiselleştirilebilir. Paletler erişilebilir
+  (CVD-güvenli) seçeneklerdir. Ayrıca **kart stili**: her kartın **köşe yumuşaklığı**
+  (sert↔yuvarlak), **arka planı** (düz renk ya da açılı **gradient**), **kenarlığı**
+  (yok/düz/kesikli + renk/kalınlık) ve **gölgesi** (yok/hafif/orta/güçlü)
+  *Görünüm → Kart Stili*'nden düzenlenebilir; panoda ve LAN yayınında birebir yansır
 - **Sorgu geçmişi & kayıtlı sorgular:** Çalıştırılan sorguların geçmişi + adlandırılmış
   kayıtlı sorgular (yerel olarak saklanır, yeniden yükleme)
 - **Zamanlanmış rapor:** Panoyu belirli aralıklarla (15 dk – 24 s) otomatik olarak
@@ -99,7 +100,7 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **LAN'da yayınlama:** Panoyu yerel ağda `http://<ip>:<port>` adresinden anlık
   görüntü olarak yayınlama — aynı ağdaki cihazlar tarayıcıyla görür (kimlik bilgisi
   paylaşılmaz; sadece hazır sayfa sunulur). Yayın, **panonun göründüğü düzeni**
-  (kartların 12 sütunlu ızgaradaki konum/boyutları) birebir yansıtır. Yayınlanan
+  (kartların 12 sütunlu ızgaradaki konum/boyutlarını) birebir yansıtır. Yayınlanan
   **tablolar etkileşimlidir**: her tabloda **canlı arama** (satırları anında süzer,
   sonuç sayacı gösterir) ve **başlığa tıklayarak sıralama** (sayı-duyarlı, Türkçe)
   vardır — tümü tarayıcıda, sunucuya sorgu atmadan çalışır. Tablonun **tüm satırları**
@@ -107,25 +108,32 @@ Electron + React + TypeScript ile geliştirilmiştir.
 - **Kaydetme / paylaşma:** Panoyu `.pbdash` (JSON) dosyası olarak kaydetme/açma
 - **Güvenli kimlik bilgisi:** Parolalar Electron `safeStorage` (OS keychain) ile şifrelenir;
   paylaşılan pano dosyalarına parola **yazılmaz**.
+- **Taşınabilir sürüm:** Kurulum gerektirmeyen tek dosya `.exe`; ayarlar ve
+  bağlantılar exe'nin yanındaki klasörde tutulur (aşağıya bakın).
 
-## Mimari
+## Gereksinimler
 
-```
-src/
-  main/        Electron main süreci — DB sürücüleri, IPC, dosya/kimlik bilgisi
-    db/drivers/  mssql · postgres · mysql · sqlite (ortak Driver arayüzü)
-    db/manager.ts  bağlantı havuzu kayıt defteri
-    ipc/         connections · query · storage kanalları
-    secure/      safeStorage ile şifreli kimlik bilgisi deposu
-  preload/     contextBridge güvenli IPC API'si (window.api.*)
-  renderer/    React arayüzü (bağlantı paneli, sorgu/grafik editörü, pano tuvali)
-  shared/      main ve renderer arasında ortak tipler ve kanal adları
-```
+- Windows 10/11 (kurulum veya taşınabilir sürüm) — macOS ve Linux paketleri de üretilebilir
+- Geliştirme için: Node.js 20+ ve npm
 
-Veritabanı sürücüleri yalnızca main süreçte çalışır; renderer onlara yalnızca
-IPC üzerinden erişir (`contextIsolation: true`, `nodeIntegration: false`).
+## Kurulum
 
-## Kurulum ve Çalıştırma
+**Kullanıcı olarak (Windows):** iki dağıtım biçiminden birini seçin.
+
+| Biçim | Dosya | Ne zaman |
+|---|---|---|
+| Kurulum | `PaperAnalysis-Setup-<sürüm>.exe` | Bilgisayara kurmak, kısayol ve otomatik güncelleme istemek |
+| Taşınabilir | `PaperAnalysis-Portable-<sürüm>.exe` | Kurmadan çalıştırmak, USB bellekte taşımak, kısıtlı hesapta kullanmak |
+
+Taşınabilir sürümde ayarlar, bağlantılar ve sorgu geçmişi exe'nin yanındaki
+`PaperAnalysis-Data` klasörüne yazılır; bilgisayarın AppData dizinine dokunulmaz.
+Klasörü exe ile birlikte taşıdığınızda yapılandırmanız da sizinle gelir. Salt
+okunur bir medyadan çalıştırılırsa uygulama varsayılan (sistem) veri yoluna düşer.
+
+> Not: İkili kod imzalanmaz. İlk çalıştırmada Windows SmartScreen uyarı gösterebilir;
+> “Yine de çalıştır” ile devam edilir.
+
+**Geliştirici olarak:**
 
 ```bash
 npm install            # bağımlılıkları kur (Electron ikilisini de indirir)
@@ -136,36 +144,76 @@ npm run dev            # geliştirme modunda uygulamayı başlat
 > Not: `better-sqlite3` ve `mssql` gibi native modüller Electron ile çalışmak için
 > `npm run rebuild` (electron-rebuild) gerektirir.
 
-### Üretim paketi
+## Yapılandırma
+
+| Değişken | Açıklama | Varsayılan |
+|---|---|---|
+| `PORTABLE_EXECUTABLE_DIR` | electron-builder'ın taşınabilir derlemede otomatik verdiği exe dizini; veri klasörü buraya açılır | (kurulu sürümde tanımsız) |
+| `ELECTRON_RENDERER_URL` | Geliştirmede arayüzün yükleneceği adres (electron-vite tarafından ayarlanır) | (üretimde tanımsız) |
+
+Veritabanı bağlantıları uygulama içinden tanımlanır; parolalar OS keychain ile
+şifrelenip `connections.json` içinde saklanır.
+
+## Geliştirme
 
 ```bash
 npm run build          # main/preload/renderer paketlerini derle (out/)
-npm run package        # electron-builder ile kurulabilir paket üret (release/)
-npm run package:win    # yalnızca Windows NSIS kurulumu (.exe) — Windows'ta çalıştırın
+npm test               # Vitest birim/entegrasyon testleri
+npm run typecheck      # main ve renderer için TypeScript tip kontrolü
+npm run make-icon      # scripts/make-icon.mjs → build/icon.png (1024×1024)
 ```
 
-### Windows kurulumu (.exe) oluşturma — GitHub Actions
+Paketleme:
 
-Windows kurulum dosyası `.github/workflows/build.yml` iş akışıyla otomatik üretilir
+```bash
+npm run package          # geçerli platform için paket üret (release/)
+npm run package:win      # Windows: kurulum (NSIS) + taşınabilir exe
+npm run package:portable # yalnızca taşınabilir exe
+```
+
+Dal düzeni: `main` + `feature/<konu>`, birleştirme PR ile.
+Kod ve commit mesajları İngilizce, dokümanlar Türkçe.
+
+### Mimari
+
+```
+src/
+  main/        Electron main süreci — DB sürücüleri, IPC, dosya/kimlik bilgisi
+    db/drivers/  mssql · postgres · mysql · sqlite (ortak Driver arayüzü)
+    db/manager.ts  bağlantı havuzu kayıt defteri
+    ipc/         app · connections · query · storage · report · publish kanalları
+    secure/      safeStorage ile şifreli kimlik bilgisi deposu
+    portable.ts  taşınabilir kopyada veri yollarını exe'nin yanına alır
+    menu.ts      Türkçe uygulama menüsü (Yardım → Hakkında)
+  preload/     contextBridge güvenli IPC API'si (window.api.*)
+  renderer/    React arayüzü (bağlantı paneli, sorgu/grafik editörü, pano tuvali)
+    styles/tokens.css  PaperAxis renk tokenları — arayüzdeki her renk buradan türer
+  shared/      main ve renderer arasında ortak tipler, kanal adları ve marka künyesi
+```
+
+Veritabanı sürücüleri yalnızca main süreçte çalışır; renderer onlara yalnızca
+IPC üzerinden erişir (`contextIsolation: true`, `nodeIntegration: false`).
+
+### Windows paketlerini CI ile üretme
+
+Windows dosyaları `.github/workflows/build.yml` iş akışıyla otomatik üretilir
 (Windows'a özgü paketleme Linux/macOS'ta yapılamaz; CI `windows-latest` runner'ında
 derler). İki şekilde tetiklenir:
 
 - **Sürüm etiketi:** `v` ile başlayan bir etiket gönderin:
   ```bash
-  git tag v0.2.36 && git push origin v0.2.36
+  git tag v0.3.0 && git push origin v0.3.0
   ```
-  İş akışı çalışır, `PaperAnalysis-Setup-0.2.36.exe` üretir ve bir **GitHub Release**'e ekler.
+  İş akışı çalışır, `PaperAnalysis-Setup-0.3.0.exe` ve
+  `PaperAnalysis-Portable-0.3.0.exe` üretir ve bir **GitHub Release**'e ekler.
 - **Elle:** GitHub → **Actions → Windows Kurulumu Oluştur → Run workflow**.
 
-Her iki durumda `.exe`, çalıştırma sayfasındaki **Artifacts → windows-installer**
-altından da indirilebilir.
-
-> Not: İkili kod imzalanmaz. İlk çalıştırmada Windows SmartScreen uyarı gösterebilir;
-> “Yine de çalıştır” ile devam edilir.
+Her iki durumda dosyalar, çalıştırma sayfasındaki **Artifacts → windows-installer**
+ve **windows-portable** altından da indirilebilir.
 
 ### Otomatik güncelleme (auto-update)
 
-Uygulama, açılışta ve saatlik olarak **PaperAxis indirme servisini** denetler:
+Kurulu sürüm, açılışta ve saatlik olarak **PaperAxis indirme servisini** denetler:
 
 - Sürüm bilgisi: `GET https://download.paperaxis.com/api/version/paperanalysis`
   → `{ version, fileName, … }`
@@ -176,29 +224,13 @@ Uzak sürüm yüklü sürümden **yeni** ise (sayısal semver karşılaştırmas
 sorulur; onaylanırsa kurulum indirilir ve **kurulum sihirbazı başlatılır** — eskiyi
 elle silmeye gerek yoktur.
 
+- **Taşınabilir sürüm kendini güncellemez:** yeni sürüm bulunduğunda yalnızca
+  bilgilendirir; kullanıcı exe'yi değiştirir, veri klasörü yerinde kalır.
 - API anahtarları **derlemeye gömülüdür** (`src/main/update/paxUpdate.ts`); her sürüm
   otomatik olarak anahtarları içerir. Anahtar hem `Authorization: Bearer` hem de
   `x-api-key` başlığıyla gönderilir.
 - Sürüm karşılaştırma mantığı `src/main/update/semver.ts` içinde (birim test edilir).
 - Otomatik güncelleme yalnızca **paketlenmiş** uygulamada çalışır (geliştirmede değil).
-- Bu sürümü (veya sonrasını) bir kez kurduktan sonra, gelecek sürümler bu servisten
-  gelir.
-
-### Uygulama ikonu
-
-`build/icon.png`, bağımlılıksız üreteçle oluşturulur:
-
-```bash
-npm run make-icon      # scripts/make-icon.mjs → build/icon.png (1024×1024)
-```
-
-### Test ve tip kontrolü
-
-```bash
-npm test               # Vitest birim/entegrasyon testleri (chartSpec + SQLite veri yolu)
-npm run typecheck      # main ve renderer için TypeScript tip kontrolü
-```
-
 
 ## Kullanım
 
@@ -209,6 +241,9 @@ npm run typecheck      # main ve renderer için TypeScript tip kontrolü
 4. Sağ panelden grafik türü, kategori (X), ölçü (Y) ve agregasyonu seçin, önizleyin.
 5. **Panoya Kaydet** ile grafiği panoya ekleyin; kartı sürükleyip boyutlandırın.
 6. Üst çubuktan panoyu **Kaydet** / **Aç**; kart üzerindeki ⤓ ile grafiği PNG dışa aktarın.
+
+Sürüm ve künye bilgisi için araç çubuğundaki ürün adına, alt bilgideki telif
+satırına ya da **Yardım → PaperAnalysis Hakkında** menüsüne tıklayın.
 
 ### Örnek sorgu
 
@@ -292,3 +327,15 @@ aynı ağdaki başka bir cihazın tarayıcısında bu adresi açan herkes panoyu
 - **Güvenlik:** Sunucu yalnızca hazır HTML sunar; veritabanı bağlantınız/kimlik
   bilgileriniz ağa açılmaz. Kimlik doğrulama yoktur — yalnızca güvendiğiniz yerel
   ağda kullanın. Windows ilk yayında güvenlik duvarı izni isteyebilir.
+
+## Sürüm
+
+Güncel sürüm: **0.3.0** — değişiklikler için [CHANGELOG.md](CHANGELOG.md).
+
+## İletişim
+
+info@paperaxis.com
+
+## Lisans
+
+Kapalı kaynak. © 2026 PaperAxis. Tüm hakları saklıdır. Ayrıntılar için [LICENSE](LICENSE).

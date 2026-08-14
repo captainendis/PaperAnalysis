@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import mysql from 'mysql2/promise'
 import type { ConnectionConfig, SchemaInfo } from '@shared/types'
 import { buildResult, type Driver } from './types'

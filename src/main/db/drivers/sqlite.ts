@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import Database from 'better-sqlite3'
 import type { ConnectionConfig, SchemaInfo } from '@shared/types'
 import { buildResult, type Driver } from './types'

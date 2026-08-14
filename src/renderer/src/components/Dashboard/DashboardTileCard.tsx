@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 PaperAxis. All rights reserved.
+ * This file is part of PaperAnalysis. Unauthorized copying, modification
+ * or distribution of this file is strictly prohibited.
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type ReactECharts from 'echarts-for-react'
 import type { DashboardTile, QueryResult } from '@shared/types'
